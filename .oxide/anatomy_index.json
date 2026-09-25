@@ -2,791 +2,809 @@
   "project_name": "Oxide-mesh-net",
   "root_path": "/home/jrad/RustroverProjects/Oxide-mesh-net",
   "files": {
-    "crates/oxide-tun/src/platform.rs": {
-      "relative_path": "crates/oxide-tun/src/platform.rs",
-      "language": "rust",
-      "size_bytes": 6114,
-      "line_count": 213,
-      "content_hash": "1ea62084a2242d0b6ed8215daa5b51ff8b7a232ddf030c7d740bf66b217639b4",
+    "crates/oxide-tun/Cargo.toml": {
+      "relative_path": "crates/oxide-tun/Cargo.toml",
+      "language": "toml",
+      "size_bytes": 1255,
+      "line_count": 39,
+      "content_hash": "4f8701f8bc85cc3e425bff26d794739d46f5115bd3027d0beb2d5c711e05e609",
       "symbols": [
         {
-          "name": "TunDevice",
-          "qualified_name": "TunDevice",
-          "kind": "trait",
+          "name": "package",
+          "qualified_name": "[package]",
+          "kind": "module",
+          "start_line": 1,
+          "end_line": 1,
+          "signature": "[package]"
+        },
+        {
+          "name": "dependencies",
+          "qualified_name": "[dependencies]",
+          "kind": "module",
           "start_line": 10,
-          "end_line": 40,
-          "signature": "pub trait TunDevice: Send + Sync {"
+          "end_line": 10,
+          "signature": "[dependencies]"
         },
         {
-          "name": "TunQueue",
-          "qualified_name": "TunQueue",
-          "kind": "trait",
-          "start_line": 43,
-          "end_line": 55,
-          "signature": "pub trait TunQueue: AsyncRead + AsyncWrite + Send + Unpin {"
-        },
+          "name": "dev-dependencies",
+          "qualified_name": "[dev-dependencies]",
+          "kind": "module",
+          "start_line": 37,
+          "end_line": 37,
+          "signature": "[dev-dependencies]"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.290924594Z"
+    },
+    "crates/oxide-tun/src/platform/windows.rs": {
+      "relative_path": "crates/oxide-tun/src/platform/windows.rs",
+      "language": "rust",
+      "size_bytes": 3591,
+      "line_count": 135,
+      "content_hash": "bb8075330d69ded3dd440dae41ffaf0fdca6563ec43a950b39e9b0816aa6fb4a",
+      "symbols": [
         {
-          "name": "QueueStats",
-          "qualified_name": "QueueStats",
+          "name": "WindowsTunDevice",
+          "qualified_name": "WindowsTunDevice",
           "kind": "struct",
-          "start_line": 59,
-          "end_line": 66,
-          "signature": "pub struct QueueStats {"
-        },
-        {
-          "name": "create_tun",
-          "qualified_name": "create_tun",
-          "kind": "function",
-          "start_line": 69,
-          "end_line": 86,
-          "signature": "pub fn create_tun(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
-        },
-        {
-          "name": "AsyncFd",
-          "qualified_name": "AsyncFd",
-          "kind": "struct",
-          "start_line": 89,
-          "end_line": 93,
-          "signature": "pub struct AsyncFd {"
+          "start_line": 8,
+          "end_line": 13,
+          "signature": "pub struct WindowsTunDevice {"
         },
         {
           "name": "new",
-          "qualified_name": "impl AsyncFd::new",
+          "qualified_name": "impl WindowsTunDevice::new",
           "kind": "method",
-          "start_line": 96,
-          "end_line": 102,
-          "signature": "pub fn new(fd: RawFd, queue_id: usize) -> Self {"
-        },
-        {
-          "name": "poll_read",
-          "qualified_name": "impl AsyncRead for AsyncFd::poll_read",
-          "kind": "method",
-          "start_line": 106,
-          "end_line": 133,
-          "signature": "fn poll_read("
-        },
-        {
-          "name": "poll_write",
-          "qualified_name": "impl AsyncWrite for AsyncFd::poll_write",
-          "kind": "method",
-          "start_line": 137,
-          "end_line": 159,
-          "signature": "fn poll_write("
-        },
-        {
-          "name": "poll_flush",
-          "qualified_name": "impl AsyncWrite for AsyncFd::poll_flush",
-          "kind": "method",
-          "start_line": 161,
-          "end_line": 163,
-          "signature": "fn poll_flush(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
-        },
-        {
-          "name": "poll_shutdown",
-          "qualified_name": "impl AsyncWrite for AsyncFd::poll_shutdown",
-          "kind": "method",
-          "start_line": 165,
-          "end_line": 167,
-          "signature": "fn poll_shutdown(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
-        },
-        {
-          "name": "queue_id",
-          "qualified_name": "impl TunQueue for AsyncFd::queue_id",
-          "kind": "method",
-          "start_line": 171,
-          "end_line": 173,
-          "signature": "fn queue_id(&self) -> usize {"
-        },
-        {
-          "name": "as_raw_fd",
-          "qualified_name": "impl TunQueue for AsyncFd::as_raw_fd",
-          "kind": "method",
-          "start_line": 175,
-          "end_line": 177,
-          "signature": "fn as_raw_fd(&self) -> RawFd {"
-        },
-        {
-          "name": "set_nonblocking",
-          "qualified_name": "impl TunQueue for AsyncFd::set_nonblocking",
-          "kind": "method",
-          "start_line": 179,
-          "end_line": 198,
-          "signature": "fn set_nonblocking(&self, nonblocking: bool) -> Result<()> {"
-        },
-        {
-          "name": "stats",
-          "qualified_name": "impl TunQueue for AsyncFd::stats",
-          "kind": "method",
-          "start_line": 200,
-          "end_line": 202,
-          "signature": "fn stats(&self) -> QueueStats {"
-        },
-        {
-          "name": "linux",
-          "qualified_name": "linux",
-          "kind": "module",
-          "start_line": 207,
-          "end_line": 207,
-          "signature": "pub mod linux;"
-        },
-        {
-          "name": "windows",
-          "qualified_name": "windows",
-          "kind": "module",
-          "start_line": 210,
-          "end_line": 210,
-          "signature": "pub mod windows;"
-        },
-        {
-          "name": "macos",
-          "qualified_name": "macos",
-          "kind": "module",
-          "start_line": 213,
-          "end_line": 213,
-          "signature": "pub mod macos;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.836205780Z"
-    },
-    "crates/oxide-crypto/src/handshake.rs": {
-      "relative_path": "crates/oxide-crypto/src/handshake.rs",
-      "language": "rust",
-      "size_bytes": 7472,
-      "line_count": 230,
-      "content_hash": "0c52d363334b451028e8f23e9a8c0f2fedfbbc7454bd45bdc57a0fd5a5777950",
-      "symbols": [
-        {
-          "name": "HANDSHAKE_NAME",
-          "qualified_name": "HANDSHAKE_NAME",
-          "kind": "constant",
-          "start_line": 18,
-          "end_line": 18,
-          "signature": "pub const HANDSHAKE_NAME: &[u8] = b\"Noise_NK_25519_ChaChaPoly_BLAKE3\";"
-        },
-        {
-          "name": "HandshakeState",
-          "qualified_name": "HandshakeState",
-          "kind": "struct",
-          "start_line": 22,
-          "end_line": 39,
-          "signature": "pub struct HandshakeState {"
-        },
-        {
-          "name": "initiator",
-          "qualified_name": "impl HandshakeState::initiator",
-          "kind": "method",
-          "start_line": 43,
-          "end_line": 91,
-          "signature": "pub fn initiator("
-        },
-        {
-          "name": "responder",
-          "qualified_name": "impl HandshakeState::responder",
-          "kind": "method",
-          "start_line": 94,
-          "end_line": 115,
-          "signature": "pub fn responder("
-        },
-        {
-          "name": "read_message_1",
-          "qualified_name": "impl HandshakeState::read_message_1",
-          "kind": "method",
-          "start_line": 118,
-          "end_line": 137,
-          "signature": "pub fn read_message_1(&mut self, msg: &[u8]) -> Result<()> {"
-        },
-        {
-          "name": "split",
-          "qualified_name": "impl HandshakeState::split",
-          "kind": "method",
-          "start_line": 140,
-          "end_line": 146,
-          "signature": "pub fn split(self) -> Result<TransportKeys> {"
-        },
-        {
-          "name": "handshake_hash",
-          "qualified_name": "impl HandshakeState::handshake_hash",
-          "kind": "method",
-          "start_line": 149,
-          "end_line": 151,
-          "signature": "pub fn handshake_hash(&self) -> [u8; 32] {"
-        },
-        {
-          "name": "TransportKeys",
-          "qualified_name": "TransportKeys",
-          "kind": "struct",
-          "start_line": 156,
-          "end_line": 161,
-          "signature": "pub struct TransportKeys {"
-        },
-        {
-          "name": "encrypt",
-          "qualified_name": "impl TransportKeys::encrypt",
-          "kind": "method",
-          "start_line": 164,
-          "end_line": 168,
-          "signature": "pub fn encrypt(&mut self, plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
-        },
-        {
-          "name": "decrypt",
-          "qualified_name": "impl TransportKeys::decrypt",
-          "kind": "method",
-          "start_line": 170,
-          "end_line": 174,
-          "signature": "pub fn decrypt(&mut self, ciphertext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
-        },
-        {
-          "name": "mix_hash",
-          "qualified_name": "mix_hash",
-          "kind": "function",
-          "start_line": 178,
-          "end_line": 183,
-          "signature": "fn mix_hash(h: &mut [u8; 32], data: &[u8]) {"
-        },
-        {
-          "name": "hkdf2",
-          "qualified_name": "hkdf2",
-          "kind": "function",
-          "start_line": 186,
-          "end_line": 195,
-          "signature": "fn hkdf2(ck: &[u8; 32], input: &[u8]) -> ([u8; 32], [u8; 32]) {"
-        },
-        {
-          "name": "nonce_bytes",
-          "qualified_name": "nonce_bytes",
-          "kind": "function",
-          "start_line": 198,
-          "end_line": 202,
-          "signature": "fn nonce_bytes(n: u64) -> [u8; 12] {"
-        },
-        {
-          "name": "pqc",
-          "qualified_name": "pqc",
-          "kind": "module",
-          "start_line": 206,
-          "end_line": 230,
-          "signature": "pub mod pqc {"
-        },
-        {
-          "name": "HybridSharedSecret",
-          "qualified_name": "HybridSharedSecret",
-          "kind": "struct",
-          "start_line": 212,
-          "end_line": 215,
-          "signature": "pub struct HybridSharedSecret {"
-        },
-        {
-          "name": "derive_keys",
-          "qualified_name": "impl HybridSharedSecret::derive_keys",
-          "kind": "method",
-          "start_line": 218,
-          "end_line": 228,
-          "signature": "pub fn derive_keys(&self, salt: &[u8], info: &[u8], output_len: usize) -> Vec<u8> {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.827169177Z"
-    },
-    "crates/oxide-tun/src/platform/linux.rs": {
-      "relative_path": "crates/oxide-tun/src/platform/linux.rs",
-      "language": "rust",
-      "size_bytes": 13854,
-      "line_count": 445,
-      "content_hash": "28292c967d4da07069275be61ac24b71addf1f6cd9c32ca8e507cf255b19cd7a",
-      "symbols": [
-        {
-          "name": "TUNSETIFF",
-          "qualified_name": "TUNSETIFF",
-          "kind": "constant",
           "start_line": 16,
-          "end_line": 16,
-          "signature": "const TUNSETIFF: c_ulong = 0x400454ca;"
-        },
-        {
-          "name": "TUNSETOWNER",
-          "qualified_name": "TUNSETOWNER",
-          "kind": "constant",
-          "start_line": 17,
-          "end_line": 17,
-          "signature": "const TUNSETOWNER: c_ulong = 0x400454cc;"
-        },
-        {
-          "name": "TUNSETGROUP",
-          "qualified_name": "TUNSETGROUP",
-          "kind": "constant",
-          "start_line": 18,
-          "end_line": 18,
-          "signature": "const TUNSETGROUP: c_ulong = 0x400454ce;"
-        },
-        {
-          "name": "TUNSETOFFLOAD",
-          "qualified_name": "TUNSETOFFLOAD",
-          "kind": "constant",
-          "start_line": 19,
-          "end_line": 19,
-          "signature": "const TUNSETOFFLOAD: c_ulong = 0x400454d0;"
-        },
-        {
-          "name": "TUNSETQUEUE",
-          "qualified_name": "TUNSETQUEUE",
-          "kind": "constant",
-          "start_line": 20,
-          "end_line": 20,
-          "signature": "const TUNSETQUEUE: c_ulong = 0x400454d2;"
-        },
-        {
-          "name": "TUNGETQUEUE",
-          "qualified_name": "TUNGETQUEUE",
-          "kind": "constant",
-          "start_line": 21,
-          "end_line": 21,
-          "signature": "const TUNGETQUEUE: c_ulong = 0x400454d4;"
-        },
-        {
-          "name": "IFF_TUN",
-          "qualified_name": "IFF_TUN",
-          "kind": "constant",
-          "start_line": 23,
-          "end_line": 23,
-          "signature": "const IFF_TUN: c_short = 0x0001;"
-        },
-        {
-          "name": "IFF_TAP",
-          "qualified_name": "IFF_TAP",
-          "kind": "constant",
-          "start_line": 24,
-          "end_line": 24,
-          "signature": "const IFF_TAP: c_short = 0x0002;"
-        },
-        {
-          "name": "IFF_NO_PI",
-          "qualified_name": "IFF_NO_PI",
-          "kind": "constant",
-          "start_line": 25,
-          "end_line": 25,
-          "signature": "const IFF_NO_PI: c_short = 0x1000;"
-        },
-        {
-          "name": "IFF_ONE_QUEUE",
-          "qualified_name": "IFF_ONE_QUEUE",
-          "kind": "constant",
-          "start_line": 26,
-          "end_line": 26,
-          "signature": "const IFF_ONE_QUEUE: c_short = 0x2000;"
-        },
-        {
-          "name": "IFF_VNET_HDR",
-          "qualified_name": "IFF_VNET_HDR",
-          "kind": "constant",
-          "start_line": 27,
-          "end_line": 27,
-          "signature": "const IFF_VNET_HDR: c_short = 0x4000;"
-        },
-        {
-          "name": "IFF_MULTI_QUEUE",
-          "qualified_name": "IFF_MULTI_QUEUE",
-          "kind": "constant",
-          "start_line": 28,
-          "end_line": 28,
-          "signature": "const IFF_MULTI_QUEUE: c_short = 0x0100;"
-        },
-        {
-          "name": "TUN_OFFLOAD_TSO4",
-          "qualified_name": "TUN_OFFLOAD_TSO4",
-          "kind": "constant",
-          "start_line": 30,
-          "end_line": 30,
-          "signature": "const TUN_OFFLOAD_TSO4: c_ulong = 1 << 0;"
-        },
-        {
-          "name": "TUN_OFFLOAD_TSO6",
-          "qualified_name": "TUN_OFFLOAD_TSO6",
-          "kind": "constant",
-          "start_line": 31,
-          "end_line": 31,
-          "signature": "const TUN_OFFLOAD_TSO6: c_ulong = 1 << 1;"
-        },
-        {
-          "name": "TUN_OFFLOAD_UFO",
-          "qualified_name": "TUN_OFFLOAD_UFO",
-          "kind": "constant",
-          "start_line": 32,
-          "end_line": 32,
-          "signature": "const TUN_OFFLOAD_UFO: c_ulong = 1 << 2;"
-        },
-        {
-          "name": "TUN_OFFLOAD_GSO",
-          "qualified_name": "TUN_OFFLOAD_GSO",
-          "kind": "constant",
-          "start_line": 33,
           "end_line": 33,
-          "signature": "const TUN_OFFLOAD_GSO: c_ulong = 1 << 3;"
-        },
-        {
-          "name": "TUN_OFFLOAD_GRO",
-          "qualified_name": "TUN_OFFLOAD_GRO",
-          "kind": "constant",
-          "start_line": 34,
-          "end_line": 34,
-          "signature": "const TUN_OFFLOAD_GRO: c_ulong = 1 << 4;"
-        },
-        {
-          "name": "TUN_OFFLOAD_CSUM",
-          "qualified_name": "TUN_OFFLOAD_CSUM",
-          "kind": "constant",
-          "start_line": 35,
-          "end_line": 35,
-          "signature": "const TUN_OFFLOAD_CSUM: c_ulong = 1 << 5;"
-        },
-        {
-          "name": "IfReq",
-          "qualified_name": "IfReq",
-          "kind": "struct",
-          "start_line": 38,
-          "end_line": 41,
-          "signature": "struct IfReq {"
-        },
-        {
-          "name": "c_char",
-          "qualified_name": "c_char",
-          "kind": "type",
-          "start_line": 43,
-          "end_line": 43,
-          "signature": "type c_char = i8;"
-        },
-        {
-          "name": "LinuxTunDevice",
-          "qualified_name": "LinuxTunDevice",
-          "kind": "struct",
-          "start_line": 46,
-          "end_line": 51,
-          "signature": "pub struct LinuxTunDevice {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl LinuxTunDevice::new",
-          "kind": "method",
-          "start_line": 54,
-          "end_line": 84,
           "signature": "pub fn new(config: &TunConfig) -> Result<Self> {"
         },
         {
-          "name": "configure",
-          "qualified_name": "impl LinuxTunDevice::configure",
-          "kind": "method",
-          "start_line": 86,
-          "end_line": 121,
-          "signature": "fn configure(&self, config: &TunConfig) -> Result<()> {"
-        },
-        {
-          "name": "set_owner",
-          "qualified_name": "impl LinuxTunDevice::set_owner",
-          "kind": "method",
-          "start_line": 123,
-          "end_line": 129,
-          "signature": "fn set_owner(&self, uid: u32) -> Result<()> {"
-        },
-        {
-          "name": "set_group",
-          "qualified_name": "impl LinuxTunDevice::set_group",
-          "kind": "method",
-          "start_line": 131,
-          "end_line": 137,
-          "signature": "fn set_group(&self, gid: u32) -> Result<()> {"
-        },
-        {
           "name": "name",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::name",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::name",
           "kind": "method",
-          "start_line": 141,
-          "end_line": 143,
+          "start_line": 37,
+          "end_line": 39,
           "signature": "fn name(&self) -> &str {"
         },
         {
           "name": "num_queues",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::num_queues",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::num_queues",
           "kind": "method",
-          "start_line": 145,
-          "end_line": 147,
+          "start_line": 41,
+          "end_line": 43,
           "signature": "fn num_queues(&self) -> usize {"
         },
         {
           "name": "queue",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::queue",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::queue",
           "kind": "method",
-          "start_line": 149,
-          "end_line": 156,
+          "start_line": 45,
+          "end_line": 51,
           "signature": "fn queue(&self, index: usize) -> Option<Box<dyn TunQueue>> {"
         },
         {
           "name": "queues",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::queues",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::queues",
           "kind": "method",
-          "start_line": 158,
-          "end_line": 160,
+          "start_line": 53,
+          "end_line": 55,
           "signature": "fn queues(&self) -> Vec<Box<dyn TunQueue>> {"
         },
         {
           "name": "set_mtu",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::set_mtu",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::set_mtu",
           "kind": "method",
-          "start_line": 162,
-          "end_line": 180,
+          "start_line": 57,
+          "end_line": 60,
           "signature": "fn set_mtu(&self, mtu: u16) -> Result<()> {"
         },
         {
-          "name": "SIOCSIFMTU",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFMTU",
-          "kind": "constant",
-          "start_line": 174,
-          "end_line": 174,
-          "signature": "const SIOCSIFMTU: c_ulong = 0x8922;"
-        },
-        {
           "name": "set_up",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::set_up",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::set_up",
           "kind": "method",
-          "start_line": 182,
-          "end_line": 213,
+          "start_line": 62,
+          "end_line": 65,
           "signature": "fn set_up(&self, up: bool) -> Result<()> {"
         },
         {
-          "name": "SIOCGIFFLAGS",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCGIFFLAGS",
-          "kind": "constant",
-          "start_line": 192,
-          "end_line": 192,
-          "signature": "const SIOCGIFFLAGS: c_ulong = 0x8913;"
-        },
-        {
-          "name": "SIOCSIFFLAGS",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFFLAGS",
-          "kind": "constant",
-          "start_line": 193,
-          "end_line": 193,
-          "signature": "const SIOCSIFFLAGS: c_ulong = 0x8914;"
-        },
-        {
-          "name": "IFF_UP",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::IFF_UP",
-          "kind": "constant",
-          "start_line": 194,
-          "end_line": 194,
-          "signature": "const IFF_UP: c_short = 0x1;"
-        },
-        {
-          "name": "IFF_RUNNING",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::IFF_RUNNING",
-          "kind": "constant",
-          "start_line": 195,
-          "end_line": 195,
-          "signature": "const IFF_RUNNING: c_short = 0x40;"
-        },
-        {
           "name": "set_ipv4",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::set_ipv4",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::set_ipv4",
           "kind": "method",
-          "start_line": 215,
-          "end_line": 258,
+          "start_line": 67,
+          "end_line": 70,
           "signature": "fn set_ipv4(&self, addr: std::net::Ipv4Addr, prefix_len: u8) -> Result<()> {"
         },
         {
-          "name": "SIOCSIFADDR",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFADDR",
-          "kind": "constant",
-          "start_line": 225,
-          "end_line": 225,
-          "signature": "const SIOCSIFADDR: c_ulong = 0x8916;"
-        },
-        {
-          "name": "SIOCSIFNETMASK",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFNETMASK",
-          "kind": "constant",
-          "start_line": 226,
-          "end_line": 226,
-          "signature": "const SIOCSIFNETMASK: c_ulong = 0x891c;"
-        },
-        {
           "name": "set_ipv6",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::set_ipv6",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::set_ipv6",
           "kind": "method",
-          "start_line": 260,
-          "end_line": 264,
+          "start_line": 72,
+          "end_line": 74,
           "signature": "fn set_ipv6(&self, addr: std::net::Ipv6Addr, prefix_len: u8) -> Result<()> {"
         },
         {
           "name": "set_offload",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::set_offload",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::set_offload",
           "kind": "method",
-          "start_line": 266,
-          "end_line": 276,
+          "start_line": 76,
+          "end_line": 78,
           "signature": "fn set_offload(&self, enable: bool) -> Result<()> {"
         },
         {
           "name": "close",
-          "qualified_name": "impl TunDevice for LinuxTunDevice::close",
+          "qualified_name": "impl TunDevice for WindowsTunDevice::close",
           "kind": "method",
-          "start_line": 278,
-          "end_line": 281,
+          "start_line": 80,
+          "end_line": 82,
           "signature": "fn close(&self) -> Result<()> {"
         },
         {
-          "name": "LinuxTunQueue",
-          "qualified_name": "LinuxTunQueue",
+          "name": "WindowsTunQueue",
+          "qualified_name": "WindowsTunQueue",
           "kind": "struct",
-          "start_line": 286,
-          "end_line": 290,
-          "signature": "pub struct LinuxTunQueue {"
+          "start_line": 87,
+          "end_line": 90,
+          "signature": "pub struct WindowsTunQueue {"
         },
         {
           "name": "new",
-          "qualified_name": "impl LinuxTunQueue::new",
+          "qualified_name": "impl WindowsTunQueue::new",
           "kind": "method",
-          "start_line": 293,
-          "end_line": 309,
-          "signature": "pub fn new(fd: OwnedFd, queue_id: usize) -> Result<Self> {"
+          "start_line": 93,
+          "end_line": 98,
+          "signature": "pub fn new(session: wintun::Session) -> Result<Self> {"
         },
         {
           "name": "queue_id",
-          "qualified_name": "impl TunQueue for LinuxTunQueue::queue_id",
+          "qualified_name": "impl TunQueue for WindowsTunQueue::queue_id",
           "kind": "method",
-          "start_line": 313,
-          "end_line": 315,
+          "start_line": 102,
+          "end_line": 104,
           "signature": "fn queue_id(&self) -> usize {"
         },
         {
           "name": "as_raw_fd",
-          "qualified_name": "impl TunQueue for LinuxTunQueue::as_raw_fd",
+          "qualified_name": "impl TunQueue for WindowsTunQueue::as_raw_fd",
           "kind": "method",
-          "start_line": 317,
-          "end_line": 319,
+          "start_line": 106,
+          "end_line": 109,
           "signature": "fn as_raw_fd(&self) -> RawFd {"
         },
         {
           "name": "set_nonblocking",
-          "qualified_name": "impl TunQueue for LinuxTunQueue::set_nonblocking",
+          "qualified_name": "impl TunQueue for WindowsTunQueue::set_nonblocking",
           "kind": "method",
-          "start_line": 321,
-          "end_line": 332,
-          "signature": "fn set_nonblocking(&self, nonblocking: bool) -> Result<()> {"
+          "start_line": 111,
+          "end_line": 113,
+          "signature": "fn set_nonblocking(&self, _nonblocking: bool) -> Result<()> {"
         },
         {
           "name": "stats",
-          "qualified_name": "impl TunQueue for LinuxTunQueue::stats",
+          "qualified_name": "impl TunQueue for WindowsTunQueue::stats",
           "kind": "method",
-          "start_line": 334,
-          "end_line": 336,
+          "start_line": 115,
+          "end_line": 117,
           "signature": "fn stats(&self) -> QueueStats {"
         },
         {
-          "name": "poll_read",
-          "qualified_name": "impl AsyncRead for LinuxTunQueue::poll_read",
-          "kind": "method",
-          "start_line": 340,
-          "end_line": 366,
-          "signature": "fn poll_read("
+          "name": "Output",
+          "qualified_name": "impl std::future::Future for WindowsTunQueue::Output",
+          "kind": "type",
+          "start_line": 121,
+          "end_line": 121,
+          "signature": "type Output = io::Result<usize>;"
         },
         {
-          "name": "poll_write",
-          "qualified_name": "impl AsyncWrite for LinuxTunQueue::poll_write",
+          "name": "poll",
+          "qualified_name": "impl std::future::Future for WindowsTunQueue::poll",
           "kind": "method",
-          "start_line": 370,
-          "end_line": 392,
-          "signature": "fn poll_write("
+          "start_line": 123,
+          "end_line": 126,
+          "signature": "fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {"
         },
         {
-          "name": "poll_flush",
-          "qualified_name": "impl AsyncWrite for LinuxTunQueue::poll_flush",
-          "kind": "method",
-          "start_line": 394,
-          "end_line": 396,
-          "signature": "fn poll_flush(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
-        },
-        {
-          "name": "poll_shutdown",
-          "qualified_name": "impl AsyncWrite for LinuxTunQueue::poll_shutdown",
-          "kind": "method",
-          "start_line": 398,
-          "end_line": 400,
-          "signature": "fn poll_shutdown(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
-        },
-        {
-          "name": "create_tun_fd",
-          "qualified_name": "create_tun_fd",
+          "name": "create_tun_windows",
+          "qualified_name": "create_tun_windows",
           "kind": "function",
-          "start_line": 404,
-          "end_line": 439,
-          "signature": "fn create_tun_fd(name: &str, is_main: bool, multi_queue: bool) -> Result<OwnedFd> {"
-        },
-        {
-          "name": "create_tun_linux",
-          "qualified_name": "create_tun_linux",
-          "kind": "function",
-          "start_line": 442,
-          "end_line": 445,
-          "signature": "pub fn create_tun_linux(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
+          "start_line": 132,
+          "end_line": 135,
+          "signature": "pub fn create_tun_windows(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.838925903Z"
+      "last_scanned_at": "2026-09-25T20:27:30.288172414Z"
     },
-    "crates/oxide-transport/src/lib.rs": {
-      "relative_path": "crates/oxide-transport/src/lib.rs",
+    "crates/oxide-tun/src/config.rs": {
+      "relative_path": "crates/oxide-tun/src/config.rs",
       "language": "rust",
-      "size_bytes": 312,
-      "line_count": 9,
-      "content_hash": "d5d9efa55462b8f42d6e9e1c72b16bddfb79c27a0209ecb5ca72400c7f6bd47e",
+      "size_bytes": 3732,
+      "line_count": 141,
+      "content_hash": "ff2bad9b51a5c6c68fb79df25ac3891c985b6917f52a4de2d5ea28a2b1348fbe",
       "symbols": [
         {
-          "name": "config",
-          "qualified_name": "config",
-          "kind": "module",
-          "start_line": 3,
-          "end_line": 3,
-          "signature": "pub mod config;"
+          "name": "TunConfig",
+          "qualified_name": "TunConfig",
+          "kind": "struct",
+          "start_line": 9,
+          "end_line": 30,
+          "signature": "pub struct TunConfig {"
         },
         {
-          "name": "engine",
-          "qualified_name": "engine",
-          "kind": "module",
-          "start_line": 4,
-          "end_line": 4,
-          "signature": "pub mod engine;"
+          "name": "default",
+          "qualified_name": "impl Default for TunConfig::default",
+          "kind": "method",
+          "start_line": 33,
+          "end_line": 46,
+          "signature": "fn default() -> Self {"
         },
         {
-          "name": "error",
-          "qualified_name": "error",
-          "kind": "module",
-          "start_line": 5,
-          "end_line": 5,
-          "signature": "pub mod error;"
+          "name": "new",
+          "qualified_name": "impl TunConfig::new",
+          "kind": "method",
+          "start_line": 51,
+          "end_line": 56,
+          "signature": "pub fn new(name: impl Into<String>) -> Self {"
+        },
+        {
+          "name": "with_queues",
+          "qualified_name": "impl TunConfig::with_queues",
+          "kind": "method",
+          "start_line": 59,
+          "end_line": 65,
+          "signature": "pub fn with_queues(mut self, num_queues: usize) -> Result<Self> {"
+        },
+        {
+          "name": "with_mtu",
+          "qualified_name": "impl TunConfig::with_mtu",
+          "kind": "method",
+          "start_line": 68,
+          "end_line": 74,
+          "signature": "pub fn with_mtu(mut self, mtu: u16) -> Result<Self> {"
+        },
+        {
+          "name": "with_ipv4",
+          "qualified_name": "impl TunConfig::with_ipv4",
+          "kind": "method",
+          "start_line": 77,
+          "end_line": 83,
+          "signature": "pub fn with_ipv4(mut self, ipv4: IpNet) -> Result<Self> {"
+        },
+        {
+          "name": "with_ipv6",
+          "qualified_name": "impl TunConfig::with_ipv6",
+          "kind": "method",
+          "start_line": 86,
+          "end_line": 92,
+          "signature": "pub fn with_ipv6(mut self, ipv6: IpNet) -> Result<Self> {"
+        },
+        {
+          "name": "with_up",
+          "qualified_name": "impl TunConfig::with_up",
+          "kind": "method",
+          "start_line": 95,
+          "end_line": 98,
+          "signature": "pub fn with_up(mut self, up: bool) -> Self {"
+        },
+        {
+          "name": "with_offload",
+          "qualified_name": "impl TunConfig::with_offload",
+          "kind": "method",
+          "start_line": 101,
+          "end_line": 104,
+          "signature": "pub fn with_offload(mut self, offload: bool) -> Self {"
+        },
+        {
+          "name": "with_persistent",
+          "qualified_name": "impl TunConfig::with_persistent",
+          "kind": "method",
+          "start_line": 107,
+          "end_line": 110,
+          "signature": "pub fn with_persistent(mut self, persistent: bool) -> Self {"
+        },
+        {
+          "name": "with_owner",
+          "qualified_name": "impl TunConfig::with_owner",
+          "kind": "method",
+          "start_line": 113,
+          "end_line": 117,
+          "signature": "pub fn with_owner(mut self, uid: Option<u32>, gid: Option<u32>) -> Self {"
+        },
+        {
+          "name": "QueueConfig",
+          "qualified_name": "QueueConfig",
+          "kind": "struct",
+          "start_line": 122,
+          "end_line": 131,
+          "signature": "pub struct QueueConfig {"
+        },
+        {
+          "name": "RawFd",
+          "qualified_name": "RawFd",
+          "kind": "type",
+          "start_line": 135,
+          "end_line": 135,
+          "signature": "pub type RawFd = std::os::fd::RawFd;"
+        },
+        {
+          "name": "RawFd",
+          "qualified_name": "RawFd",
+          "kind": "type",
+          "start_line": 138,
+          "end_line": 138,
+          "signature": "pub type RawFd = std::os::windows::io::RawHandle;"
+        },
+        {
+          "name": "RawFd",
+          "qualified_name": "RawFd",
+          "kind": "type",
+          "start_line": 141,
+          "end_line": 141,
+          "signature": "pub type RawFd = std::os::fd::RawFd;"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.839862690Z"
+      "last_scanned_at": "2026-09-25T20:27:30.287710551Z"
     },
-    "crates/oxide-transport/src/error.rs": {
-      "relative_path": "crates/oxide-transport/src/error.rs",
+    ".idea/ShadcnHelperSettings.xml": {
+      "relative_path": ".idea/ShadcnHelperSettings.xml",
+      "language": "xml",
+      "size_bytes": 1222,
+      "line_count": 27,
+      "content_hash": "9aac352a9f44778634f4b4ab1f6271b9759b849fc188d4959eb40dfcd62576a0",
+      "symbols": [],
+      "last_scanned_at": "2026-09-25T20:27:30.293617410Z"
+    },
+    ".idea/vcs.xml": {
+      "relative_path": ".idea/vcs.xml",
+      "language": "xml",
+      "size_bytes": 167,
+      "line_count": 6,
+      "content_hash": "6323e12648862a0a96fc0d7877672817d6cd91e2c2a3c3d78f1090db23c6e88e",
+      "symbols": [],
+      "last_scanned_at": "2026-09-25T20:27:30.293628095Z"
+    },
+    "crates/oxide-crypto/src/error.rs": {
+      "relative_path": "crates/oxide-crypto/src/error.rs",
       "language": "rust",
-      "size_bytes": 921,
-      "line_count": 44,
-      "content_hash": "d1b22b64a682cf3d1f9d4e35659e0bd7a6ebbb70b106f8f40780717110193a4e",
+      "size_bytes": 920,
+      "line_count": 41,
+      "content_hash": "08482879115c6e89680926ec535b8a39a948639638159517f94772d65ede26c8",
       "symbols": [
         {
-          "name": "TransportError",
-          "qualified_name": "TransportError",
+          "name": "CryptoError",
+          "qualified_name": "CryptoError",
           "kind": "enum",
           "start_line": 6,
-          "end_line": 42,
-          "signature": "pub enum TransportError {"
+          "end_line": 39,
+          "signature": "pub enum CryptoError {"
         },
         {
           "name": "Result",
           "qualified_name": "Result",
           "kind": "type",
-          "start_line": 44,
-          "end_line": 44,
-          "signature": "pub type Result<T> = std::result::Result<T, TransportError>;"
+          "start_line": 41,
+          "end_line": 41,
+          "signature": "pub type Result<T> = std::result::Result<T, CryptoError>;"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.840399353Z"
+      "last_scanned_at": "2026-09-25T20:27:30.277637427Z"
+    },
+    "crates/oxide-coordinator/src/storage.rs": {
+      "relative_path": "crates/oxide-coordinator/src/storage.rs",
+      "language": "rust",
+      "size_bytes": 13082,
+      "line_count": 344,
+      "content_hash": "d4f79577e194f2dc61896fe2590cd75920e0c513db3511bc6f023c5ea88f9bcd",
+      "symbols": [
+        {
+          "name": "StorageBackend",
+          "qualified_name": "StorageBackend",
+          "kind": "trait",
+          "start_line": 15,
+          "end_line": 28,
+          "signature": "pub trait StorageBackend: Send + Sync {"
+        },
+        {
+          "name": "Storage",
+          "qualified_name": "Storage",
+          "kind": "struct",
+          "start_line": 31,
+          "end_line": 33,
+          "signature": "pub struct Storage {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl Storage::new",
+          "kind": "method",
+          "start_line": 36,
+          "end_line": 65,
+          "signature": "pub fn new(config: &StorageConfig) -> Result<Self> {"
+        },
+        {
+          "name": "get_node_metadata",
+          "qualified_name": "impl Storage::get_node_metadata",
+          "kind": "method",
+          "start_line": 67,
+          "end_line": 69,
+          "signature": "pub async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {"
+        },
+        {
+          "name": "set_node_metadata",
+          "qualified_name": "impl Storage::set_node_metadata",
+          "kind": "method",
+          "start_line": 71,
+          "end_line": 73,
+          "signature": "pub async fn set_node_metadata(&self, metadata: &NodeMetadata) -> Result<()> {"
+        },
+        {
+          "name": "delete_node_metadata",
+          "qualified_name": "impl Storage::delete_node_metadata",
+          "kind": "method",
+          "start_line": 75,
+          "end_line": 77,
+          "signature": "pub async fn delete_node_metadata(&self, node_id: &NodeId) -> Result<()> {"
+        },
+        {
+          "name": "list_nodes",
+          "qualified_name": "impl Storage::list_nodes",
+          "kind": "method",
+          "start_line": 79,
+          "end_line": 81,
+          "signature": "pub async fn list_nodes(&self) -> Result<Vec<NodeMetadata>> {"
+        },
+        {
+          "name": "get_route",
+          "qualified_name": "impl Storage::get_route",
+          "kind": "method",
+          "start_line": 83,
+          "end_line": 85,
+          "signature": "pub async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {"
+        },
+        {
+          "name": "set_route",
+          "qualified_name": "impl Storage::set_route",
+          "kind": "method",
+          "start_line": 87,
+          "end_line": 89,
+          "signature": "pub async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {"
+        },
+        {
+          "name": "delete_route",
+          "qualified_name": "impl Storage::delete_route",
+          "kind": "method",
+          "start_line": 91,
+          "end_line": 93,
+          "signature": "pub async fn delete_route(&self, prefix: &OverlayPrefix) -> Result<()> {"
+        },
+        {
+          "name": "list_routes",
+          "qualified_name": "impl Storage::list_routes",
+          "kind": "method",
+          "start_line": 95,
+          "end_line": 97,
+          "signature": "pub async fn list_routes(&self) -> Result<Vec<RouteAdvertisement>> {"
+        },
+        {
+          "name": "get_acl_policy",
+          "qualified_name": "impl Storage::get_acl_policy",
+          "kind": "method",
+          "start_line": 99,
+          "end_line": 101,
+          "signature": "pub async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {"
+        },
+        {
+          "name": "set_acl_policy",
+          "qualified_name": "impl Storage::set_acl_policy",
+          "kind": "method",
+          "start_line": 103,
+          "end_line": 105,
+          "signature": "pub async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {"
+        },
+        {
+          "name": "MemoryStorage",
+          "qualified_name": "MemoryStorage",
+          "kind": "struct",
+          "start_line": 109,
+          "end_line": 113,
+          "signature": "struct MemoryStorage {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl MemoryStorage::new",
+          "kind": "method",
+          "start_line": 116,
+          "end_line": 122,
+          "signature": "fn new() -> Self {"
+        },
+        {
+          "name": "get_node_metadata",
+          "qualified_name": "impl StorageBackend for MemoryStorage::get_node_metadata",
+          "kind": "method",
+          "start_line": 127,
+          "end_line": 129,
+          "signature": "async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {"
+        },
+        {
+          "name": "set_node_metadata",
+          "qualified_name": "impl StorageBackend for MemoryStorage::set_node_metadata",
+          "kind": "method",
+          "start_line": 131,
+          "end_line": 134,
+          "signature": "async fn set_node_metadata(&self, metadata: &NodeMetadata) -> Result<()> {"
+        },
+        {
+          "name": "delete_node_metadata",
+          "qualified_name": "impl StorageBackend for MemoryStorage::delete_node_metadata",
+          "kind": "method",
+          "start_line": 136,
+          "end_line": 139,
+          "signature": "async fn delete_node_metadata(&self, node_id: &NodeId) -> Result<()> {"
+        },
+        {
+          "name": "list_nodes",
+          "qualified_name": "impl StorageBackend for MemoryStorage::list_nodes",
+          "kind": "method",
+          "start_line": 141,
+          "end_line": 143,
+          "signature": "async fn list_nodes(&self) -> Result<Vec<NodeMetadata>> {"
+        },
+        {
+          "name": "get_route",
+          "qualified_name": "impl StorageBackend for MemoryStorage::get_route",
+          "kind": "method",
+          "start_line": 145,
+          "end_line": 147,
+          "signature": "async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {"
+        },
+        {
+          "name": "set_route",
+          "qualified_name": "impl StorageBackend for MemoryStorage::set_route",
+          "kind": "method",
+          "start_line": 149,
+          "end_line": 152,
+          "signature": "async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {"
+        },
+        {
+          "name": "delete_route",
+          "qualified_name": "impl StorageBackend for MemoryStorage::delete_route",
+          "kind": "method",
+          "start_line": 154,
+          "end_line": 157,
+          "signature": "async fn delete_route(&self, prefix: &OverlayPrefix) -> Result<()> {"
+        },
+        {
+          "name": "list_routes",
+          "qualified_name": "impl StorageBackend for MemoryStorage::list_routes",
+          "kind": "method",
+          "start_line": 159,
+          "end_line": 161,
+          "signature": "async fn list_routes(&self) -> Result<Vec<RouteAdvertisement>> {"
+        },
+        {
+          "name": "get_acl_policy",
+          "qualified_name": "impl StorageBackend for MemoryStorage::get_acl_policy",
+          "kind": "method",
+          "start_line": 163,
+          "end_line": 165,
+          "signature": "async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {"
+        },
+        {
+          "name": "set_acl_policy",
+          "qualified_name": "impl StorageBackend for MemoryStorage::set_acl_policy",
+          "kind": "method",
+          "start_line": 167,
+          "end_line": 170,
+          "signature": "async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {"
+        },
+        {
+          "name": "sled_storage",
+          "qualified_name": "sled_storage",
+          "kind": "module",
+          "start_line": 175,
+          "end_line": 267,
+          "signature": "mod sled_storage {"
+        },
+        {
+          "name": "SledStorage",
+          "qualified_name": "SledStorage",
+          "kind": "struct",
+          "start_line": 179,
+          "end_line": 184,
+          "signature": "pub struct SledStorage {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl SledStorage::new",
+          "kind": "method",
+          "start_line": 187,
+          "end_line": 193,
+          "signature": "pub fn new(data_dir: &PathBuf) -> Result<Self> {"
+        },
+        {
+          "name": "get_node_metadata",
+          "qualified_name": "impl StorageBackend for SledStorage::get_node_metadata",
+          "kind": "method",
+          "start_line": 198,
+          "end_line": 204,
+          "signature": "async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {"
+        },
+        {
+          "name": "set_node_metadata",
+          "qualified_name": "impl StorageBackend for SledStorage::set_node_metadata",
+          "kind": "method",
+          "start_line": 206,
+          "end_line": 211,
+          "signature": "async fn set_node_metadata(&self, metadata: &NodeMetadata) -> Result<()> {"
+        },
+        {
+          "name": "delete_node_metadata",
+          "qualified_name": "impl StorageBackend for SledStorage::delete_node_metadata",
+          "kind": "method",
+          "start_line": 213,
+          "end_line": 216,
+          "signature": "async fn delete_node_metadata(&self, node_id: &NodeId) -> Result<()> {"
+        },
+        {
+          "name": "list_nodes",
+          "qualified_name": "impl StorageBackend for SledStorage::list_nodes",
+          "kind": "method",
+          "start_line": 218,
+          "end_line": 223,
+          "signature": "async fn list_nodes(&self) -> Result<Vec<NodeMetadata>> {"
+        },
+        {
+          "name": "get_route",
+          "qualified_name": "impl StorageBackend for SledStorage::get_route",
+          "kind": "method",
+          "start_line": 225,
+          "end_line": 232,
+          "signature": "async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {"
+        },
+        {
+          "name": "set_route",
+          "qualified_name": "impl StorageBackend for SledStorage::set_route",
+          "kind": "method",
+          "start_line": 234,
+          "end_line": 239,
+          "signature": "async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {"
+        },
+        {
+          "name": "delete_route",
+          "qualified_name": "impl StorageBackend for SledStorage::delete_route",
+          "kind": "method",
+          "start_line": 241,
+          "end_line": 245,
+          "signature": "async fn delete_route(&self, prefix: &OverlayPrefix) -> Result<()> {"
+        },
+        {
+          "name": "list_routes",
+          "qualified_name": "impl StorageBackend for SledStorage::list_routes",
+          "kind": "method",
+          "start_line": 247,
+          "end_line": 252,
+          "signature": "async fn list_routes(&self) -> Result<Vec<RouteAdvertisement>> {"
+        },
+        {
+          "name": "get_acl_policy",
+          "qualified_name": "impl StorageBackend for SledStorage::get_acl_policy",
+          "kind": "method",
+          "start_line": 254,
+          "end_line": 259,
+          "signature": "async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {"
+        },
+        {
+          "name": "set_acl_policy",
+          "qualified_name": "impl StorageBackend for SledStorage::set_acl_policy",
+          "kind": "method",
+          "start_line": 261,
+          "end_line": 265,
+          "signature": "async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {"
+        },
+        {
+          "name": "redis_storage",
+          "qualified_name": "redis_storage",
+          "kind": "module",
+          "start_line": 271,
+          "end_line": 344,
+          "signature": "mod redis_storage {"
+        },
+        {
+          "name": "RedisStorage",
+          "qualified_name": "RedisStorage",
+          "kind": "struct",
+          "start_line": 275,
+          "end_line": 277,
+          "signature": "pub struct RedisStorage {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl RedisStorage::new",
+          "kind": "method",
+          "start_line": 280,
+          "end_line": 283,
+          "signature": "pub fn new(url: &str) -> Result<Self> {"
+        },
+        {
+          "name": "get_node_metadata",
+          "qualified_name": "impl StorageBackend for RedisStorage::get_node_metadata",
+          "kind": "method",
+          "start_line": 288,
+          "end_line": 296,
+          "signature": "async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {"
+        },
+        {
+          "name": "set_node_metadata",
+          "qualified_name": "impl StorageBackend for RedisStorage::set_node_metadata",
+          "kind": "method",
+          "start_line": 298,
+          "end_line": 305,
+          "signature": "async fn set_node_metadata(&self, metadata: &NodeMetadata) -> Result<()> {"
+        },
+        {
+          "name": "delete_node_metadata",
+          "qualified_name": "impl StorageBackend for RedisStorage::delete_node_metadata",
+          "kind": "method",
+          "start_line": 307,
+          "end_line": 313,
+          "signature": "async fn delete_node_metadata(&self, node_id: &NodeId) -> Result<()> {"
+        },
+        {
+          "name": "list_nodes",
+          "qualified_name": "impl StorageBackend for RedisStorage::list_nodes",
+          "kind": "method",
+          "start_line": 315,
+          "end_line": 318,
+          "signature": "async fn list_nodes(&self) -> Result<Vec<NodeMetadata>> {"
+        },
+        {
+          "name": "get_route",
+          "qualified_name": "impl StorageBackend for RedisStorage::get_route",
+          "kind": "method",
+          "start_line": 320,
+          "end_line": 322,
+          "signature": "async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {"
+        },
+        {
+          "name": "set_route",
+          "qualified_name": "impl StorageBackend for RedisStorage::set_route",
+          "kind": "method",
+          "start_line": 324,
+          "end_line": 326,
+          "signature": "async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {"
+        },
+        {
+          "name": "delete_route",
+          "qualified_name": "impl StorageBackend for RedisStorage::delete_route",
+          "kind": "method",
+          "start_line": 328,
+          "end_line": 330,
+          "signature": "async fn delete_route(&self, prefix: &OverlayPrefix) -> Result<()> {"
+        },
+        {
+          "name": "list_routes",
+          "qualified_name": "impl StorageBackend for RedisStorage::list_routes",
+          "kind": "method",
+          "start_line": 332,
+          "end_line": 334,
+          "signature": "async fn list_routes(&self) -> Result<Vec<RouteAdvertisement>> {"
+        },
+        {
+          "name": "get_acl_policy",
+          "qualified_name": "impl StorageBackend for RedisStorage::get_acl_policy",
+          "kind": "method",
+          "start_line": 336,
+          "end_line": 338,
+          "signature": "async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {"
+        },
+        {
+          "name": "set_acl_policy",
+          "qualified_name": "impl StorageBackend for RedisStorage::set_acl_policy",
+          "kind": "method",
+          "start_line": 340,
+          "end_line": 342,
+          "signature": "async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.282083897Z"
     },
     "crates/oxide-tun/src/platform/macos.rs": {
       "relative_path": "crates/oxide-tun/src/platform/macos.rs",
@@ -1036,14 +1054,14 @@
           "signature": "pub fn create_tun_macos(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.839667971Z"
+      "last_scanned_at": "2026-09-25T20:27:30.290793991Z"
     },
-    "crates/oxide-coordinator/Cargo.toml": {
-      "relative_path": "crates/oxide-coordinator/Cargo.toml",
+    "crates/oxide-protocol/Cargo.toml": {
+      "relative_path": "crates/oxide-protocol/Cargo.toml",
       "language": "toml",
-      "size_bytes": 1349,
-      "line_count": 42,
-      "content_hash": "ec651d5813cf33e41fd7190e80bd971898e87ea7ea7ea9cbc316ab133b70d4f4",
+      "size_bytes": 902,
+      "line_count": 26,
+      "content_hash": "e457df212b98d3f0c9405fcbb24dc57b51d68e4ffe4853f7d1af88ac102b8849",
       "symbols": [
         {
           "name": "package",
@@ -1065,12 +1083,46 @@
           "name": "dev-dependencies",
           "qualified_name": "[dev-dependencies]",
           "kind": "module",
-          "start_line": 39,
-          "end_line": 39,
+          "start_line": 24,
+          "end_line": 24,
           "signature": "[dev-dependencies]"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.833837100Z"
+      "last_scanned_at": "2026-09-25T20:27:30.280311246Z"
+    },
+    "crates/oxide-crypto/Cargo.toml": {
+      "relative_path": "crates/oxide-crypto/Cargo.toml",
+      "language": "toml",
+      "size_bytes": 1241,
+      "line_count": 38,
+      "content_hash": "c753780277fb4f4dd749f3a12b7b036becd08353f865dd4e5a158fe610230bdd",
+      "symbols": [
+        {
+          "name": "package",
+          "qualified_name": "[package]",
+          "kind": "module",
+          "start_line": 1,
+          "end_line": 1,
+          "signature": "[package]"
+        },
+        {
+          "name": "dependencies",
+          "qualified_name": "[dependencies]",
+          "kind": "module",
+          "start_line": 10,
+          "end_line": 10,
+          "signature": "[dependencies]"
+        },
+        {
+          "name": "dev-dependencies",
+          "qualified_name": "[dev-dependencies]",
+          "kind": "module",
+          "start_line": 36,
+          "end_line": 36,
+          "signature": "[dev-dependencies]"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.277662361Z"
     },
     "crates/oxide-transport/Cargo.toml": {
       "relative_path": "crates/oxide-transport/Cargo.toml",
@@ -1104,198 +1156,7 @@
           "signature": "[dev-dependencies]"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.842420152Z"
-    },
-    "crates/oxide-crypto/src/aead.rs": {
-      "relative_path": "crates/oxide-crypto/src/aead.rs",
-      "language": "rust",
-      "size_bytes": 1998,
-      "line_count": 46,
-      "content_hash": "ff75103a600dfddf283ed6eb0859f8e60c7dd92751810bf803c8820a48e62fe6",
-      "symbols": [
-        {
-          "name": "encrypt",
-          "qualified_name": "encrypt",
-          "kind": "function",
-          "start_line": 10,
-          "end_line": 15,
-          "signature": "pub fn encrypt(key: &AeadKey, nonce: &AeadNonce, plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
-        },
-        {
-          "name": "decrypt",
-          "qualified_name": "decrypt",
-          "kind": "function",
-          "start_line": 18,
-          "end_line": 23,
-          "signature": "pub fn decrypt(key: &AeadKey, nonce: &AeadNonce, ciphertext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
-        },
-        {
-          "name": "encrypt_in_place",
-          "qualified_name": "encrypt_in_place",
-          "kind": "function",
-          "start_line": 26,
-          "end_line": 32,
-          "signature": "pub fn encrypt_in_place(key: &AeadKey, nonce: &AeadNonce, buffer: &mut [u8], aad: &[u8]) -> Result<usize> {"
-        },
-        {
-          "name": "decrypt_in_place",
-          "qualified_name": "decrypt_in_place",
-          "kind": "function",
-          "start_line": 35,
-          "end_line": 40,
-          "signature": "pub fn decrypt_in_place(key: &AeadKey, nonce: &AeadNonce, buffer: &mut [u8], aad: &[u8]) -> Result<()> {"
-        },
-        {
-          "name": "random_nonce",
-          "qualified_name": "random_nonce",
-          "kind": "function",
-          "start_line": 43,
-          "end_line": 46,
-          "signature": "pub fn random_nonce() -> AeadNonce {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.827433946Z"
-    },
-    "crates/oxide-coordinator/src/error.rs": {
-      "relative_path": "crates/oxide-coordinator/src/error.rs",
-      "language": "rust",
-      "size_bytes": 1012,
-      "line_count": 47,
-      "content_hash": "9ca02ab084f2ad33d1d3c282db611042bb1897b8ebd37fc19e274b248feb76ef",
-      "symbols": [
-        {
-          "name": "CoordinatorError",
-          "qualified_name": "CoordinatorError",
-          "kind": "enum",
-          "start_line": 6,
-          "end_line": 45,
-          "signature": "pub enum CoordinatorError {"
-        },
-        {
-          "name": "Result",
-          "qualified_name": "Result",
-          "kind": "type",
-          "start_line": 47,
-          "end_line": 47,
-          "signature": "pub type Result<T> = std::result::Result<T, CoordinatorError>;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.833098594Z"
-    },
-    ".idea/vcs.xml": {
-      "relative_path": ".idea/vcs.xml",
-      "language": "xml",
-      "size_bytes": 167,
-      "line_count": 6,
-      "content_hash": "6323e12648862a0a96fc0d7877672817d6cd91e2c2a3c3d78f1090db23c6e88e",
-      "symbols": [],
-      "last_scanned_at": "2026-09-25T20:22:01.842503263Z"
-    },
-    "crates/oxide-coordinator/src/auth.rs": {
-      "relative_path": "crates/oxide-coordinator/src/auth.rs",
-      "language": "rust",
-      "size_bytes": 6848,
-      "line_count": 188,
-      "content_hash": "e32a58ada51fbda6b6f49155c837c0329ffa3dfb2090dba3ca9f3e437034d4ba",
-      "symbols": [
-        {
-          "name": "Claims",
-          "qualified_name": "Claims",
-          "kind": "struct",
-          "start_line": 12,
-          "end_line": 19,
-          "signature": "pub struct Claims {"
-        },
-        {
-          "name": "AuthService",
-          "qualified_name": "AuthService",
-          "kind": "struct",
-          "start_line": 22,
-          "end_line": 28,
-          "signature": "pub struct AuthService {"
-        },
-        {
-          "name": "EnrollmentToken",
-          "qualified_name": "EnrollmentToken",
-          "kind": "struct",
-          "start_line": 35,
-          "end_line": 41,
-          "signature": "struct EnrollmentToken {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl AuthService::new",
-          "kind": "method",
-          "start_line": 44,
-          "end_line": 68,
-          "signature": "pub fn new(config: &AuthConfig) -> Result<Self> {"
-        },
-        {
-          "name": "generate_token",
-          "qualified_name": "impl AuthService::generate_token",
-          "kind": "method",
-          "start_line": 71,
-          "end_line": 86,
-          "signature": "pub fn generate_token(&self, node_id: NodeId, mesh_name: &MeshName, capabilities: Vec<String>) -> Result<String> {"
-        },
-        {
-          "name": "validate_token",
-          "qualified_name": "impl AuthService::validate_token",
-          "kind": "method",
-          "start_line": 89,
-          "end_line": 93,
-          "signature": "pub fn validate_token(&self, token: &str) -> Result<Claims> {"
-        },
-        {
-          "name": "authenticate_mqtt",
-          "qualified_name": "impl AuthService::authenticate_mqtt",
-          "kind": "method",
-          "start_line": 96,
-          "end_line": 101,
-          "signature": "pub async fn authenticate_mqtt(&self, connection: rumqttd::Connection) -> Result<rumqttd::Connection> {"
-        },
-        {
-          "name": "validate_enrollment_token",
-          "qualified_name": "impl AuthService::validate_enrollment_token",
-          "kind": "method",
-          "start_line": 104,
-          "end_line": 128,
-          "signature": "pub async fn validate_enrollment_token(&self, token: &str) -> Result<(String, Vec<String>)> {"
-        },
-        {
-          "name": "validate_oidc_token",
-          "qualified_name": "impl AuthService::validate_oidc_token",
-          "kind": "method",
-          "start_line": 131,
-          "end_line": 135,
-          "signature": "async fn validate_oidc_token(&self, token: &str) -> Result<(String, Vec<String>)> {"
-        },
-        {
-          "name": "create_enrollment_token",
-          "qualified_name": "impl AuthService::create_enrollment_token",
-          "kind": "method",
-          "start_line": 138,
-          "end_line": 154,
-          "signature": "pub async fn create_enrollment_token(&self, mesh_name: String, capabilities: Vec<String>, ttl: Option<Duration>) -> String {"
-        },
-        {
-          "name": "verify_device_signature",
-          "qualified_name": "impl AuthService::verify_device_signature",
-          "kind": "method",
-          "start_line": 157,
-          "end_line": 165,
-          "signature": "pub fn verify_device_signature("
-        },
-        {
-          "name": "extract_node_id",
-          "qualified_name": "impl AuthService::extract_node_id",
-          "kind": "method",
-          "start_line": 168,
-          "end_line": 187,
-          "signature": "pub fn extract_node_id(&self, req: &actix_web::HttpRequest) -> Result<NodeId> {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.832967990Z"
+      "last_scanned_at": "2026-09-25T20:27:30.293541422Z"
     },
     "crates/oxide-coordinator/src/engine.rs": {
       "relative_path": "crates/oxide-coordinator/src/engine.rs",
@@ -1377,7 +1238,187 @@
           "signature": "pub struct AppState {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.833799106Z"
+      "last_scanned_at": "2026-09-25T20:27:30.284783836Z"
+    },
+    "crates/oxide-transport/src/error.rs": {
+      "relative_path": "crates/oxide-transport/src/error.rs",
+      "language": "rust",
+      "size_bytes": 921,
+      "line_count": 44,
+      "content_hash": "d1b22b64a682cf3d1f9d4e35659e0bd7a6ebbb70b106f8f40780717110193a4e",
+      "symbols": [
+        {
+          "name": "TransportError",
+          "qualified_name": "TransportError",
+          "kind": "enum",
+          "start_line": 6,
+          "end_line": 42,
+          "signature": "pub enum TransportError {"
+        },
+        {
+          "name": "Result",
+          "qualified_name": "Result",
+          "kind": "type",
+          "start_line": 44,
+          "end_line": 44,
+          "signature": "pub type Result<T> = std::result::Result<T, TransportError>;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.291536058Z"
+    },
+    "crates/oxide-coordinator/src/config.rs": {
+      "relative_path": "crates/oxide-coordinator/src/config.rs",
+      "language": "rust",
+      "size_bytes": 6518,
+      "line_count": 257,
+      "content_hash": "8cae4ff5adfb8fbd983a0c3bdefa21912c4230b1df878814697b8a72d27468a4",
+      "symbols": [
+        {
+          "name": "CoordinatorConfig",
+          "qualified_name": "CoordinatorConfig",
+          "kind": "struct",
+          "start_line": 11,
+          "end_line": 28,
+          "signature": "pub struct CoordinatorConfig {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for CoordinatorConfig::default",
+          "kind": "method",
+          "start_line": 31,
+          "end_line": 42,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "MqttListenerConfig",
+          "qualified_name": "MqttListenerConfig",
+          "kind": "struct",
+          "start_line": 47,
+          "end_line": 60,
+          "signature": "pub struct MqttListenerConfig {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for MqttListenerConfig::default",
+          "kind": "method",
+          "start_line": 63,
+          "end_line": 72,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "HttpConfig",
+          "qualified_name": "HttpConfig",
+          "kind": "struct",
+          "start_line": 77,
+          "end_line": 96,
+          "signature": "pub struct HttpConfig {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for HttpConfig::default",
+          "kind": "method",
+          "start_line": 99,
+          "end_line": 111,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "StorageConfig",
+          "qualified_name": "StorageConfig",
+          "kind": "struct",
+          "start_line": 116,
+          "end_line": 125,
+          "signature": "pub struct StorageConfig {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for StorageConfig::default",
+          "kind": "method",
+          "start_line": 128,
+          "end_line": 135,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "StorageBackend",
+          "qualified_name": "StorageBackend",
+          "kind": "enum",
+          "start_line": 139,
+          "end_line": 144,
+          "signature": "pub enum StorageBackend {"
+        },
+        {
+          "name": "RaftConfig",
+          "qualified_name": "RaftConfig",
+          "kind": "struct",
+          "start_line": 148,
+          "end_line": 157,
+          "signature": "pub struct RaftConfig {"
+        },
+        {
+          "name": "RaftPeer",
+          "qualified_name": "RaftPeer",
+          "kind": "struct",
+          "start_line": 160,
+          "end_line": 163,
+          "signature": "pub struct RaftPeer {"
+        },
+        {
+          "name": "AuthConfig",
+          "qualified_name": "AuthConfig",
+          "kind": "struct",
+          "start_line": 167,
+          "end_line": 178,
+          "signature": "pub struct AuthConfig {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for AuthConfig::default",
+          "kind": "method",
+          "start_line": 181,
+          "end_line": 189,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "OidcConfig",
+          "qualified_name": "OidcConfig",
+          "kind": "struct",
+          "start_line": 194,
+          "end_line": 207,
+          "signature": "pub struct OidcConfig {"
+        },
+        {
+          "name": "ClusterConfig",
+          "qualified_name": "ClusterConfig",
+          "kind": "struct",
+          "start_line": 211,
+          "end_line": 220,
+          "signature": "pub struct ClusterConfig {"
+        },
+        {
+          "name": "RateLimitConfig",
+          "qualified_name": "RateLimitConfig",
+          "kind": "struct",
+          "start_line": 224,
+          "end_line": 233,
+          "signature": "pub struct RateLimitConfig {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for RateLimitConfig::default",
+          "kind": "method",
+          "start_line": 236,
+          "end_line": 243,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "TlsConfig",
+          "qualified_name": "TlsConfig",
+          "kind": "struct",
+          "start_line": 248,
+          "end_line": 257,
+          "signature": "pub struct TlsConfig {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.282730980Z"
     },
     "crates/oxide-transport/src/config.rs": {
       "relative_path": "crates/oxide-transport/src/config.rs",
@@ -1435,144 +1476,417 @@
           "signature": "pub fn make_server_config(config: &TransportConfig) -> Result<ServerConfig, TransportError> {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.840291308Z"
+      "last_scanned_at": "2026-09-25T20:27:30.291429200Z"
     },
-    "crates/oxide-core/src/error.rs": {
-      "relative_path": "crates/oxide-core/src/error.rs",
+    "crates/oxide-core/src/types.rs": {
+      "relative_path": "crates/oxide-core/src/types.rs",
       "language": "rust",
-      "size_bytes": 1629,
-      "line_count": 76,
-      "content_hash": "bf93292d1ce2dade03753d1d6dc4f015cf850099ee15571834ac7a0e998d8f94",
+      "size_bytes": 8987,
+      "line_count": 353,
+      "content_hash": "b51fdc1b53cb0ac710ca8bcc172357f2f4779954e45b5e99f75ca6403e3fc568",
       "symbols": [
         {
-          "name": "OxideError",
-          "qualified_name": "OxideError",
-          "kind": "enum",
-          "start_line": 7,
-          "end_line": 67,
-          "signature": "pub enum OxideError {"
+          "name": "NodeId",
+          "qualified_name": "NodeId",
+          "kind": "struct",
+          "start_line": 13,
+          "end_line": 13,
+          "signature": "pub struct NodeId(Uuid);"
         },
         {
-          "name": "Result",
-          "qualified_name": "Result",
+          "name": "new",
+          "qualified_name": "impl NodeId::new",
+          "kind": "method",
+          "start_line": 16,
+          "end_line": 18,
+          "signature": "pub fn new() -> Self {"
+        },
+        {
+          "name": "from_uuid",
+          "qualified_name": "impl NodeId::from_uuid",
+          "kind": "method",
+          "start_line": 20,
+          "end_line": 22,
+          "signature": "pub fn from_uuid(uuid: Uuid) -> Self {"
+        },
+        {
+          "name": "as_uuid",
+          "qualified_name": "impl NodeId::as_uuid",
+          "kind": "method",
+          "start_line": 24,
+          "end_line": 26,
+          "signature": "pub fn as_uuid(&self) -> &Uuid {"
+        },
+        {
+          "name": "as_bytes",
+          "qualified_name": "impl NodeId::as_bytes",
+          "kind": "method",
+          "start_line": 28,
+          "end_line": 30,
+          "signature": "pub fn as_bytes(&self) -> &[u8; 16] {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for NodeId::default",
+          "kind": "method",
+          "start_line": 34,
+          "end_line": 36,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "fmt",
+          "qualified_name": "impl fmt::Display for NodeId::fmt",
+          "kind": "method",
+          "start_line": 40,
+          "end_line": 42,
+          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
+        },
+        {
+          "name": "Err",
+          "qualified_name": "impl FromStr for NodeId::Err",
           "kind": "type",
-          "start_line": 69,
-          "end_line": 69,
-          "signature": "pub type Result<T> = std::result::Result<T, OxideError>;"
+          "start_line": 46,
+          "end_line": 46,
+          "signature": "type Err = uuid::Error;"
+        },
+        {
+          "name": "from_str",
+          "qualified_name": "impl FromStr for NodeId::from_str",
+          "kind": "method",
+          "start_line": 48,
+          "end_line": 50,
+          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
+        },
+        {
+          "name": "from",
+          "qualified_name": "impl From<Uuid> for NodeId::from",
+          "kind": "method",
+          "start_line": 54,
+          "end_line": 56,
+          "signature": "fn from(uuid: Uuid) -> Self {"
+        },
+        {
+          "name": "from",
+          "qualified_name": "impl From<NodeId> for Uuid::from",
+          "kind": "method",
+          "start_line": 60,
+          "end_line": 62,
+          "signature": "fn from(id: NodeId) -> Self {"
+        },
+        {
+          "name": "MeshName",
+          "qualified_name": "MeshName",
+          "kind": "struct",
+          "start_line": 67,
+          "end_line": 67,
+          "signature": "pub struct MeshName(String);"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl MeshName::new",
+          "kind": "method",
+          "start_line": 70,
+          "end_line": 79,
+          "signature": "pub fn new(name: impl Into<String>) -> Result<Self, String> {"
+        },
+        {
+          "name": "as_str",
+          "qualified_name": "impl MeshName::as_str",
+          "kind": "method",
+          "start_line": 81,
+          "end_line": 83,
+          "signature": "pub fn as_str(&self) -> &str {"
+        },
+        {
+          "name": "fmt",
+          "qualified_name": "impl fmt::Display for MeshName::fmt",
+          "kind": "method",
+          "start_line": 87,
+          "end_line": 89,
+          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
+        },
+        {
+          "name": "Err",
+          "qualified_name": "impl FromStr for MeshName::Err",
+          "kind": "type",
+          "start_line": 93,
+          "end_line": 93,
+          "signature": "type Err = String;"
+        },
+        {
+          "name": "from_str",
+          "qualified_name": "impl FromStr for MeshName::from_str",
+          "kind": "method",
+          "start_line": 95,
+          "end_line": 97,
+          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
+        },
+        {
+          "name": "OverlayIp",
+          "qualified_name": "OverlayIp",
+          "kind": "enum",
+          "start_line": 102,
+          "end_line": 105,
+          "signature": "pub enum OverlayIp {"
+        },
+        {
+          "name": "is_v4",
+          "qualified_name": "impl OverlayIp::is_v4",
+          "kind": "method",
+          "start_line": 108,
+          "end_line": 110,
+          "signature": "pub fn is_v4(&self) -> bool {"
+        },
+        {
+          "name": "is_v6",
+          "qualified_name": "impl OverlayIp::is_v6",
+          "kind": "method",
+          "start_line": 112,
+          "end_line": 114,
+          "signature": "pub fn is_v6(&self) -> bool {"
+        },
+        {
+          "name": "as_ip_addr",
+          "qualified_name": "impl OverlayIp::as_ip_addr",
+          "kind": "method",
+          "start_line": 116,
+          "end_line": 121,
+          "signature": "pub fn as_ip_addr(&self) -> IpAddr {"
+        },
+        {
+          "name": "default_v4",
+          "qualified_name": "impl OverlayIp::default_v4",
+          "kind": "method",
+          "start_line": 123,
+          "end_line": 125,
+          "signature": "pub fn default_v4() -> Self {"
+        },
+        {
+          "name": "default_v6",
+          "qualified_name": "impl OverlayIp::default_v6",
+          "kind": "method",
+          "start_line": 127,
+          "end_line": 129,
+          "signature": "pub fn default_v6() -> Self {"
+        },
+        {
+          "name": "fmt",
+          "qualified_name": "impl fmt::Display for OverlayIp::fmt",
+          "kind": "method",
+          "start_line": 133,
+          "end_line": 138,
+          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
+        },
+        {
+          "name": "Err",
+          "qualified_name": "impl FromStr for OverlayIp::Err",
+          "kind": "type",
+          "start_line": 142,
+          "end_line": 142,
+          "signature": "type Err = std::net::AddrParseError;"
+        },
+        {
+          "name": "from_str",
+          "qualified_name": "impl FromStr for OverlayIp::from_str",
+          "kind": "method",
+          "start_line": 144,
+          "end_line": 150,
+          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
+        },
+        {
+          "name": "from",
+          "qualified_name": "impl From<Ipv4Addr> for OverlayIp::from",
+          "kind": "method",
+          "start_line": 154,
+          "end_line": 156,
+          "signature": "fn from(addr: Ipv4Addr) -> Self {"
+        },
+        {
+          "name": "from",
+          "qualified_name": "impl From<Ipv6Addr> for OverlayIp::from",
+          "kind": "method",
+          "start_line": 160,
+          "end_line": 162,
+          "signature": "fn from(addr: Ipv6Addr) -> Self {"
+        },
+        {
+          "name": "from",
+          "qualified_name": "impl From<IpAddr> for OverlayIp::from",
+          "kind": "method",
+          "start_line": 166,
+          "end_line": 171,
+          "signature": "fn from(addr: IpAddr) -> Self {"
+        },
+        {
+          "name": "OverlayPrefix",
+          "qualified_name": "OverlayPrefix",
+          "kind": "struct",
+          "start_line": 176,
+          "end_line": 179,
+          "signature": "pub struct OverlayPrefix {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl OverlayPrefix::new",
+          "kind": "method",
+          "start_line": 182,
+          "end_line": 191,
+          "signature": "pub fn new(addr: OverlayIp, prefix_len: u8) -> Result<Self, String> {"
+        },
+        {
+          "name": "contains",
+          "qualified_name": "impl OverlayPrefix::contains",
+          "kind": "method",
+          "start_line": 193,
+          "end_line": 218,
+          "signature": "pub fn contains(&self, ip: OverlayIp) -> bool {"
+        },
+        {
+          "name": "fmt",
+          "qualified_name": "impl fmt::Display for OverlayPrefix::fmt",
+          "kind": "method",
+          "start_line": 222,
+          "end_line": 224,
+          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
+        },
+        {
+          "name": "Err",
+          "qualified_name": "impl FromStr for OverlayPrefix::Err",
+          "kind": "type",
+          "start_line": 228,
+          "end_line": 228,
+          "signature": "type Err = String;"
+        },
+        {
+          "name": "from_str",
+          "qualified_name": "impl FromStr for OverlayPrefix::from_str",
+          "kind": "method",
+          "start_line": 230,
+          "end_line": 238,
+          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
+        },
+        {
+          "name": "ProtocolVersion",
+          "qualified_name": "ProtocolVersion",
+          "kind": "struct",
+          "start_line": 243,
+          "end_line": 243,
+          "signature": "pub struct ProtocolVersion(pub u16);"
+        },
+        {
+          "name": "CURRENT",
+          "qualified_name": "impl ProtocolVersion::CURRENT",
+          "kind": "constant",
+          "start_line": 246,
+          "end_line": 246,
+          "signature": "pub const CURRENT: Self = Self(1);"
+        },
+        {
+          "name": "MIN_COMPATIBLE",
+          "qualified_name": "impl ProtocolVersion::MIN_COMPATIBLE",
+          "kind": "constant",
+          "start_line": 247,
+          "end_line": 247,
+          "signature": "pub const MIN_COMPATIBLE: Self = Self(1);"
+        },
+        {
+          "name": "TransportProtocol",
+          "qualified_name": "TransportProtocol",
+          "kind": "enum",
+          "start_line": 252,
+          "end_line": 257,
+          "signature": "pub enum TransportProtocol {"
+        },
+        {
+          "name": "NodeCapabilities",
+          "qualified_name": "NodeCapabilities",
+          "kind": "struct",
+          "start_line": 261,
+          "end_line": 269,
+          "signature": "pub struct NodeCapabilities {"
+        },
+        {
+          "name": "default",
+          "qualified_name": "impl Default for NodeCapabilities::default",
+          "kind": "method",
+          "start_line": 272,
+          "end_line": 282,
+          "signature": "fn default() -> Self {"
+        },
+        {
+          "name": "Endpoint",
+          "qualified_name": "Endpoint",
+          "kind": "struct",
+          "start_line": 287,
+          "end_line": 290,
+          "signature": "pub struct Endpoint {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl Endpoint::new",
+          "kind": "method",
+          "start_line": 293,
+          "end_line": 295,
+          "signature": "pub fn new(addr: IpAddr, port: u16) -> Self {"
+        },
+        {
+          "name": "socket_addr",
+          "qualified_name": "impl Endpoint::socket_addr",
+          "kind": "method",
+          "start_line": 297,
+          "end_line": 299,
+          "signature": "pub fn socket_addr(&self) -> SocketAddr {"
+        },
+        {
+          "name": "fmt",
+          "qualified_name": "impl fmt::Display for Endpoint::fmt",
+          "kind": "method",
+          "start_line": 303,
+          "end_line": 305,
+          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
+        },
+        {
+          "name": "Err",
+          "qualified_name": "impl FromStr for Endpoint::Err",
+          "kind": "type",
+          "start_line": 309,
+          "end_line": 309,
+          "signature": "type Err = String;"
+        },
+        {
+          "name": "from_str",
+          "qualified_name": "impl FromStr for Endpoint::from_str",
+          "kind": "method",
+          "start_line": 311,
+          "end_line": 314,
+          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
+        },
+        {
+          "name": "PacketType",
+          "qualified_name": "PacketType",
+          "kind": "enum",
+          "start_line": 320,
+          "end_line": 332,
+          "signature": "pub enum PacketType {"
+        },
+        {
+          "name": "Error",
+          "qualified_name": "impl TryFrom<u8> for PacketType::Error",
+          "kind": "type",
+          "start_line": 335,
+          "end_line": 335,
+          "signature": "type Error = ();"
+        },
+        {
+          "name": "try_from",
+          "qualified_name": "impl TryFrom<u8> for PacketType::try_from",
+          "kind": "method",
+          "start_line": 337,
+          "end_line": 352,
+          "signature": "fn try_from(value: u8) -> Result<Self, Self::Error> {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.834065063Z"
-    },
-    "crates/oxide-core/src/lib.rs": {
-      "relative_path": "crates/oxide-core/src/lib.rs",
-      "language": "rust",
-      "size_bytes": 143,
-      "line_count": 7,
-      "content_hash": "130036892c144d9511a1136ef175f90dcba47a1c9d620b05658043be89c118e0",
-      "symbols": [
-        {
-          "name": "error",
-          "qualified_name": "error",
-          "kind": "module",
-          "start_line": 3,
-          "end_line": 3,
-          "signature": "pub mod error;"
-        },
-        {
-          "name": "types",
-          "qualified_name": "types",
-          "kind": "module",
-          "start_line": 4,
-          "end_line": 4,
-          "signature": "pub mod types;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.833898840Z"
-    },
-    "crates/oxide-tun/src/lib.rs": {
-      "relative_path": "crates/oxide-tun/src/lib.rs",
-      "language": "rust",
-      "size_bytes": 260,
-      "line_count": 9,
-      "content_hash": "ee3a3aca909321b50edacd931fcdbfdba318ba299d5f1e6d41d9237f0a7b5839",
-      "symbols": [
-        {
-          "name": "config",
-          "qualified_name": "config",
-          "kind": "module",
-          "start_line": 3,
-          "end_line": 3,
-          "signature": "pub mod config;"
-        },
-        {
-          "name": "error",
-          "qualified_name": "error",
-          "kind": "module",
-          "start_line": 4,
-          "end_line": 4,
-          "signature": "pub mod error;"
-        },
-        {
-          "name": "platform",
-          "qualified_name": "platform",
-          "kind": "module",
-          "start_line": 5,
-          "end_line": 5,
-          "signature": "pub mod platform;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.835472024Z"
-    },
-    "crates/oxide-crypto/src/lib.rs": {
-      "relative_path": "crates/oxide-crypto/src/lib.rs",
-      "language": "rust",
-      "size_bytes": 205,
-      "line_count": 11,
-      "content_hash": "34a859024433a59d299a3256e724e633e0bc33df34a57d56089c172c0f460c6c",
-      "symbols": [
-        {
-          "name": "error",
-          "qualified_name": "error",
-          "kind": "module",
-          "start_line": 3,
-          "end_line": 3,
-          "signature": "pub mod error;"
-        },
-        {
-          "name": "keys",
-          "qualified_name": "keys",
-          "kind": "module",
-          "start_line": 4,
-          "end_line": 4,
-          "signature": "pub mod keys;"
-        },
-        {
-          "name": "aead",
-          "qualified_name": "aead",
-          "kind": "module",
-          "start_line": 5,
-          "end_line": 5,
-          "signature": "pub mod aead;"
-        },
-        {
-          "name": "handshake",
-          "qualified_name": "handshake",
-          "kind": "module",
-          "start_line": 6,
-          "end_line": 6,
-          "signature": "pub mod handshake;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.826226454Z"
-    },
-    ".idea/ShadcnHelperSettings.xml": {
-      "relative_path": ".idea/ShadcnHelperSettings.xml",
-      "language": "xml",
-      "size_bytes": 1222,
-      "line_count": 27,
-      "content_hash": "9aac352a9f44778634f4b4ab1f6271b9759b849fc188d4959eb40dfcd62576a0",
-      "symbols": [],
-      "last_scanned_at": "2026-09-25T20:22:01.842493765Z"
+      "last_scanned_at": "2026-09-25T20:27:30.286431820Z"
     },
     "crates/oxide-core/Cargo.toml": {
       "relative_path": "crates/oxide-core/Cargo.toml",
@@ -1606,33 +1920,349 @@
           "signature": "[dev-dependencies]"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.835398410Z"
+      "last_scanned_at": "2026-09-25T20:27:30.286485249Z"
     },
-    "crates/oxide-crypto/src/error.rs": {
-      "relative_path": "crates/oxide-crypto/src/error.rs",
+    "crates/oxide-crypto/src/handshake.rs": {
+      "relative_path": "crates/oxide-crypto/src/handshake.rs",
       "language": "rust",
-      "size_bytes": 920,
-      "line_count": 41,
-      "content_hash": "08482879115c6e89680926ec535b8a39a948639638159517f94772d65ede26c8",
+      "size_bytes": 7472,
+      "line_count": 230,
+      "content_hash": "0c52d363334b451028e8f23e9a8c0f2fedfbbc7454bd45bdc57a0fd5a5777950",
       "symbols": [
         {
-          "name": "CryptoError",
-          "qualified_name": "CryptoError",
+          "name": "HANDSHAKE_NAME",
+          "qualified_name": "HANDSHAKE_NAME",
+          "kind": "constant",
+          "start_line": 18,
+          "end_line": 18,
+          "signature": "pub const HANDSHAKE_NAME: &[u8] = b\"Noise_NK_25519_ChaChaPoly_BLAKE3\";"
+        },
+        {
+          "name": "HandshakeState",
+          "qualified_name": "HandshakeState",
+          "kind": "struct",
+          "start_line": 22,
+          "end_line": 39,
+          "signature": "pub struct HandshakeState {"
+        },
+        {
+          "name": "initiator",
+          "qualified_name": "impl HandshakeState::initiator",
+          "kind": "method",
+          "start_line": 43,
+          "end_line": 91,
+          "signature": "pub fn initiator("
+        },
+        {
+          "name": "responder",
+          "qualified_name": "impl HandshakeState::responder",
+          "kind": "method",
+          "start_line": 94,
+          "end_line": 115,
+          "signature": "pub fn responder("
+        },
+        {
+          "name": "read_message_1",
+          "qualified_name": "impl HandshakeState::read_message_1",
+          "kind": "method",
+          "start_line": 118,
+          "end_line": 137,
+          "signature": "pub fn read_message_1(&mut self, msg: &[u8]) -> Result<()> {"
+        },
+        {
+          "name": "split",
+          "qualified_name": "impl HandshakeState::split",
+          "kind": "method",
+          "start_line": 140,
+          "end_line": 146,
+          "signature": "pub fn split(self) -> Result<TransportKeys> {"
+        },
+        {
+          "name": "handshake_hash",
+          "qualified_name": "impl HandshakeState::handshake_hash",
+          "kind": "method",
+          "start_line": 149,
+          "end_line": 151,
+          "signature": "pub fn handshake_hash(&self) -> [u8; 32] {"
+        },
+        {
+          "name": "TransportKeys",
+          "qualified_name": "TransportKeys",
+          "kind": "struct",
+          "start_line": 156,
+          "end_line": 161,
+          "signature": "pub struct TransportKeys {"
+        },
+        {
+          "name": "encrypt",
+          "qualified_name": "impl TransportKeys::encrypt",
+          "kind": "method",
+          "start_line": 164,
+          "end_line": 168,
+          "signature": "pub fn encrypt(&mut self, plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
+        },
+        {
+          "name": "decrypt",
+          "qualified_name": "impl TransportKeys::decrypt",
+          "kind": "method",
+          "start_line": 170,
+          "end_line": 174,
+          "signature": "pub fn decrypt(&mut self, ciphertext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
+        },
+        {
+          "name": "mix_hash",
+          "qualified_name": "mix_hash",
+          "kind": "function",
+          "start_line": 178,
+          "end_line": 183,
+          "signature": "fn mix_hash(h: &mut [u8; 32], data: &[u8]) {"
+        },
+        {
+          "name": "hkdf2",
+          "qualified_name": "hkdf2",
+          "kind": "function",
+          "start_line": 186,
+          "end_line": 195,
+          "signature": "fn hkdf2(ck: &[u8; 32], input: &[u8]) -> ([u8; 32], [u8; 32]) {"
+        },
+        {
+          "name": "nonce_bytes",
+          "qualified_name": "nonce_bytes",
+          "kind": "function",
+          "start_line": 198,
+          "end_line": 202,
+          "signature": "fn nonce_bytes(n: u64) -> [u8; 12] {"
+        },
+        {
+          "name": "pqc",
+          "qualified_name": "pqc",
+          "kind": "module",
+          "start_line": 206,
+          "end_line": 230,
+          "signature": "pub mod pqc {"
+        },
+        {
+          "name": "HybridSharedSecret",
+          "qualified_name": "HybridSharedSecret",
+          "kind": "struct",
+          "start_line": 212,
+          "end_line": 215,
+          "signature": "pub struct HybridSharedSecret {"
+        },
+        {
+          "name": "derive_keys",
+          "qualified_name": "impl HybridSharedSecret::derive_keys",
+          "kind": "method",
+          "start_line": 218,
+          "end_line": 228,
+          "signature": "pub fn derive_keys(&self, salt: &[u8], info: &[u8], output_len: usize) -> Vec<u8> {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.275747233Z"
+    },
+    "crates/oxide-coordinator/Cargo.toml": {
+      "relative_path": "crates/oxide-coordinator/Cargo.toml",
+      "language": "toml",
+      "size_bytes": 1349,
+      "line_count": 42,
+      "content_hash": "ec651d5813cf33e41fd7190e80bd971898e87ea7ea7ea9cbc316ab133b70d4f4",
+      "symbols": [
+        {
+          "name": "package",
+          "qualified_name": "[package]",
+          "kind": "module",
+          "start_line": 1,
+          "end_line": 1,
+          "signature": "[package]"
+        },
+        {
+          "name": "dependencies",
+          "qualified_name": "[dependencies]",
+          "kind": "module",
+          "start_line": 10,
+          "end_line": 10,
+          "signature": "[dependencies]"
+        },
+        {
+          "name": "dev-dependencies",
+          "qualified_name": "[dev-dependencies]",
+          "kind": "module",
+          "start_line": 39,
+          "end_line": 39,
+          "signature": "[dev-dependencies]"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.284831328Z"
+    },
+    "crates/oxide-coordinator/src/handlers/health.rs": {
+      "relative_path": "crates/oxide-coordinator/src/handlers/health.rs",
+      "language": "rust",
+      "size_bytes": 1683,
+      "line_count": 63,
+      "content_hash": "405c9221dd4615519400e8d0f31c0d15cccf17d2f5d64d9c796b690b27f04e2b",
+      "symbols": [
+        {
+          "name": "HealthResponse",
+          "qualified_name": "HealthResponse",
+          "kind": "struct",
+          "start_line": 8,
+          "end_line": 12,
+          "signature": "pub struct HealthResponse {"
+        },
+        {
+          "name": "ReadinessResponse",
+          "qualified_name": "ReadinessResponse",
+          "kind": "struct",
+          "start_line": 15,
+          "end_line": 18,
+          "signature": "pub struct ReadinessResponse {"
+        },
+        {
+          "name": "CheckResult",
+          "qualified_name": "CheckResult",
+          "kind": "struct",
+          "start_line": 21,
+          "end_line": 25,
+          "signature": "pub struct CheckResult {"
+        },
+        {
+          "name": "health_check",
+          "qualified_name": "health_check",
+          "kind": "function",
+          "start_line": 27,
+          "end_line": 33,
+          "signature": "pub async fn health_check(data: web::Data<AppState>) -> impl Responder {"
+        },
+        {
+          "name": "readiness_check",
+          "qualified_name": "readiness_check",
+          "kind": "function",
+          "start_line": 35,
+          "end_line": 59,
+          "signature": "pub async fn readiness_check(data: web::Data<AppState>) -> impl Responder {"
+        },
+        {
+          "name": "liveness_check",
+          "qualified_name": "liveness_check",
+          "kind": "function",
+          "start_line": 61,
+          "end_line": 63,
+          "signature": "pub async fn liveness_check() -> impl Responder {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.283733068Z"
+    },
+    "crates/oxide-protocol/src/lib.rs": {
+      "relative_path": "crates/oxide-protocol/src/lib.rs",
+      "language": "rust",
+      "size_bytes": 130,
+      "line_count": 7,
+      "content_hash": "0ecd0026d40604cdbc1738b111b7f04152f57c9c29597bc02ac8538777fa4f60",
+      "symbols": [
+        {
+          "name": "wire",
+          "qualified_name": "wire",
+          "kind": "module",
+          "start_line": 3,
+          "end_line": 3,
+          "signature": "pub mod wire;"
+        },
+        {
+          "name": "topics",
+          "qualified_name": "topics",
+          "kind": "module",
+          "start_line": 4,
+          "end_line": 4,
+          "signature": "pub mod topics;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.279364961Z"
+    },
+    "crates/oxide-coordinator/src/error.rs": {
+      "relative_path": "crates/oxide-coordinator/src/error.rs",
+      "language": "rust",
+      "size_bytes": 1012,
+      "line_count": 47,
+      "content_hash": "9ca02ab084f2ad33d1d3c282db611042bb1897b8ebd37fc19e274b248feb76ef",
+      "symbols": [
+        {
+          "name": "CoordinatorError",
+          "qualified_name": "CoordinatorError",
           "kind": "enum",
           "start_line": 6,
-          "end_line": 39,
-          "signature": "pub enum CryptoError {"
+          "end_line": 45,
+          "signature": "pub enum CoordinatorError {"
         },
         {
           "name": "Result",
           "qualified_name": "Result",
           "kind": "type",
-          "start_line": 41,
-          "end_line": 41,
-          "signature": "pub type Result<T> = std::result::Result<T, CryptoError>;"
+          "start_line": 47,
+          "end_line": 47,
+          "signature": "pub type Result<T> = std::result::Result<T, CoordinatorError>;"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.828963199Z"
+      "last_scanned_at": "2026-09-25T20:27:30.283918288Z"
+    },
+    "crates/oxide-core/src/lib.rs": {
+      "relative_path": "crates/oxide-core/src/lib.rs",
+      "language": "rust",
+      "size_bytes": 143,
+      "line_count": 7,
+      "content_hash": "130036892c144d9511a1136ef175f90dcba47a1c9d620b05658043be89c118e0",
+      "symbols": [
+        {
+          "name": "error",
+          "qualified_name": "error",
+          "kind": "module",
+          "start_line": 3,
+          "end_line": 3,
+          "signature": "pub mod error;"
+        },
+        {
+          "name": "types",
+          "qualified_name": "types",
+          "kind": "module",
+          "start_line": 4,
+          "end_line": 4,
+          "signature": "pub mod types;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.284902567Z"
+    },
+    "crates/oxide-tun/src/lib.rs": {
+      "relative_path": "crates/oxide-tun/src/lib.rs",
+      "language": "rust",
+      "size_bytes": 260,
+      "line_count": 9,
+      "content_hash": "ee3a3aca909321b50edacd931fcdbfdba318ba299d5f1e6d41d9237f0a7b5839",
+      "symbols": [
+        {
+          "name": "config",
+          "qualified_name": "config",
+          "kind": "module",
+          "start_line": 3,
+          "end_line": 3,
+          "signature": "pub mod config;"
+        },
+        {
+          "name": "error",
+          "qualified_name": "error",
+          "kind": "module",
+          "start_line": 4,
+          "end_line": 4,
+          "signature": "pub mod error;"
+        },
+        {
+          "name": "platform",
+          "qualified_name": "platform",
+          "kind": "module",
+          "start_line": 5,
+          "end_line": 5,
+          "signature": "pub mod platform;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.286561236Z"
     },
     "crates/oxide-protocol/src/topics.rs": {
       "relative_path": "crates/oxide-protocol/src/topics.rs",
@@ -2242,890 +2872,7 @@
           "signature": "pub enum DnsSource {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.830626618Z"
-    },
-    "crates/oxide-protocol/src/wire.rs": {
-      "relative_path": "crates/oxide-protocol/src/wire.rs",
-      "language": "rust",
-      "size_bytes": 7494,
-      "line_count": 253,
-      "content_hash": "f04ef9cab97bcbde15fa1b27308a1852c3d3fefaa002d0fad590f8185f49973f",
-      "symbols": [
-        {
-          "name": "MAX_PACKET_SIZE",
-          "qualified_name": "MAX_PACKET_SIZE",
-          "kind": "constant",
-          "start_line": 10,
-          "end_line": 10,
-          "signature": "pub const MAX_PACKET_SIZE: usize = 65536;"
-        },
-        {
-          "name": "MIN_PACKET_SIZE",
-          "qualified_name": "MIN_PACKET_SIZE",
-          "kind": "constant",
-          "start_line": 12,
-          "end_line": 12,
-          "signature": "pub const MIN_PACKET_SIZE: usize = 16;"
-        },
-        {
-          "name": "PROTOCOL_MAGIC",
-          "qualified_name": "PROTOCOL_MAGIC",
-          "kind": "constant",
-          "start_line": 14,
-          "end_line": 14,
-          "signature": "pub const PROTOCOL_MAGIC: u32 = 0x4F584944;"
-        },
-        {
-          "name": "PacketHeader",
-          "qualified_name": "PacketHeader",
-          "kind": "struct",
-          "start_line": 19,
-          "end_line": 27,
-          "signature": "pub struct PacketHeader {"
-        },
-        {
-          "name": "SIZE",
-          "qualified_name": "impl PacketHeader::SIZE",
-          "kind": "constant",
-          "start_line": 30,
-          "end_line": 30,
-          "signature": "pub const SIZE: usize = 16;"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl PacketHeader::new",
-          "kind": "method",
-          "start_line": 32,
-          "end_line": 42,
-          "signature": "pub fn new(packet_type: PacketType, packet_id: u32, payload_len: u16) -> Self {"
-        },
-        {
-          "name": "validate",
-          "qualified_name": "impl PacketHeader::validate",
-          "kind": "method",
-          "start_line": 44,
-          "end_line": 55,
-          "signature": "pub fn validate(&self) -> Result<()> {"
-        },
-        {
-          "name": "packet_type",
-          "qualified_name": "impl PacketHeader::packet_type",
-          "kind": "method",
-          "start_line": 57,
-          "end_line": 59,
-          "signature": "pub fn packet_type(&self) -> Result<PacketType> {"
-        },
-        {
-          "name": "WirePacket",
-          "qualified_name": "WirePacket",
-          "kind": "struct",
-          "start_line": 63,
-          "end_line": 66,
-          "signature": "pub struct WirePacket {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl WirePacket::new",
-          "kind": "method",
-          "start_line": 69,
-          "end_line": 77,
-          "signature": "pub fn new(packet_type: PacketType, packet_id: u32, payload: Vec<u8>) -> Result<Self> {"
-        },
-        {
-          "name": "total_len",
-          "qualified_name": "impl WirePacket::total_len",
-          "kind": "method",
-          "start_line": 79,
-          "end_line": 81,
-          "signature": "pub fn total_len(&self) -> usize {"
-        },
-        {
-          "name": "to_bytes",
-          "qualified_name": "impl WirePacket::to_bytes",
-          "kind": "method",
-          "start_line": 84,
-          "end_line": 89,
-          "signature": "pub fn to_bytes(&self) -> Vec<u8> {"
-        },
-        {
-          "name": "from_bytes",
-          "qualified_name": "impl WirePacket::from_bytes",
-          "kind": "method",
-          "start_line": 92,
-          "end_line": 110,
-          "signature": "pub fn from_bytes(bytes: &[u8]) -> Result<Self> {"
-        },
-        {
-          "name": "packet_type",
-          "qualified_name": "impl WirePacket::packet_type",
-          "kind": "method",
-          "start_line": 113,
-          "end_line": 115,
-          "signature": "pub fn packet_type(&self) -> Result<PacketType> {"
-        },
-        {
-          "name": "is_control",
-          "qualified_name": "impl WirePacket::is_control",
-          "kind": "method",
-          "start_line": 118,
-          "end_line": 123,
-          "signature": "pub fn is_control(&self) -> bool {"
-        },
-        {
-          "name": "BatchPacket",
-          "qualified_name": "BatchPacket",
-          "kind": "struct",
-          "start_line": 127,
-          "end_line": 129,
-          "signature": "pub struct BatchPacket {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl BatchPacket::new",
-          "kind": "method",
-          "start_line": 132,
-          "end_line": 134,
-          "signature": "pub fn new(packets: Vec<WirePacket>) -> Self {"
-        },
-        {
-          "name": "total_len",
-          "qualified_name": "impl BatchPacket::total_len",
-          "kind": "method",
-          "start_line": 136,
-          "end_line": 138,
-          "signature": "pub fn total_len(&self) -> usize {"
-        },
-        {
-          "name": "to_bytes",
-          "qualified_name": "impl BatchPacket::to_bytes",
-          "kind": "method",
-          "start_line": 140,
-          "end_line": 147,
-          "signature": "pub fn to_bytes(&self) -> Vec<u8> {"
-        },
-        {
-          "name": "IpPacketMeta",
-          "qualified_name": "IpPacketMeta",
-          "kind": "struct",
-          "start_line": 152,
-          "end_line": 158,
-          "signature": "pub struct IpPacketMeta {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl IpPacketMeta::new",
-          "kind": "method",
-          "start_line": 161,
-          "end_line": 169,
-          "signature": "pub fn new(src_ip: OverlayIp, dst_ip: OverlayIp, protocol: u8) -> Self {"
-        },
-        {
-          "name": "KeepalivePayload",
-          "qualified_name": "KeepalivePayload",
-          "kind": "struct",
-          "start_line": 174,
-          "end_line": 179,
-          "signature": "pub struct KeepalivePayload {"
-        },
-        {
-          "name": "PathDiscoveryPayload",
-          "qualified_name": "PathDiscoveryPayload",
-          "kind": "struct",
-          "start_line": 183,
-          "end_line": 189,
-          "signature": "pub struct PathDiscoveryPayload {"
-        },
-        {
-          "name": "RekeyNoticePayload",
-          "qualified_name": "RekeyNoticePayload",
-          "kind": "struct",
-          "start_line": 193,
-          "end_line": 198,
-          "signature": "pub struct RekeyNoticePayload {"
-        },
-        {
-          "name": "AclUpdatePayload",
-          "qualified_name": "AclUpdatePayload",
-          "kind": "struct",
-          "start_line": 202,
-          "end_line": 205,
-          "signature": "pub struct AclUpdatePayload {"
-        },
-        {
-          "name": "AclRuleWire",
-          "qualified_name": "AclRuleWire",
-          "kind": "struct",
-          "start_line": 209,
-          "end_line": 216,
-          "signature": "pub struct AclRuleWire {"
-        },
-        {
-          "name": "AclAction",
-          "qualified_name": "AclAction",
-          "kind": "enum",
-          "start_line": 219,
-          "end_line": 223,
-          "signature": "pub enum AclAction {"
-        },
-        {
-          "name": "AclDirection",
-          "qualified_name": "AclDirection",
-          "kind": "enum",
-          "start_line": 226,
-          "end_line": 230,
-          "signature": "pub enum AclDirection {"
-        },
-        {
-          "name": "tests",
-          "qualified_name": "tests",
-          "kind": "module",
-          "start_line": 233,
-          "end_line": 253,
-          "signature": "mod tests {"
-        },
-        {
-          "name": "test_packet_header_roundtrip",
-          "qualified_name": "test_packet_header_roundtrip",
-          "kind": "function",
-          "start_line": 237,
-          "end_line": 242,
-          "signature": "fn test_packet_header_roundtrip() {"
-        },
-        {
-          "name": "test_wire_packet_roundtrip",
-          "qualified_name": "test_wire_packet_roundtrip",
-          "kind": "function",
-          "start_line": 245,
-          "end_line": 252,
-          "signature": "fn test_wire_packet_roundtrip() {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.831585963Z"
-    },
-    "crates/oxide-tun/src/error.rs": {
-      "relative_path": "crates/oxide-tun/src/error.rs",
-      "language": "rust",
-      "size_bytes": 926,
-      "line_count": 41,
-      "content_hash": "50da9a5a5a02237359fc3d70332dd923ec1122008b14e89023c07bf10abcf0d9",
-      "symbols": [
-        {
-          "name": "TunError",
-          "qualified_name": "TunError",
-          "kind": "enum",
-          "start_line": 6,
-          "end_line": 39,
-          "signature": "pub enum TunError {"
-        },
-        {
-          "name": "Result",
-          "qualified_name": "Result",
-          "kind": "type",
-          "start_line": 41,
-          "end_line": 41,
-          "signature": "pub type Result<T> = std::result::Result<T, TunError>;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.839770079Z"
-    },
-    ".idea/modules.xml": {
-      "relative_path": ".idea/modules.xml",
-      "language": "xml",
-      "size_bytes": 280,
-      "line_count": 8,
-      "content_hash": "bea828606b9db90ae904dda1105406ba0c6e5dd3bd42c7698b6e352d451b6701",
-      "symbols": [],
-      "last_scanned_at": "2026-09-25T20:22:01.842479517Z"
-    },
-    "crates/oxide-core/src/types.rs": {
-      "relative_path": "crates/oxide-core/src/types.rs",
-      "language": "rust",
-      "size_bytes": 8987,
-      "line_count": 353,
-      "content_hash": "b51fdc1b53cb0ac710ca8bcc172357f2f4779954e45b5e99f75ca6403e3fc568",
-      "symbols": [
-        {
-          "name": "NodeId",
-          "qualified_name": "NodeId",
-          "kind": "struct",
-          "start_line": 13,
-          "end_line": 13,
-          "signature": "pub struct NodeId(Uuid);"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl NodeId::new",
-          "kind": "method",
-          "start_line": 16,
-          "end_line": 18,
-          "signature": "pub fn new() -> Self {"
-        },
-        {
-          "name": "from_uuid",
-          "qualified_name": "impl NodeId::from_uuid",
-          "kind": "method",
-          "start_line": 20,
-          "end_line": 22,
-          "signature": "pub fn from_uuid(uuid: Uuid) -> Self {"
-        },
-        {
-          "name": "as_uuid",
-          "qualified_name": "impl NodeId::as_uuid",
-          "kind": "method",
-          "start_line": 24,
-          "end_line": 26,
-          "signature": "pub fn as_uuid(&self) -> &Uuid {"
-        },
-        {
-          "name": "as_bytes",
-          "qualified_name": "impl NodeId::as_bytes",
-          "kind": "method",
-          "start_line": 28,
-          "end_line": 30,
-          "signature": "pub fn as_bytes(&self) -> &[u8; 16] {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for NodeId::default",
-          "kind": "method",
-          "start_line": 34,
-          "end_line": 36,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "fmt",
-          "qualified_name": "impl fmt::Display for NodeId::fmt",
-          "kind": "method",
-          "start_line": 40,
-          "end_line": 42,
-          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
-        },
-        {
-          "name": "Err",
-          "qualified_name": "impl FromStr for NodeId::Err",
-          "kind": "type",
-          "start_line": 46,
-          "end_line": 46,
-          "signature": "type Err = uuid::Error;"
-        },
-        {
-          "name": "from_str",
-          "qualified_name": "impl FromStr for NodeId::from_str",
-          "kind": "method",
-          "start_line": 48,
-          "end_line": 50,
-          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
-        },
-        {
-          "name": "from",
-          "qualified_name": "impl From<Uuid> for NodeId::from",
-          "kind": "method",
-          "start_line": 54,
-          "end_line": 56,
-          "signature": "fn from(uuid: Uuid) -> Self {"
-        },
-        {
-          "name": "from",
-          "qualified_name": "impl From<NodeId> for Uuid::from",
-          "kind": "method",
-          "start_line": 60,
-          "end_line": 62,
-          "signature": "fn from(id: NodeId) -> Self {"
-        },
-        {
-          "name": "MeshName",
-          "qualified_name": "MeshName",
-          "kind": "struct",
-          "start_line": 67,
-          "end_line": 67,
-          "signature": "pub struct MeshName(String);"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl MeshName::new",
-          "kind": "method",
-          "start_line": 70,
-          "end_line": 79,
-          "signature": "pub fn new(name: impl Into<String>) -> Result<Self, String> {"
-        },
-        {
-          "name": "as_str",
-          "qualified_name": "impl MeshName::as_str",
-          "kind": "method",
-          "start_line": 81,
-          "end_line": 83,
-          "signature": "pub fn as_str(&self) -> &str {"
-        },
-        {
-          "name": "fmt",
-          "qualified_name": "impl fmt::Display for MeshName::fmt",
-          "kind": "method",
-          "start_line": 87,
-          "end_line": 89,
-          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
-        },
-        {
-          "name": "Err",
-          "qualified_name": "impl FromStr for MeshName::Err",
-          "kind": "type",
-          "start_line": 93,
-          "end_line": 93,
-          "signature": "type Err = String;"
-        },
-        {
-          "name": "from_str",
-          "qualified_name": "impl FromStr for MeshName::from_str",
-          "kind": "method",
-          "start_line": 95,
-          "end_line": 97,
-          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
-        },
-        {
-          "name": "OverlayIp",
-          "qualified_name": "OverlayIp",
-          "kind": "enum",
-          "start_line": 102,
-          "end_line": 105,
-          "signature": "pub enum OverlayIp {"
-        },
-        {
-          "name": "is_v4",
-          "qualified_name": "impl OverlayIp::is_v4",
-          "kind": "method",
-          "start_line": 108,
-          "end_line": 110,
-          "signature": "pub fn is_v4(&self) -> bool {"
-        },
-        {
-          "name": "is_v6",
-          "qualified_name": "impl OverlayIp::is_v6",
-          "kind": "method",
-          "start_line": 112,
-          "end_line": 114,
-          "signature": "pub fn is_v6(&self) -> bool {"
-        },
-        {
-          "name": "as_ip_addr",
-          "qualified_name": "impl OverlayIp::as_ip_addr",
-          "kind": "method",
-          "start_line": 116,
-          "end_line": 121,
-          "signature": "pub fn as_ip_addr(&self) -> IpAddr {"
-        },
-        {
-          "name": "default_v4",
-          "qualified_name": "impl OverlayIp::default_v4",
-          "kind": "method",
-          "start_line": 123,
-          "end_line": 125,
-          "signature": "pub fn default_v4() -> Self {"
-        },
-        {
-          "name": "default_v6",
-          "qualified_name": "impl OverlayIp::default_v6",
-          "kind": "method",
-          "start_line": 127,
-          "end_line": 129,
-          "signature": "pub fn default_v6() -> Self {"
-        },
-        {
-          "name": "fmt",
-          "qualified_name": "impl fmt::Display for OverlayIp::fmt",
-          "kind": "method",
-          "start_line": 133,
-          "end_line": 138,
-          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
-        },
-        {
-          "name": "Err",
-          "qualified_name": "impl FromStr for OverlayIp::Err",
-          "kind": "type",
-          "start_line": 142,
-          "end_line": 142,
-          "signature": "type Err = std::net::AddrParseError;"
-        },
-        {
-          "name": "from_str",
-          "qualified_name": "impl FromStr for OverlayIp::from_str",
-          "kind": "method",
-          "start_line": 144,
-          "end_line": 150,
-          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
-        },
-        {
-          "name": "from",
-          "qualified_name": "impl From<Ipv4Addr> for OverlayIp::from",
-          "kind": "method",
-          "start_line": 154,
-          "end_line": 156,
-          "signature": "fn from(addr: Ipv4Addr) -> Self {"
-        },
-        {
-          "name": "from",
-          "qualified_name": "impl From<Ipv6Addr> for OverlayIp::from",
-          "kind": "method",
-          "start_line": 160,
-          "end_line": 162,
-          "signature": "fn from(addr: Ipv6Addr) -> Self {"
-        },
-        {
-          "name": "from",
-          "qualified_name": "impl From<IpAddr> for OverlayIp::from",
-          "kind": "method",
-          "start_line": 166,
-          "end_line": 171,
-          "signature": "fn from(addr: IpAddr) -> Self {"
-        },
-        {
-          "name": "OverlayPrefix",
-          "qualified_name": "OverlayPrefix",
-          "kind": "struct",
-          "start_line": 176,
-          "end_line": 179,
-          "signature": "pub struct OverlayPrefix {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl OverlayPrefix::new",
-          "kind": "method",
-          "start_line": 182,
-          "end_line": 191,
-          "signature": "pub fn new(addr: OverlayIp, prefix_len: u8) -> Result<Self, String> {"
-        },
-        {
-          "name": "contains",
-          "qualified_name": "impl OverlayPrefix::contains",
-          "kind": "method",
-          "start_line": 193,
-          "end_line": 218,
-          "signature": "pub fn contains(&self, ip: OverlayIp) -> bool {"
-        },
-        {
-          "name": "fmt",
-          "qualified_name": "impl fmt::Display for OverlayPrefix::fmt",
-          "kind": "method",
-          "start_line": 222,
-          "end_line": 224,
-          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
-        },
-        {
-          "name": "Err",
-          "qualified_name": "impl FromStr for OverlayPrefix::Err",
-          "kind": "type",
-          "start_line": 228,
-          "end_line": 228,
-          "signature": "type Err = String;"
-        },
-        {
-          "name": "from_str",
-          "qualified_name": "impl FromStr for OverlayPrefix::from_str",
-          "kind": "method",
-          "start_line": 230,
-          "end_line": 238,
-          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
-        },
-        {
-          "name": "ProtocolVersion",
-          "qualified_name": "ProtocolVersion",
-          "kind": "struct",
-          "start_line": 243,
-          "end_line": 243,
-          "signature": "pub struct ProtocolVersion(pub u16);"
-        },
-        {
-          "name": "CURRENT",
-          "qualified_name": "impl ProtocolVersion::CURRENT",
-          "kind": "constant",
-          "start_line": 246,
-          "end_line": 246,
-          "signature": "pub const CURRENT: Self = Self(1);"
-        },
-        {
-          "name": "MIN_COMPATIBLE",
-          "qualified_name": "impl ProtocolVersion::MIN_COMPATIBLE",
-          "kind": "constant",
-          "start_line": 247,
-          "end_line": 247,
-          "signature": "pub const MIN_COMPATIBLE: Self = Self(1);"
-        },
-        {
-          "name": "TransportProtocol",
-          "qualified_name": "TransportProtocol",
-          "kind": "enum",
-          "start_line": 252,
-          "end_line": 257,
-          "signature": "pub enum TransportProtocol {"
-        },
-        {
-          "name": "NodeCapabilities",
-          "qualified_name": "NodeCapabilities",
-          "kind": "struct",
-          "start_line": 261,
-          "end_line": 269,
-          "signature": "pub struct NodeCapabilities {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for NodeCapabilities::default",
-          "kind": "method",
-          "start_line": 272,
-          "end_line": 282,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "Endpoint",
-          "qualified_name": "Endpoint",
-          "kind": "struct",
-          "start_line": 287,
-          "end_line": 290,
-          "signature": "pub struct Endpoint {"
-        },
-        {
-          "name": "new",
-          "qualified_name": "impl Endpoint::new",
-          "kind": "method",
-          "start_line": 293,
-          "end_line": 295,
-          "signature": "pub fn new(addr: IpAddr, port: u16) -> Self {"
-        },
-        {
-          "name": "socket_addr",
-          "qualified_name": "impl Endpoint::socket_addr",
-          "kind": "method",
-          "start_line": 297,
-          "end_line": 299,
-          "signature": "pub fn socket_addr(&self) -> SocketAddr {"
-        },
-        {
-          "name": "fmt",
-          "qualified_name": "impl fmt::Display for Endpoint::fmt",
-          "kind": "method",
-          "start_line": 303,
-          "end_line": 305,
-          "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
-        },
-        {
-          "name": "Err",
-          "qualified_name": "impl FromStr for Endpoint::Err",
-          "kind": "type",
-          "start_line": 309,
-          "end_line": 309,
-          "signature": "type Err = String;"
-        },
-        {
-          "name": "from_str",
-          "qualified_name": "impl FromStr for Endpoint::from_str",
-          "kind": "method",
-          "start_line": 311,
-          "end_line": 314,
-          "signature": "fn from_str(s: &str) -> Result<Self, Self::Err> {"
-        },
-        {
-          "name": "PacketType",
-          "qualified_name": "PacketType",
-          "kind": "enum",
-          "start_line": 320,
-          "end_line": 332,
-          "signature": "pub enum PacketType {"
-        },
-        {
-          "name": "Error",
-          "qualified_name": "impl TryFrom<u8> for PacketType::Error",
-          "kind": "type",
-          "start_line": 335,
-          "end_line": 335,
-          "signature": "type Error = ();"
-        },
-        {
-          "name": "try_from",
-          "qualified_name": "impl TryFrom<u8> for PacketType::try_from",
-          "kind": "method",
-          "start_line": 337,
-          "end_line": 352,
-          "signature": "fn try_from(value: u8) -> Result<Self, Self::Error> {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.835348543Z"
-    },
-    "crates/oxide-protocol/src/lib.rs": {
-      "relative_path": "crates/oxide-protocol/src/lib.rs",
-      "language": "rust",
-      "size_bytes": 130,
-      "line_count": 7,
-      "content_hash": "0ecd0026d40604cdbc1738b111b7f04152f57c9c29597bc02ac8538777fa4f60",
-      "symbols": [
-        {
-          "name": "wire",
-          "qualified_name": "wire",
-          "kind": "module",
-          "start_line": 3,
-          "end_line": 3,
-          "signature": "pub mod wire;"
-        },
-        {
-          "name": "topics",
-          "qualified_name": "topics",
-          "kind": "module",
-          "start_line": 4,
-          "end_line": 4,
-          "signature": "pub mod topics;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.830691920Z"
-    },
-    "crates/oxide-coordinator/src/config.rs": {
-      "relative_path": "crates/oxide-coordinator/src/config.rs",
-      "language": "rust",
-      "size_bytes": 6518,
-      "line_count": 257,
-      "content_hash": "8cae4ff5adfb8fbd983a0c3bdefa21912c4230b1df878814697b8a72d27468a4",
-      "symbols": [
-        {
-          "name": "CoordinatorConfig",
-          "qualified_name": "CoordinatorConfig",
-          "kind": "struct",
-          "start_line": 11,
-          "end_line": 28,
-          "signature": "pub struct CoordinatorConfig {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for CoordinatorConfig::default",
-          "kind": "method",
-          "start_line": 31,
-          "end_line": 42,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "MqttListenerConfig",
-          "qualified_name": "MqttListenerConfig",
-          "kind": "struct",
-          "start_line": 47,
-          "end_line": 60,
-          "signature": "pub struct MqttListenerConfig {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for MqttListenerConfig::default",
-          "kind": "method",
-          "start_line": 63,
-          "end_line": 72,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "HttpConfig",
-          "qualified_name": "HttpConfig",
-          "kind": "struct",
-          "start_line": 77,
-          "end_line": 96,
-          "signature": "pub struct HttpConfig {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for HttpConfig::default",
-          "kind": "method",
-          "start_line": 99,
-          "end_line": 111,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "StorageConfig",
-          "qualified_name": "StorageConfig",
-          "kind": "struct",
-          "start_line": 116,
-          "end_line": 125,
-          "signature": "pub struct StorageConfig {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for StorageConfig::default",
-          "kind": "method",
-          "start_line": 128,
-          "end_line": 135,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "StorageBackend",
-          "qualified_name": "StorageBackend",
-          "kind": "enum",
-          "start_line": 139,
-          "end_line": 144,
-          "signature": "pub enum StorageBackend {"
-        },
-        {
-          "name": "RaftConfig",
-          "qualified_name": "RaftConfig",
-          "kind": "struct",
-          "start_line": 148,
-          "end_line": 157,
-          "signature": "pub struct RaftConfig {"
-        },
-        {
-          "name": "RaftPeer",
-          "qualified_name": "RaftPeer",
-          "kind": "struct",
-          "start_line": 160,
-          "end_line": 163,
-          "signature": "pub struct RaftPeer {"
-        },
-        {
-          "name": "AuthConfig",
-          "qualified_name": "AuthConfig",
-          "kind": "struct",
-          "start_line": 167,
-          "end_line": 178,
-          "signature": "pub struct AuthConfig {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for AuthConfig::default",
-          "kind": "method",
-          "start_line": 181,
-          "end_line": 189,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "OidcConfig",
-          "qualified_name": "OidcConfig",
-          "kind": "struct",
-          "start_line": 194,
-          "end_line": 207,
-          "signature": "pub struct OidcConfig {"
-        },
-        {
-          "name": "ClusterConfig",
-          "qualified_name": "ClusterConfig",
-          "kind": "struct",
-          "start_line": 211,
-          "end_line": 220,
-          "signature": "pub struct ClusterConfig {"
-        },
-        {
-          "name": "RateLimitConfig",
-          "qualified_name": "RateLimitConfig",
-          "kind": "struct",
-          "start_line": 224,
-          "end_line": 233,
-          "signature": "pub struct RateLimitConfig {"
-        },
-        {
-          "name": "default",
-          "qualified_name": "impl Default for RateLimitConfig::default",
-          "kind": "method",
-          "start_line": 236,
-          "end_line": 243,
-          "signature": "fn default() -> Self {"
-        },
-        {
-          "name": "TlsConfig",
-          "qualified_name": "TlsConfig",
-          "kind": "struct",
-          "start_line": 248,
-          "end_line": 257,
-          "signature": "pub struct TlsConfig {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.832279352Z"
+      "last_scanned_at": "2026-09-25T20:27:30.279299659Z"
     },
     "crates/oxide-crypto/src/keys.rs": {
       "relative_path": "crates/oxide-crypto/src/keys.rs",
@@ -3567,315 +3314,153 @@
           "signature": "fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.828829034Z"
+      "last_scanned_at": "2026-09-25T20:27:30.277497325Z"
     },
-    "src/main.rs": {
-      "relative_path": "src/main.rs",
+    "crates/oxide-tun/src/platform.rs": {
+      "relative_path": "crates/oxide-tun/src/platform.rs",
       "language": "rust",
-      "size_bytes": 45,
-      "line_count": 3,
-      "content_hash": "c8e0583694bb1e0188dbe28fe0d65ac1130723c55f968b6262b906c147f72549",
+      "size_bytes": 6114,
+      "line_count": 213,
+      "content_hash": "1ea62084a2242d0b6ed8215daa5b51ff8b7a232ddf030c7d740bf66b217639b4",
       "symbols": [
         {
-          "name": "main",
-          "qualified_name": "main",
-          "kind": "function",
-          "start_line": 1,
-          "end_line": 3,
-          "signature": "fn main() {"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.842547194Z"
-    },
-    "crates/oxide-tun/src/config.rs": {
-      "relative_path": "crates/oxide-tun/src/config.rs",
-      "language": "rust",
-      "size_bytes": 3732,
-      "line_count": 141,
-      "content_hash": "ff2bad9b51a5c6c68fb79df25ac3891c985b6917f52a4de2d5ea28a2b1348fbe",
-      "symbols": [
-        {
-          "name": "TunConfig",
-          "qualified_name": "TunConfig",
-          "kind": "struct",
-          "start_line": 9,
-          "end_line": 30,
-          "signature": "pub struct TunConfig {"
+          "name": "TunDevice",
+          "qualified_name": "TunDevice",
+          "kind": "trait",
+          "start_line": 10,
+          "end_line": 40,
+          "signature": "pub trait TunDevice: Send + Sync {"
         },
         {
-          "name": "default",
-          "qualified_name": "impl Default for TunConfig::default",
-          "kind": "method",
-          "start_line": 33,
-          "end_line": 46,
-          "signature": "fn default() -> Self {"
+          "name": "TunQueue",
+          "qualified_name": "TunQueue",
+          "kind": "trait",
+          "start_line": 43,
+          "end_line": 55,
+          "signature": "pub trait TunQueue: AsyncRead + AsyncWrite + Send + Unpin {"
+        },
+        {
+          "name": "QueueStats",
+          "qualified_name": "QueueStats",
+          "kind": "struct",
+          "start_line": 59,
+          "end_line": 66,
+          "signature": "pub struct QueueStats {"
+        },
+        {
+          "name": "create_tun",
+          "qualified_name": "create_tun",
+          "kind": "function",
+          "start_line": 69,
+          "end_line": 86,
+          "signature": "pub fn create_tun(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
+        },
+        {
+          "name": "AsyncFd",
+          "qualified_name": "AsyncFd",
+          "kind": "struct",
+          "start_line": 89,
+          "end_line": 93,
+          "signature": "pub struct AsyncFd {"
         },
         {
           "name": "new",
-          "qualified_name": "impl TunConfig::new",
+          "qualified_name": "impl AsyncFd::new",
           "kind": "method",
-          "start_line": 51,
-          "end_line": 56,
-          "signature": "pub fn new(name: impl Into<String>) -> Self {"
-        },
-        {
-          "name": "with_queues",
-          "qualified_name": "impl TunConfig::with_queues",
-          "kind": "method",
-          "start_line": 59,
-          "end_line": 65,
-          "signature": "pub fn with_queues(mut self, num_queues: usize) -> Result<Self> {"
-        },
-        {
-          "name": "with_mtu",
-          "qualified_name": "impl TunConfig::with_mtu",
-          "kind": "method",
-          "start_line": 68,
-          "end_line": 74,
-          "signature": "pub fn with_mtu(mut self, mtu: u16) -> Result<Self> {"
-        },
-        {
-          "name": "with_ipv4",
-          "qualified_name": "impl TunConfig::with_ipv4",
-          "kind": "method",
-          "start_line": 77,
-          "end_line": 83,
-          "signature": "pub fn with_ipv4(mut self, ipv4: IpNet) -> Result<Self> {"
-        },
-        {
-          "name": "with_ipv6",
-          "qualified_name": "impl TunConfig::with_ipv6",
-          "kind": "method",
-          "start_line": 86,
-          "end_line": 92,
-          "signature": "pub fn with_ipv6(mut self, ipv6: IpNet) -> Result<Self> {"
-        },
-        {
-          "name": "with_up",
-          "qualified_name": "impl TunConfig::with_up",
-          "kind": "method",
-          "start_line": 95,
-          "end_line": 98,
-          "signature": "pub fn with_up(mut self, up: bool) -> Self {"
-        },
-        {
-          "name": "with_offload",
-          "qualified_name": "impl TunConfig::with_offload",
-          "kind": "method",
-          "start_line": 101,
-          "end_line": 104,
-          "signature": "pub fn with_offload(mut self, offload: bool) -> Self {"
-        },
-        {
-          "name": "with_persistent",
-          "qualified_name": "impl TunConfig::with_persistent",
-          "kind": "method",
-          "start_line": 107,
-          "end_line": 110,
-          "signature": "pub fn with_persistent(mut self, persistent: bool) -> Self {"
-        },
-        {
-          "name": "with_owner",
-          "qualified_name": "impl TunConfig::with_owner",
-          "kind": "method",
-          "start_line": 113,
-          "end_line": 117,
-          "signature": "pub fn with_owner(mut self, uid: Option<u32>, gid: Option<u32>) -> Self {"
-        },
-        {
-          "name": "QueueConfig",
-          "qualified_name": "QueueConfig",
-          "kind": "struct",
-          "start_line": 122,
-          "end_line": 131,
-          "signature": "pub struct QueueConfig {"
-        },
-        {
-          "name": "RawFd",
-          "qualified_name": "RawFd",
-          "kind": "type",
-          "start_line": 135,
-          "end_line": 135,
-          "signature": "pub type RawFd = std::os::fd::RawFd;"
-        },
-        {
-          "name": "RawFd",
-          "qualified_name": "RawFd",
-          "kind": "type",
-          "start_line": 138,
-          "end_line": 138,
-          "signature": "pub type RawFd = std::os::windows::io::RawHandle;"
-        },
-        {
-          "name": "RawFd",
-          "qualified_name": "RawFd",
-          "kind": "type",
-          "start_line": 141,
-          "end_line": 141,
-          "signature": "pub type RawFd = std::os::fd::RawFd;"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.836627274Z"
-    },
-    "crates/oxide-crypto/Cargo.toml": {
-      "relative_path": "crates/oxide-crypto/Cargo.toml",
-      "language": "toml",
-      "size_bytes": 1241,
-      "line_count": 38,
-      "content_hash": "c753780277fb4f4dd749f3a12b7b036becd08353f865dd4e5a158fe610230bdd",
-      "symbols": [
-        {
-          "name": "package",
-          "qualified_name": "[package]",
-          "kind": "module",
-          "start_line": 1,
-          "end_line": 1,
-          "signature": "[package]"
-        },
-        {
-          "name": "dependencies",
-          "qualified_name": "[dependencies]",
-          "kind": "module",
-          "start_line": 10,
-          "end_line": 10,
-          "signature": "[dependencies]"
-        },
-        {
-          "name": "dev-dependencies",
-          "qualified_name": "[dev-dependencies]",
-          "kind": "module",
-          "start_line": 36,
-          "end_line": 36,
-          "signature": "[dev-dependencies]"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.828986946Z"
-    },
-    "crates/oxide-tun/Cargo.toml": {
-      "relative_path": "crates/oxide-tun/Cargo.toml",
-      "language": "toml",
-      "size_bytes": 1255,
-      "line_count": 39,
-      "content_hash": "4f8701f8bc85cc3e425bff26d794739d46f5115bd3027d0beb2d5c711e05e609",
-      "symbols": [
-        {
-          "name": "package",
-          "qualified_name": "[package]",
-          "kind": "module",
-          "start_line": 1,
-          "end_line": 1,
-          "signature": "[package]"
-        },
-        {
-          "name": "dependencies",
-          "qualified_name": "[dependencies]",
-          "kind": "module",
-          "start_line": 10,
-          "end_line": 10,
-          "signature": "[dependencies]"
-        },
-        {
-          "name": "dev-dependencies",
-          "qualified_name": "[dev-dependencies]",
-          "kind": "module",
-          "start_line": 37,
-          "end_line": 37,
-          "signature": "[dev-dependencies]"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.839791451Z"
-    },
-    "Cargo.toml": {
-      "relative_path": "Cargo.toml",
-      "language": "toml",
-      "size_bytes": 3102,
-      "line_count": 108,
-      "content_hash": "fcb1393bf43340ca4f27302e5d21987274ce7fdf197c1d1077fc224c5ab057b3",
-      "symbols": [
-        {
-          "name": "workspace",
-          "qualified_name": "[workspace]",
-          "kind": "module",
-          "start_line": 1,
-          "end_line": 1,
-          "signature": "[workspace]"
-        },
-        {
-          "name": "workspace.package",
-          "qualified_name": "[workspace.package]",
-          "kind": "module",
-          "start_line": 7,
-          "end_line": 7,
-          "signature": "[workspace.package]"
-        },
-        {
-          "name": "workspace.dependencies",
-          "qualified_name": "[workspace.dependencies]",
-          "kind": "module",
-          "start_line": 13,
-          "end_line": 13,
-          "signature": "[workspace.dependencies]"
-        },
-        {
-          "name": "profile.release",
-          "qualified_name": "[profile.release]",
-          "kind": "module",
-          "start_line": 95,
-          "end_line": 95,
-          "signature": "[profile.release]"
-        },
-        {
-          "name": "profile.release-lto",
-          "qualified_name": "[profile.release-lto]",
-          "kind": "module",
-          "start_line": 102,
+          "start_line": 96,
           "end_line": 102,
-          "signature": "[profile.release-lto]"
+          "signature": "pub fn new(fd: RawFd, queue_id: usize) -> Self {"
         },
         {
-          "name": "profile.bench",
-          "qualified_name": "[profile.bench]",
-          "kind": "module",
+          "name": "poll_read",
+          "qualified_name": "impl AsyncRead for AsyncFd::poll_read",
+          "kind": "method",
           "start_line": 106,
-          "end_line": 106,
-          "signature": "[profile.bench]"
-        }
-      ],
-      "last_scanned_at": "2026-09-25T20:22:01.842852332Z"
-    },
-    "crates/oxide-protocol/Cargo.toml": {
-      "relative_path": "crates/oxide-protocol/Cargo.toml",
-      "language": "toml",
-      "size_bytes": 902,
-      "line_count": 26,
-      "content_hash": "e457df212b98d3f0c9405fcbb24dc57b51d68e4ffe4853f7d1af88ac102b8849",
-      "symbols": [
-        {
-          "name": "package",
-          "qualified_name": "[package]",
-          "kind": "module",
-          "start_line": 1,
-          "end_line": 1,
-          "signature": "[package]"
+          "end_line": 133,
+          "signature": "fn poll_read("
         },
         {
-          "name": "dependencies",
-          "qualified_name": "[dependencies]",
-          "kind": "module",
-          "start_line": 10,
-          "end_line": 10,
-          "signature": "[dependencies]"
+          "name": "poll_write",
+          "qualified_name": "impl AsyncWrite for AsyncFd::poll_write",
+          "kind": "method",
+          "start_line": 137,
+          "end_line": 159,
+          "signature": "fn poll_write("
         },
         {
-          "name": "dev-dependencies",
-          "qualified_name": "[dev-dependencies]",
+          "name": "poll_flush",
+          "qualified_name": "impl AsyncWrite for AsyncFd::poll_flush",
+          "kind": "method",
+          "start_line": 161,
+          "end_line": 163,
+          "signature": "fn poll_flush(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
+        },
+        {
+          "name": "poll_shutdown",
+          "qualified_name": "impl AsyncWrite for AsyncFd::poll_shutdown",
+          "kind": "method",
+          "start_line": 165,
+          "end_line": 167,
+          "signature": "fn poll_shutdown(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
+        },
+        {
+          "name": "queue_id",
+          "qualified_name": "impl TunQueue for AsyncFd::queue_id",
+          "kind": "method",
+          "start_line": 171,
+          "end_line": 173,
+          "signature": "fn queue_id(&self) -> usize {"
+        },
+        {
+          "name": "as_raw_fd",
+          "qualified_name": "impl TunQueue for AsyncFd::as_raw_fd",
+          "kind": "method",
+          "start_line": 175,
+          "end_line": 177,
+          "signature": "fn as_raw_fd(&self) -> RawFd {"
+        },
+        {
+          "name": "set_nonblocking",
+          "qualified_name": "impl TunQueue for AsyncFd::set_nonblocking",
+          "kind": "method",
+          "start_line": 179,
+          "end_line": 198,
+          "signature": "fn set_nonblocking(&self, nonblocking: bool) -> Result<()> {"
+        },
+        {
+          "name": "stats",
+          "qualified_name": "impl TunQueue for AsyncFd::stats",
+          "kind": "method",
+          "start_line": 200,
+          "end_line": 202,
+          "signature": "fn stats(&self) -> QueueStats {"
+        },
+        {
+          "name": "linux",
+          "qualified_name": "linux",
           "kind": "module",
-          "start_line": 24,
-          "end_line": 24,
-          "signature": "[dev-dependencies]"
+          "start_line": 207,
+          "end_line": 207,
+          "signature": "pub mod linux;"
+        },
+        {
+          "name": "windows",
+          "qualified_name": "windows",
+          "kind": "module",
+          "start_line": 210,
+          "end_line": 210,
+          "signature": "pub mod windows;"
+        },
+        {
+          "name": "macos",
+          "qualified_name": "macos",
+          "kind": "module",
+          "start_line": 213,
+          "end_line": 213,
+          "signature": "pub mod macos;"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.831627519Z"
+      "last_scanned_at": "2026-09-25T20:27:30.287299742Z"
     },
     "crates/oxide-transport/src/engine.rs": {
       "relative_path": "crates/oxide-transport/src/engine.rs",
@@ -4093,187 +3678,1096 @@
           "signature": "pub fn shutdown(&self) {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.842354850Z"
+      "last_scanned_at": "2026-09-25T20:27:30.293478495Z"
     },
-    "crates/oxide-tun/src/platform/windows.rs": {
-      "relative_path": "crates/oxide-tun/src/platform/windows.rs",
+    ".idea/modules.xml": {
+      "relative_path": ".idea/modules.xml",
+      "language": "xml",
+      "size_bytes": 280,
+      "line_count": 8,
+      "content_hash": "bea828606b9db90ae904dda1105406ba0c6e5dd3bd42c7698b6e352d451b6701",
+      "symbols": [],
+      "last_scanned_at": "2026-09-25T20:27:30.293604349Z"
+    },
+    "crates/oxide-crypto/src/lib.rs": {
+      "relative_path": "crates/oxide-crypto/src/lib.rs",
       "language": "rust",
-      "size_bytes": 3591,
-      "line_count": 135,
-      "content_hash": "bb8075330d69ded3dd440dae41ffaf0fdca6563ec43a950b39e9b0816aa6fb4a",
+      "size_bytes": 205,
+      "line_count": 11,
+      "content_hash": "34a859024433a59d299a3256e724e633e0bc33df34a57d56089c172c0f460c6c",
       "symbols": [
         {
-          "name": "WindowsTunDevice",
-          "qualified_name": "WindowsTunDevice",
+          "name": "error",
+          "qualified_name": "error",
+          "kind": "module",
+          "start_line": 3,
+          "end_line": 3,
+          "signature": "pub mod error;"
+        },
+        {
+          "name": "keys",
+          "qualified_name": "keys",
+          "kind": "module",
+          "start_line": 4,
+          "end_line": 4,
+          "signature": "pub mod keys;"
+        },
+        {
+          "name": "aead",
+          "qualified_name": "aead",
+          "kind": "module",
+          "start_line": 5,
+          "end_line": 5,
+          "signature": "pub mod aead;"
+        },
+        {
+          "name": "handshake",
+          "qualified_name": "handshake",
+          "kind": "module",
+          "start_line": 6,
+          "end_line": 6,
+          "signature": "pub mod handshake;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.274802135Z"
+    },
+    "crates/oxide-crypto/src/aead.rs": {
+      "relative_path": "crates/oxide-crypto/src/aead.rs",
+      "language": "rust",
+      "size_bytes": 1998,
+      "line_count": 46,
+      "content_hash": "ff75103a600dfddf283ed6eb0859f8e60c7dd92751810bf803c8820a48e62fe6",
+      "symbols": [
+        {
+          "name": "encrypt",
+          "qualified_name": "encrypt",
+          "kind": "function",
+          "start_line": 10,
+          "end_line": 15,
+          "signature": "pub fn encrypt(key: &AeadKey, nonce: &AeadNonce, plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
+        },
+        {
+          "name": "decrypt",
+          "qualified_name": "decrypt",
+          "kind": "function",
+          "start_line": 18,
+          "end_line": 23,
+          "signature": "pub fn decrypt(key: &AeadKey, nonce: &AeadNonce, ciphertext: &[u8], aad: &[u8]) -> Result<Vec<u8>> {"
+        },
+        {
+          "name": "encrypt_in_place",
+          "qualified_name": "encrypt_in_place",
+          "kind": "function",
+          "start_line": 26,
+          "end_line": 32,
+          "signature": "pub fn encrypt_in_place(key: &AeadKey, nonce: &AeadNonce, buffer: &mut [u8], aad: &[u8]) -> Result<usize> {"
+        },
+        {
+          "name": "decrypt_in_place",
+          "qualified_name": "decrypt_in_place",
+          "kind": "function",
+          "start_line": 35,
+          "end_line": 40,
+          "signature": "pub fn decrypt_in_place(key: &AeadKey, nonce: &AeadNonce, buffer: &mut [u8], aad: &[u8]) -> Result<()> {"
+        },
+        {
+          "name": "random_nonce",
+          "qualified_name": "random_nonce",
+          "kind": "function",
+          "start_line": 43,
+          "end_line": 46,
+          "signature": "pub fn random_nonce() -> AeadNonce {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.276016752Z"
+    },
+    "crates/oxide-protocol/src/wire.rs": {
+      "relative_path": "crates/oxide-protocol/src/wire.rs",
+      "language": "rust",
+      "size_bytes": 7494,
+      "line_count": 253,
+      "content_hash": "f04ef9cab97bcbde15fa1b27308a1852c3d3fefaa002d0fad590f8185f49973f",
+      "symbols": [
+        {
+          "name": "MAX_PACKET_SIZE",
+          "qualified_name": "MAX_PACKET_SIZE",
+          "kind": "constant",
+          "start_line": 10,
+          "end_line": 10,
+          "signature": "pub const MAX_PACKET_SIZE: usize = 65536;"
+        },
+        {
+          "name": "MIN_PACKET_SIZE",
+          "qualified_name": "MIN_PACKET_SIZE",
+          "kind": "constant",
+          "start_line": 12,
+          "end_line": 12,
+          "signature": "pub const MIN_PACKET_SIZE: usize = 16;"
+        },
+        {
+          "name": "PROTOCOL_MAGIC",
+          "qualified_name": "PROTOCOL_MAGIC",
+          "kind": "constant",
+          "start_line": 14,
+          "end_line": 14,
+          "signature": "pub const PROTOCOL_MAGIC: u32 = 0x4F584944;"
+        },
+        {
+          "name": "PacketHeader",
+          "qualified_name": "PacketHeader",
           "kind": "struct",
-          "start_line": 8,
-          "end_line": 13,
-          "signature": "pub struct WindowsTunDevice {"
+          "start_line": 19,
+          "end_line": 27,
+          "signature": "pub struct PacketHeader {"
+        },
+        {
+          "name": "SIZE",
+          "qualified_name": "impl PacketHeader::SIZE",
+          "kind": "constant",
+          "start_line": 30,
+          "end_line": 30,
+          "signature": "pub const SIZE: usize = 16;"
         },
         {
           "name": "new",
-          "qualified_name": "impl WindowsTunDevice::new",
+          "qualified_name": "impl PacketHeader::new",
           "kind": "method",
+          "start_line": 32,
+          "end_line": 42,
+          "signature": "pub fn new(packet_type: PacketType, packet_id: u32, payload_len: u16) -> Self {"
+        },
+        {
+          "name": "validate",
+          "qualified_name": "impl PacketHeader::validate",
+          "kind": "method",
+          "start_line": 44,
+          "end_line": 55,
+          "signature": "pub fn validate(&self) -> Result<()> {"
+        },
+        {
+          "name": "packet_type",
+          "qualified_name": "impl PacketHeader::packet_type",
+          "kind": "method",
+          "start_line": 57,
+          "end_line": 59,
+          "signature": "pub fn packet_type(&self) -> Result<PacketType> {"
+        },
+        {
+          "name": "WirePacket",
+          "qualified_name": "WirePacket",
+          "kind": "struct",
+          "start_line": 63,
+          "end_line": 66,
+          "signature": "pub struct WirePacket {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl WirePacket::new",
+          "kind": "method",
+          "start_line": 69,
+          "end_line": 77,
+          "signature": "pub fn new(packet_type: PacketType, packet_id: u32, payload: Vec<u8>) -> Result<Self> {"
+        },
+        {
+          "name": "total_len",
+          "qualified_name": "impl WirePacket::total_len",
+          "kind": "method",
+          "start_line": 79,
+          "end_line": 81,
+          "signature": "pub fn total_len(&self) -> usize {"
+        },
+        {
+          "name": "to_bytes",
+          "qualified_name": "impl WirePacket::to_bytes",
+          "kind": "method",
+          "start_line": 84,
+          "end_line": 89,
+          "signature": "pub fn to_bytes(&self) -> Vec<u8> {"
+        },
+        {
+          "name": "from_bytes",
+          "qualified_name": "impl WirePacket::from_bytes",
+          "kind": "method",
+          "start_line": 92,
+          "end_line": 110,
+          "signature": "pub fn from_bytes(bytes: &[u8]) -> Result<Self> {"
+        },
+        {
+          "name": "packet_type",
+          "qualified_name": "impl WirePacket::packet_type",
+          "kind": "method",
+          "start_line": 113,
+          "end_line": 115,
+          "signature": "pub fn packet_type(&self) -> Result<PacketType> {"
+        },
+        {
+          "name": "is_control",
+          "qualified_name": "impl WirePacket::is_control",
+          "kind": "method",
+          "start_line": 118,
+          "end_line": 123,
+          "signature": "pub fn is_control(&self) -> bool {"
+        },
+        {
+          "name": "BatchPacket",
+          "qualified_name": "BatchPacket",
+          "kind": "struct",
+          "start_line": 127,
+          "end_line": 129,
+          "signature": "pub struct BatchPacket {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl BatchPacket::new",
+          "kind": "method",
+          "start_line": 132,
+          "end_line": 134,
+          "signature": "pub fn new(packets: Vec<WirePacket>) -> Self {"
+        },
+        {
+          "name": "total_len",
+          "qualified_name": "impl BatchPacket::total_len",
+          "kind": "method",
+          "start_line": 136,
+          "end_line": 138,
+          "signature": "pub fn total_len(&self) -> usize {"
+        },
+        {
+          "name": "to_bytes",
+          "qualified_name": "impl BatchPacket::to_bytes",
+          "kind": "method",
+          "start_line": 140,
+          "end_line": 147,
+          "signature": "pub fn to_bytes(&self) -> Vec<u8> {"
+        },
+        {
+          "name": "IpPacketMeta",
+          "qualified_name": "IpPacketMeta",
+          "kind": "struct",
+          "start_line": 152,
+          "end_line": 158,
+          "signature": "pub struct IpPacketMeta {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl IpPacketMeta::new",
+          "kind": "method",
+          "start_line": 161,
+          "end_line": 169,
+          "signature": "pub fn new(src_ip: OverlayIp, dst_ip: OverlayIp, protocol: u8) -> Self {"
+        },
+        {
+          "name": "KeepalivePayload",
+          "qualified_name": "KeepalivePayload",
+          "kind": "struct",
+          "start_line": 174,
+          "end_line": 179,
+          "signature": "pub struct KeepalivePayload {"
+        },
+        {
+          "name": "PathDiscoveryPayload",
+          "qualified_name": "PathDiscoveryPayload",
+          "kind": "struct",
+          "start_line": 183,
+          "end_line": 189,
+          "signature": "pub struct PathDiscoveryPayload {"
+        },
+        {
+          "name": "RekeyNoticePayload",
+          "qualified_name": "RekeyNoticePayload",
+          "kind": "struct",
+          "start_line": 193,
+          "end_line": 198,
+          "signature": "pub struct RekeyNoticePayload {"
+        },
+        {
+          "name": "AclUpdatePayload",
+          "qualified_name": "AclUpdatePayload",
+          "kind": "struct",
+          "start_line": 202,
+          "end_line": 205,
+          "signature": "pub struct AclUpdatePayload {"
+        },
+        {
+          "name": "AclRuleWire",
+          "qualified_name": "AclRuleWire",
+          "kind": "struct",
+          "start_line": 209,
+          "end_line": 216,
+          "signature": "pub struct AclRuleWire {"
+        },
+        {
+          "name": "AclAction",
+          "qualified_name": "AclAction",
+          "kind": "enum",
+          "start_line": 219,
+          "end_line": 223,
+          "signature": "pub enum AclAction {"
+        },
+        {
+          "name": "AclDirection",
+          "qualified_name": "AclDirection",
+          "kind": "enum",
+          "start_line": 226,
+          "end_line": 230,
+          "signature": "pub enum AclDirection {"
+        },
+        {
+          "name": "tests",
+          "qualified_name": "tests",
+          "kind": "module",
+          "start_line": 233,
+          "end_line": 253,
+          "signature": "mod tests {"
+        },
+        {
+          "name": "test_packet_header_roundtrip",
+          "qualified_name": "test_packet_header_roundtrip",
+          "kind": "function",
+          "start_line": 237,
+          "end_line": 242,
+          "signature": "fn test_packet_header_roundtrip() {"
+        },
+        {
+          "name": "test_wire_packet_roundtrip",
+          "qualified_name": "test_wire_packet_roundtrip",
+          "kind": "function",
+          "start_line": 245,
+          "end_line": 252,
+          "signature": "fn test_wire_packet_roundtrip() {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.280269690Z"
+    },
+    "crates/oxide-tun/src/platform/linux.rs": {
+      "relative_path": "crates/oxide-tun/src/platform/linux.rs",
+      "language": "rust",
+      "size_bytes": 13854,
+      "line_count": 445,
+      "content_hash": "28292c967d4da07069275be61ac24b71addf1f6cd9c32ca8e507cf255b19cd7a",
+      "symbols": [
+        {
+          "name": "TUNSETIFF",
+          "qualified_name": "TUNSETIFF",
+          "kind": "constant",
           "start_line": 16,
+          "end_line": 16,
+          "signature": "const TUNSETIFF: c_ulong = 0x400454ca;"
+        },
+        {
+          "name": "TUNSETOWNER",
+          "qualified_name": "TUNSETOWNER",
+          "kind": "constant",
+          "start_line": 17,
+          "end_line": 17,
+          "signature": "const TUNSETOWNER: c_ulong = 0x400454cc;"
+        },
+        {
+          "name": "TUNSETGROUP",
+          "qualified_name": "TUNSETGROUP",
+          "kind": "constant",
+          "start_line": 18,
+          "end_line": 18,
+          "signature": "const TUNSETGROUP: c_ulong = 0x400454ce;"
+        },
+        {
+          "name": "TUNSETOFFLOAD",
+          "qualified_name": "TUNSETOFFLOAD",
+          "kind": "constant",
+          "start_line": 19,
+          "end_line": 19,
+          "signature": "const TUNSETOFFLOAD: c_ulong = 0x400454d0;"
+        },
+        {
+          "name": "TUNSETQUEUE",
+          "qualified_name": "TUNSETQUEUE",
+          "kind": "constant",
+          "start_line": 20,
+          "end_line": 20,
+          "signature": "const TUNSETQUEUE: c_ulong = 0x400454d2;"
+        },
+        {
+          "name": "TUNGETQUEUE",
+          "qualified_name": "TUNGETQUEUE",
+          "kind": "constant",
+          "start_line": 21,
+          "end_line": 21,
+          "signature": "const TUNGETQUEUE: c_ulong = 0x400454d4;"
+        },
+        {
+          "name": "IFF_TUN",
+          "qualified_name": "IFF_TUN",
+          "kind": "constant",
+          "start_line": 23,
+          "end_line": 23,
+          "signature": "const IFF_TUN: c_short = 0x0001;"
+        },
+        {
+          "name": "IFF_TAP",
+          "qualified_name": "IFF_TAP",
+          "kind": "constant",
+          "start_line": 24,
+          "end_line": 24,
+          "signature": "const IFF_TAP: c_short = 0x0002;"
+        },
+        {
+          "name": "IFF_NO_PI",
+          "qualified_name": "IFF_NO_PI",
+          "kind": "constant",
+          "start_line": 25,
+          "end_line": 25,
+          "signature": "const IFF_NO_PI: c_short = 0x1000;"
+        },
+        {
+          "name": "IFF_ONE_QUEUE",
+          "qualified_name": "IFF_ONE_QUEUE",
+          "kind": "constant",
+          "start_line": 26,
+          "end_line": 26,
+          "signature": "const IFF_ONE_QUEUE: c_short = 0x2000;"
+        },
+        {
+          "name": "IFF_VNET_HDR",
+          "qualified_name": "IFF_VNET_HDR",
+          "kind": "constant",
+          "start_line": 27,
+          "end_line": 27,
+          "signature": "const IFF_VNET_HDR: c_short = 0x4000;"
+        },
+        {
+          "name": "IFF_MULTI_QUEUE",
+          "qualified_name": "IFF_MULTI_QUEUE",
+          "kind": "constant",
+          "start_line": 28,
+          "end_line": 28,
+          "signature": "const IFF_MULTI_QUEUE: c_short = 0x0100;"
+        },
+        {
+          "name": "TUN_OFFLOAD_TSO4",
+          "qualified_name": "TUN_OFFLOAD_TSO4",
+          "kind": "constant",
+          "start_line": 30,
+          "end_line": 30,
+          "signature": "const TUN_OFFLOAD_TSO4: c_ulong = 1 << 0;"
+        },
+        {
+          "name": "TUN_OFFLOAD_TSO6",
+          "qualified_name": "TUN_OFFLOAD_TSO6",
+          "kind": "constant",
+          "start_line": 31,
+          "end_line": 31,
+          "signature": "const TUN_OFFLOAD_TSO6: c_ulong = 1 << 1;"
+        },
+        {
+          "name": "TUN_OFFLOAD_UFO",
+          "qualified_name": "TUN_OFFLOAD_UFO",
+          "kind": "constant",
+          "start_line": 32,
+          "end_line": 32,
+          "signature": "const TUN_OFFLOAD_UFO: c_ulong = 1 << 2;"
+        },
+        {
+          "name": "TUN_OFFLOAD_GSO",
+          "qualified_name": "TUN_OFFLOAD_GSO",
+          "kind": "constant",
+          "start_line": 33,
           "end_line": 33,
+          "signature": "const TUN_OFFLOAD_GSO: c_ulong = 1 << 3;"
+        },
+        {
+          "name": "TUN_OFFLOAD_GRO",
+          "qualified_name": "TUN_OFFLOAD_GRO",
+          "kind": "constant",
+          "start_line": 34,
+          "end_line": 34,
+          "signature": "const TUN_OFFLOAD_GRO: c_ulong = 1 << 4;"
+        },
+        {
+          "name": "TUN_OFFLOAD_CSUM",
+          "qualified_name": "TUN_OFFLOAD_CSUM",
+          "kind": "constant",
+          "start_line": 35,
+          "end_line": 35,
+          "signature": "const TUN_OFFLOAD_CSUM: c_ulong = 1 << 5;"
+        },
+        {
+          "name": "IfReq",
+          "qualified_name": "IfReq",
+          "kind": "struct",
+          "start_line": 38,
+          "end_line": 41,
+          "signature": "struct IfReq {"
+        },
+        {
+          "name": "c_char",
+          "qualified_name": "c_char",
+          "kind": "type",
+          "start_line": 43,
+          "end_line": 43,
+          "signature": "type c_char = i8;"
+        },
+        {
+          "name": "LinuxTunDevice",
+          "qualified_name": "LinuxTunDevice",
+          "kind": "struct",
+          "start_line": 46,
+          "end_line": 51,
+          "signature": "pub struct LinuxTunDevice {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl LinuxTunDevice::new",
+          "kind": "method",
+          "start_line": 54,
+          "end_line": 84,
           "signature": "pub fn new(config: &TunConfig) -> Result<Self> {"
         },
         {
-          "name": "name",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::name",
+          "name": "configure",
+          "qualified_name": "impl LinuxTunDevice::configure",
           "kind": "method",
-          "start_line": 37,
-          "end_line": 39,
+          "start_line": 86,
+          "end_line": 121,
+          "signature": "fn configure(&self, config: &TunConfig) -> Result<()> {"
+        },
+        {
+          "name": "set_owner",
+          "qualified_name": "impl LinuxTunDevice::set_owner",
+          "kind": "method",
+          "start_line": 123,
+          "end_line": 129,
+          "signature": "fn set_owner(&self, uid: u32) -> Result<()> {"
+        },
+        {
+          "name": "set_group",
+          "qualified_name": "impl LinuxTunDevice::set_group",
+          "kind": "method",
+          "start_line": 131,
+          "end_line": 137,
+          "signature": "fn set_group(&self, gid: u32) -> Result<()> {"
+        },
+        {
+          "name": "name",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::name",
+          "kind": "method",
+          "start_line": 141,
+          "end_line": 143,
           "signature": "fn name(&self) -> &str {"
         },
         {
           "name": "num_queues",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::num_queues",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::num_queues",
           "kind": "method",
-          "start_line": 41,
-          "end_line": 43,
+          "start_line": 145,
+          "end_line": 147,
           "signature": "fn num_queues(&self) -> usize {"
         },
         {
           "name": "queue",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::queue",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::queue",
           "kind": "method",
-          "start_line": 45,
-          "end_line": 51,
+          "start_line": 149,
+          "end_line": 156,
           "signature": "fn queue(&self, index: usize) -> Option<Box<dyn TunQueue>> {"
         },
         {
           "name": "queues",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::queues",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::queues",
           "kind": "method",
-          "start_line": 53,
-          "end_line": 55,
+          "start_line": 158,
+          "end_line": 160,
           "signature": "fn queues(&self) -> Vec<Box<dyn TunQueue>> {"
         },
         {
           "name": "set_mtu",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::set_mtu",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::set_mtu",
           "kind": "method",
-          "start_line": 57,
-          "end_line": 60,
+          "start_line": 162,
+          "end_line": 180,
           "signature": "fn set_mtu(&self, mtu: u16) -> Result<()> {"
         },
         {
+          "name": "SIOCSIFMTU",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFMTU",
+          "kind": "constant",
+          "start_line": 174,
+          "end_line": 174,
+          "signature": "const SIOCSIFMTU: c_ulong = 0x8922;"
+        },
+        {
           "name": "set_up",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::set_up",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::set_up",
           "kind": "method",
-          "start_line": 62,
-          "end_line": 65,
+          "start_line": 182,
+          "end_line": 213,
           "signature": "fn set_up(&self, up: bool) -> Result<()> {"
         },
         {
+          "name": "SIOCGIFFLAGS",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCGIFFLAGS",
+          "kind": "constant",
+          "start_line": 192,
+          "end_line": 192,
+          "signature": "const SIOCGIFFLAGS: c_ulong = 0x8913;"
+        },
+        {
+          "name": "SIOCSIFFLAGS",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFFLAGS",
+          "kind": "constant",
+          "start_line": 193,
+          "end_line": 193,
+          "signature": "const SIOCSIFFLAGS: c_ulong = 0x8914;"
+        },
+        {
+          "name": "IFF_UP",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::IFF_UP",
+          "kind": "constant",
+          "start_line": 194,
+          "end_line": 194,
+          "signature": "const IFF_UP: c_short = 0x1;"
+        },
+        {
+          "name": "IFF_RUNNING",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::IFF_RUNNING",
+          "kind": "constant",
+          "start_line": 195,
+          "end_line": 195,
+          "signature": "const IFF_RUNNING: c_short = 0x40;"
+        },
+        {
           "name": "set_ipv4",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::set_ipv4",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::set_ipv4",
           "kind": "method",
-          "start_line": 67,
-          "end_line": 70,
+          "start_line": 215,
+          "end_line": 258,
           "signature": "fn set_ipv4(&self, addr: std::net::Ipv4Addr, prefix_len: u8) -> Result<()> {"
         },
         {
+          "name": "SIOCSIFADDR",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFADDR",
+          "kind": "constant",
+          "start_line": 225,
+          "end_line": 225,
+          "signature": "const SIOCSIFADDR: c_ulong = 0x8916;"
+        },
+        {
+          "name": "SIOCSIFNETMASK",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::SIOCSIFNETMASK",
+          "kind": "constant",
+          "start_line": 226,
+          "end_line": 226,
+          "signature": "const SIOCSIFNETMASK: c_ulong = 0x891c;"
+        },
+        {
           "name": "set_ipv6",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::set_ipv6",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::set_ipv6",
           "kind": "method",
-          "start_line": 72,
-          "end_line": 74,
+          "start_line": 260,
+          "end_line": 264,
           "signature": "fn set_ipv6(&self, addr: std::net::Ipv6Addr, prefix_len: u8) -> Result<()> {"
         },
         {
           "name": "set_offload",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::set_offload",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::set_offload",
           "kind": "method",
-          "start_line": 76,
-          "end_line": 78,
+          "start_line": 266,
+          "end_line": 276,
           "signature": "fn set_offload(&self, enable: bool) -> Result<()> {"
         },
         {
           "name": "close",
-          "qualified_name": "impl TunDevice for WindowsTunDevice::close",
+          "qualified_name": "impl TunDevice for LinuxTunDevice::close",
           "kind": "method",
-          "start_line": 80,
-          "end_line": 82,
+          "start_line": 278,
+          "end_line": 281,
           "signature": "fn close(&self) -> Result<()> {"
         },
         {
-          "name": "WindowsTunQueue",
-          "qualified_name": "WindowsTunQueue",
+          "name": "LinuxTunQueue",
+          "qualified_name": "LinuxTunQueue",
           "kind": "struct",
-          "start_line": 87,
-          "end_line": 90,
-          "signature": "pub struct WindowsTunQueue {"
+          "start_line": 286,
+          "end_line": 290,
+          "signature": "pub struct LinuxTunQueue {"
         },
         {
           "name": "new",
-          "qualified_name": "impl WindowsTunQueue::new",
+          "qualified_name": "impl LinuxTunQueue::new",
           "kind": "method",
-          "start_line": 93,
-          "end_line": 98,
-          "signature": "pub fn new(session: wintun::Session) -> Result<Self> {"
+          "start_line": 293,
+          "end_line": 309,
+          "signature": "pub fn new(fd: OwnedFd, queue_id: usize) -> Result<Self> {"
         },
         {
           "name": "queue_id",
-          "qualified_name": "impl TunQueue for WindowsTunQueue::queue_id",
+          "qualified_name": "impl TunQueue for LinuxTunQueue::queue_id",
           "kind": "method",
-          "start_line": 102,
-          "end_line": 104,
+          "start_line": 313,
+          "end_line": 315,
           "signature": "fn queue_id(&self) -> usize {"
         },
         {
           "name": "as_raw_fd",
-          "qualified_name": "impl TunQueue for WindowsTunQueue::as_raw_fd",
+          "qualified_name": "impl TunQueue for LinuxTunQueue::as_raw_fd",
           "kind": "method",
-          "start_line": 106,
-          "end_line": 109,
+          "start_line": 317,
+          "end_line": 319,
           "signature": "fn as_raw_fd(&self) -> RawFd {"
         },
         {
           "name": "set_nonblocking",
-          "qualified_name": "impl TunQueue for WindowsTunQueue::set_nonblocking",
+          "qualified_name": "impl TunQueue for LinuxTunQueue::set_nonblocking",
           "kind": "method",
-          "start_line": 111,
-          "end_line": 113,
-          "signature": "fn set_nonblocking(&self, _nonblocking: bool) -> Result<()> {"
+          "start_line": 321,
+          "end_line": 332,
+          "signature": "fn set_nonblocking(&self, nonblocking: bool) -> Result<()> {"
         },
         {
           "name": "stats",
-          "qualified_name": "impl TunQueue for WindowsTunQueue::stats",
+          "qualified_name": "impl TunQueue for LinuxTunQueue::stats",
           "kind": "method",
-          "start_line": 115,
-          "end_line": 117,
+          "start_line": 334,
+          "end_line": 336,
           "signature": "fn stats(&self) -> QueueStats {"
         },
         {
-          "name": "Output",
-          "qualified_name": "impl std::future::Future for WindowsTunQueue::Output",
-          "kind": "type",
-          "start_line": 121,
-          "end_line": 121,
-          "signature": "type Output = io::Result<usize>;"
-        },
-        {
-          "name": "poll",
-          "qualified_name": "impl std::future::Future for WindowsTunQueue::poll",
+          "name": "poll_read",
+          "qualified_name": "impl AsyncRead for LinuxTunQueue::poll_read",
           "kind": "method",
-          "start_line": 123,
-          "end_line": 126,
-          "signature": "fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {"
+          "start_line": 340,
+          "end_line": 366,
+          "signature": "fn poll_read("
         },
         {
-          "name": "create_tun_windows",
-          "qualified_name": "create_tun_windows",
+          "name": "poll_write",
+          "qualified_name": "impl AsyncWrite for LinuxTunQueue::poll_write",
+          "kind": "method",
+          "start_line": 370,
+          "end_line": 392,
+          "signature": "fn poll_write("
+        },
+        {
+          "name": "poll_flush",
+          "qualified_name": "impl AsyncWrite for LinuxTunQueue::poll_flush",
+          "kind": "method",
+          "start_line": 394,
+          "end_line": 396,
+          "signature": "fn poll_flush(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
+        },
+        {
+          "name": "poll_shutdown",
+          "qualified_name": "impl AsyncWrite for LinuxTunQueue::poll_shutdown",
+          "kind": "method",
+          "start_line": 398,
+          "end_line": 400,
+          "signature": "fn poll_shutdown(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {"
+        },
+        {
+          "name": "create_tun_fd",
+          "qualified_name": "create_tun_fd",
           "kind": "function",
-          "start_line": 132,
-          "end_line": 135,
-          "signature": "pub fn create_tun_windows(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
+          "start_line": 404,
+          "end_line": 439,
+          "signature": "fn create_tun_fd(name: &str, is_main: bool, multi_queue: bool) -> Result<OwnedFd> {"
+        },
+        {
+          "name": "create_tun_linux",
+          "qualified_name": "create_tun_linux",
+          "kind": "function",
+          "start_line": 442,
+          "end_line": 445,
+          "signature": "pub fn create_tun_linux(config: &TunConfig) -> Result<Box<dyn TunDevice>> {"
         }
       ],
-      "last_scanned_at": "2026-09-25T20:22:01.837083201Z"
+      "last_scanned_at": "2026-09-25T20:27:30.290045986Z"
+    },
+    "crates/oxide-core/src/error.rs": {
+      "relative_path": "crates/oxide-core/src/error.rs",
+      "language": "rust",
+      "size_bytes": 1629,
+      "line_count": 76,
+      "content_hash": "bf93292d1ce2dade03753d1d6dc4f015cf850099ee15571834ac7a0e998d8f94",
+      "symbols": [
+        {
+          "name": "OxideError",
+          "qualified_name": "OxideError",
+          "kind": "enum",
+          "start_line": 7,
+          "end_line": 67,
+          "signature": "pub enum OxideError {"
+        },
+        {
+          "name": "Result",
+          "qualified_name": "Result",
+          "kind": "type",
+          "start_line": 69,
+          "end_line": 69,
+          "signature": "pub type Result<T> = std::result::Result<T, OxideError>;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.285079476Z"
+    },
+    "crates/oxide-coordinator/src/handlers/metrics.rs": {
+      "relative_path": "crates/oxide-coordinator/src/handlers/metrics.rs",
+      "language": "rust",
+      "size_bytes": 350,
+      "line_count": 11,
+      "content_hash": "1138ccc54d28f28afda19391a18f9237440b2acfda70b859d17effe812012010",
+      "symbols": [
+        {
+          "name": "metrics_endpoint",
+          "qualified_name": "metrics_endpoint",
+          "kind": "function",
+          "start_line": 7,
+          "end_line": 11,
+          "signature": "pub async fn metrics_endpoint(metrics: web::Data<PrometheusMetrics>) -> impl Responder {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.283784122Z"
+    },
+    "crates/oxide-transport/src/lib.rs": {
+      "relative_path": "crates/oxide-transport/src/lib.rs",
+      "language": "rust",
+      "size_bytes": 312,
+      "line_count": 9,
+      "content_hash": "d5d9efa55462b8f42d6e9e1c72b16bddfb79c27a0209ecb5ca72400c7f6bd47e",
+      "symbols": [
+        {
+          "name": "config",
+          "qualified_name": "config",
+          "kind": "module",
+          "start_line": 3,
+          "end_line": 3,
+          "signature": "pub mod config;"
+        },
+        {
+          "name": "engine",
+          "qualified_name": "engine",
+          "kind": "module",
+          "start_line": 4,
+          "end_line": 4,
+          "signature": "pub mod engine;"
+        },
+        {
+          "name": "error",
+          "qualified_name": "error",
+          "kind": "module",
+          "start_line": 5,
+          "end_line": 5,
+          "signature": "pub mod error;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.290995833Z"
+    },
+    "src/main.rs": {
+      "relative_path": "src/main.rs",
+      "language": "rust",
+      "size_bytes": 45,
+      "line_count": 3,
+      "content_hash": "c8e0583694bb1e0188dbe28fe0d65ac1130723c55f968b6262b906c147f72549",
+      "symbols": [
+        {
+          "name": "main",
+          "qualified_name": "main",
+          "kind": "function",
+          "start_line": 1,
+          "end_line": 3,
+          "signature": "fn main() {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.293673213Z"
+    },
+    "crates/oxide-coordinator/src/auth.rs": {
+      "relative_path": "crates/oxide-coordinator/src/auth.rs",
+      "language": "rust",
+      "size_bytes": 6848,
+      "line_count": 188,
+      "content_hash": "e32a58ada51fbda6b6f49155c837c0329ffa3dfb2090dba3ca9f3e437034d4ba",
+      "symbols": [
+        {
+          "name": "Claims",
+          "qualified_name": "Claims",
+          "kind": "struct",
+          "start_line": 12,
+          "end_line": 19,
+          "signature": "pub struct Claims {"
+        },
+        {
+          "name": "AuthService",
+          "qualified_name": "AuthService",
+          "kind": "struct",
+          "start_line": 22,
+          "end_line": 28,
+          "signature": "pub struct AuthService {"
+        },
+        {
+          "name": "EnrollmentToken",
+          "qualified_name": "EnrollmentToken",
+          "kind": "struct",
+          "start_line": 35,
+          "end_line": 41,
+          "signature": "struct EnrollmentToken {"
+        },
+        {
+          "name": "new",
+          "qualified_name": "impl AuthService::new",
+          "kind": "method",
+          "start_line": 44,
+          "end_line": 68,
+          "signature": "pub fn new(config: &AuthConfig) -> Result<Self> {"
+        },
+        {
+          "name": "generate_token",
+          "qualified_name": "impl AuthService::generate_token",
+          "kind": "method",
+          "start_line": 71,
+          "end_line": 86,
+          "signature": "pub fn generate_token(&self, node_id: NodeId, mesh_name: &MeshName, capabilities: Vec<String>) -> Result<String> {"
+        },
+        {
+          "name": "validate_token",
+          "qualified_name": "impl AuthService::validate_token",
+          "kind": "method",
+          "start_line": 89,
+          "end_line": 93,
+          "signature": "pub fn validate_token(&self, token: &str) -> Result<Claims> {"
+        },
+        {
+          "name": "authenticate_mqtt",
+          "qualified_name": "impl AuthService::authenticate_mqtt",
+          "kind": "method",
+          "start_line": 96,
+          "end_line": 101,
+          "signature": "pub async fn authenticate_mqtt(&self, connection: rumqttd::Connection) -> Result<rumqttd::Connection> {"
+        },
+        {
+          "name": "validate_enrollment_token",
+          "qualified_name": "impl AuthService::validate_enrollment_token",
+          "kind": "method",
+          "start_line": 104,
+          "end_line": 128,
+          "signature": "pub async fn validate_enrollment_token(&self, token: &str) -> Result<(String, Vec<String>)> {"
+        },
+        {
+          "name": "validate_oidc_token",
+          "qualified_name": "impl AuthService::validate_oidc_token",
+          "kind": "method",
+          "start_line": 131,
+          "end_line": 135,
+          "signature": "async fn validate_oidc_token(&self, token: &str) -> Result<(String, Vec<String>)> {"
+        },
+        {
+          "name": "create_enrollment_token",
+          "qualified_name": "impl AuthService::create_enrollment_token",
+          "kind": "method",
+          "start_line": 138,
+          "end_line": 154,
+          "signature": "pub async fn create_enrollment_token(&self, mesh_name: String, capabilities: Vec<String>, ttl: Option<Duration>) -> String {"
+        },
+        {
+          "name": "verify_device_signature",
+          "qualified_name": "impl AuthService::verify_device_signature",
+          "kind": "method",
+          "start_line": 157,
+          "end_line": 165,
+          "signature": "pub fn verify_device_signature("
+        },
+        {
+          "name": "extract_node_id",
+          "qualified_name": "impl AuthService::extract_node_id",
+          "kind": "method",
+          "start_line": 168,
+          "end_line": 187,
+          "signature": "pub fn extract_node_id(&self, req: &actix_web::HttpRequest) -> Result<NodeId> {"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.283451676Z"
+    },
+    "crates/oxide-tun/src/error.rs": {
+      "relative_path": "crates/oxide-tun/src/error.rs",
+      "language": "rust",
+      "size_bytes": 926,
+      "line_count": 41,
+      "content_hash": "50da9a5a5a02237359fc3d70332dd923ec1122008b14e89023c07bf10abcf0d9",
+      "symbols": [
+        {
+          "name": "TunError",
+          "qualified_name": "TunError",
+          "kind": "enum",
+          "start_line": 6,
+          "end_line": 39,
+          "signature": "pub enum TunError {"
+        },
+        {
+          "name": "Result",
+          "qualified_name": "Result",
+          "kind": "type",
+          "start_line": 41,
+          "end_line": 41,
+          "signature": "pub type Result<T> = std::result::Result<T, TunError>;"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.290899661Z"
+    },
+    "Cargo.toml": {
+      "relative_path": "Cargo.toml",
+      "language": "toml",
+      "size_bytes": 3285,
+      "line_count": 144,
+      "content_hash": "cdf7bc175ba71070ed0763ade69ebb4e018517d14d361c523c54145c02e1f969",
+      "symbols": [
+        {
+          "name": "workspace",
+          "qualified_name": "[workspace]",
+          "kind": "module",
+          "start_line": 1,
+          "end_line": 1,
+          "signature": "[workspace]"
+        },
+        {
+          "name": "workspace.package",
+          "qualified_name": "[workspace.package]",
+          "kind": "module",
+          "start_line": 5,
+          "end_line": 5,
+          "signature": "[workspace.package]"
+        },
+        {
+          "name": "workspace.dependencies",
+          "qualified_name": "[workspace.dependencies]",
+          "kind": "module",
+          "start_line": 11,
+          "end_line": 11,
+          "signature": "[workspace.dependencies]"
+        },
+        {
+          "name": "profile.release",
+          "qualified_name": "[profile.release]",
+          "kind": "module",
+          "start_line": 131,
+          "end_line": 131,
+          "signature": "[profile.release]"
+        },
+        {
+          "name": "profile.release-lto",
+          "qualified_name": "[profile.release-lto]",
+          "kind": "module",
+          "start_line": 138,
+          "end_line": 138,
+          "signature": "[profile.release-lto]"
+        },
+        {
+          "name": "profile.bench",
+          "qualified_name": "[profile.bench]",
+          "kind": "module",
+          "start_line": 142,
+          "end_line": 142,
+          "signature": "[profile.bench]"
+        }
+      ],
+      "last_scanned_at": "2026-09-25T20:27:30.294955506Z"
     }
   },
-  "total_symbols": 488,
-  "last_updated": "2026-09-25T20:22:01.842873703Z"
+  "total_symbols": 546,
+  "last_updated": "2026-09-25T20:27:30.294979252Z"
 }
