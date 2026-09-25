@@ -1,5 +1,5 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]
@@ -116,7 +116,6 @@ figment = { version = "0.10.19", features = ["toml", "env", "serde"] }
 dirs = "7.0.0"
 
 # SIMD & Performance
-portable-simd = { version = "*", features = ["std"] }
 memoffset = "0.9"
 zerocopy = { version = "0.8", features = ["derive", "serde"] }
 bytemuck = { version = "1.15", features = ["derive"] }
