@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
-categories = ["network-programming", "web-programming", "asynchronous"]
+categories = ["network-programming","web-programming","asynchronous"]
 description = "Embedded MQTT broker and Actix Web coordinator for oxide-mesh-net"
 
 [dependencies]
@@ -21,20 +21,31 @@ actix-session = "0.8"
 actix-identity = "0.6"
 actix-rt = "2.8"
 actix-web-prometheus = "0.3"
+actix-cors = "0.7"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+chrono = { version = "0.4", features = ["serde"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-thiserror = { workspace = anyhow = "1.0"
+thiserror = { workspace = true }
+anyhow = "1.0"
 jsonwebtoken = "9.2"
 oidc = "0.3"
 async-trait = { workspace = true }
 dashmap = { workspace = true }
 arc-swap = { workspace = true }
 time = { workspace = true }
-uuid = { workspace = true, features = ["v4", "v7", "serde", "fast-rng"] }
+uuid = { workspace = true, features = ["v4","v7","serde","fast-rng"] }
 cfg-if = { workspace = true }
 parking_lot = { workspace = true }
+postcard = { workspace = true }
+
+[features]
+sled = ["sled"]
+redis = ["redis"]
+
+sled = { version = "0.34", optional = true }
+redis = { version = "0.24", features = ["tokio", "multiplexed", "connection-manager"], optional = true }
 
 [dev-dependencies]
 proptest = { workspace = true }
