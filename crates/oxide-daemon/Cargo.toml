@@ -1,0 +1,26 @@
+[package]
+name = "oxide-daemon"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = ["network-programming", "system-tools"]
+description = "High-performance background daemon and Actix Web administrative server for oxide-mesh-net"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+oxide-crypto = { path = "../oxide-crypto" }
+oxide-protocol = { path = "../oxide-protocol" }
+oxide-tun = { path = "../oxide-tun" }
+oxide-transport = { path = "../oxide-transport" }
+oxide-acl = { path = "../oxide-acl" }
+oxide-dns = { path = "../oxide-dns" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+clap = { workspace = true }
+actix-web = "4.9"
+actix-cors = "0.7"
