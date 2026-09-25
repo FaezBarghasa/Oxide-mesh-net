@@ -1,0 +1,38 @@
+[package]
+name = "oxide-crypto"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = ["cryptography", "network-programming"]
+description = "Cryptographic primitives for oxide-mesh-net"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+eyre = { workspace = true }
+bytes = { workspace = true }
+zeroize = { workspace = true }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
+ring = { workspace = true }
+x25519-dalek = { workspace = true }
+ed25519-dalek = { workspace = true }
+p256 = { workspace = true }
+p384 = { workspace = true }
+blake3 = { workspace = true }
+chacha20poly1305 = { workspace = true }
+aes-gcm = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+hkdf = { workspace = true }
+subtle = { workspace = true }
+
+# Post-quantum cryptography (using pqcrypto or similar when available)
+# For now we'll use hybrid approach with classical + placeholder for PQC
+# oqs = { version = "0.10", features = ["kem_kyber768", "sig_dilithium3"] }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }

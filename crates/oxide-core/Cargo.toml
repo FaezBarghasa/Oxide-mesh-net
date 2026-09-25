@@ -1,0 +1,37 @@
+[package]
+name = "oxide-core"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = ["network-programming", "system-tools"]
+description = "Core types, errors, and utilities for oxide-mesh-net"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+eyre = { workspace = true }
+bytes = { workspace = true }
+smallvec = { workspace = true }
+parking_lot = { workspace = true }
+crossbeam = { workspace = true }
+dashmap = { workspace = true }
+slab = { workspace = true }
+arc-swap = { workspace = true }
+once_cell = { workspace = true }
+uuid = { workspace = true, features = ["v4", "v7", "serde", "fast-rng"] }
+time = { workspace = true }
+tracing = { workspace = true }
+cfg-if = { workspace = true }
+
+# Platform-specific
+#[cfg(target_os = "linux")]
+libc = "0.2"
+
+#[cfg(target_os = "windows")]
+windows = { version = "0.58", features = ["Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_System_IO", "Win32_System_Threading"] }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }

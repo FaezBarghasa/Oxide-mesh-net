@@ -1,0 +1,30 @@
+[package]
+name = "oxide-transport"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = ["network-programming", "asynchronous"]
+description = "QUIC transport engine for oxide-mesh-net"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+oxide-crypto = { path = "../oxide-crypto" }
+oxide-protocol = { path = "../oxide-protocol" }
+tokio = { workspace = true }
+quinn = { workspace = true }
+quinn-proto = { workspace = true }
+bytes = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+parking_lot = { workspace = true }
+arc-swap = { workspace = true }
+crossbeam = { workspace = true }
+smallvec = { workspace = true }
+time = { workspace = true }
+cfg-if = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }

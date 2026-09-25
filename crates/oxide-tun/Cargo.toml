@@ -1,0 +1,39 @@
+[package]
+name = "oxide-tun"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = ["network-programming", "os", "system-tools"]
+description = "Multi-queue virtual network interface for oxide-mesh-net"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+tokio = { workspace = true }
+bytes = { workspace = true }
+socket2 = { workspace = true }
+ipnet = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+parking_lot = { workspace = true }
+crossbeam = { workspace = true }
+slab = { workspace = true }
+cfg-if = { workspace = true }
+zerocopy = { workspace = true, features = ["derive"] }
+bytemuck = { workspace = true, features = ["derive"] }
+
+# Linux-specific
+#[cfg(target_os = "linux")]
+nix = { version = "0.28", features = ["net", "fs", "process"] }
+
+# Windows-specific
+#[cfg(target_os = "windows")]
+windows = { version = "0.58", features = ["Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_Device_Input", "Win32_System_IO", "Win32_System_Memory", "Win32_System_Threading"] }
+
+# macOS-specific
+#[cfg(target_os = "macos")]
+libc = "0.2"
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
