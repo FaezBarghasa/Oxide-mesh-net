@@ -12,12 +12,15 @@ pub enum BadgeVariant {
     Muted,
 }
 
+#[derive(Props, Clone, PartialEq)]
+pub struct BadgeProps {
+    pub variant: BadgeVariant,
+    pub children: Element,
+}
+
 #[component]
-pub fn Badge(
-    variant: BadgeVariant,
-    children: Element,
-) -> Element {
-    let class_name = match variant {
+pub fn Badge(props: BadgeProps) -> Element {
+    let class_name = match props.variant {
         BadgeVariant::Healthy => "badge badge-healthy",
         BadgeVariant::Warning => "badge badge-warning",
         BadgeVariant::Critical => "badge badge-critical",
@@ -28,7 +31,7 @@ pub fn Badge(
 
     rsx! {
         span { class: "{class_name}",
-            {children}
+            {props.children}
         }
     }
 }

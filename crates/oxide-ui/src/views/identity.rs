@@ -88,7 +88,7 @@ pub fn IdentityView(
                         div { style: "font-size: 12px; color: var(--text-secondary);", "Click matrix cell to inspect or invert security policy boundaries between identity tags." }
                         div { class: "acl-matrix",
                             div { style: "display: grid; grid-template-columns: 80px repeat(5, 44px); gap: 4px; align-items: center;",
-                                div { style: "font-size: 10px; color: var(--text-muted); font-weight: 700;", "SRC \\ DST" }
+                                div { style: "font-size: 10px; color: var(--text-muted); font-weight: 700;", "SRC / DST" }
                                 for dst in tags.iter() {
                                     div { style: "font-size: 9px; color: var(--text-muted); text-align: center; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis;", "{dst.trim_start_matches(\"tag:\")}" }
                                 }
@@ -97,14 +97,9 @@ pub fn IdentityView(
                                 div { style: "display: grid; grid-template-columns: 80px repeat(5, 44px); gap: 4px; align-items: center;",
                                     div { style: "font-size: 10px; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis;", "{src.trim_start_matches(\"tag:\")}" }
                                     for dst in tags.iter() {
-                                        {
-                                            let is_allow = (src == &"tag:admin") || (src == &"tag:dev" && dst == &"tag:gateway") || (src == dst);
-                                            rsx! {
-                                                div {
-                                                    class: if is_allow { "matrix-cell matrix-allow" } else { "matrix-cell matrix-deny" },
-                                                    if is_allow { "ALLOW" } else { "DENY" }
-                                                }
-                                            }
+                                        div {
+                                            class: if (src == &"tag:admin") || (src == &"tag:dev" && dst == &"tag:gateway") || (src == dst) { "matrix-cell matrix-allow" } else { "matrix-cell matrix-deny" },
+                                            if (src == &"tag:admin") || (src == &"tag:dev" && dst == &"tag:gateway") || (src == dst) { "ALLOW" } else { "DENY" }
                                         }
                                     }
                                 }
@@ -162,8 +157,13 @@ pub fn IdentityView(
                         }
 
                         if let Some(ref sim_res) = app.acl_simulation_result {
-                            div { style: "padding: 12px; background: var(--bg-elevation-1); border-radius: var(--radius-sm); border: 1px solid var(--border-focus); margin-top: 4px;",
-                                div { style: "font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: if sim_res.starts_with(\"PERMIT\") { \"var(--accent-emerald)\" } else { \"var(--accent-rose)\" };", "{sim_res}" }
+                            div {
+                                class: "metric-box",
+                                style: "margin-top: 4px; border: 1px solid var(--border-focus);",
+                                div {
+                                    style: if sim_res.starts_with("PERMIT") { "font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent-emerald);" } else { "font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent-rose);" },
+                                    "{sim_res}"
+                                }
                             }
                         }
                     }
