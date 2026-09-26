@@ -10,10 +10,7 @@ description = "Pure-Rust Cross-Platform Reactive Client Interface for oxide-mesh
 [dependencies]
 oxide-core = { path = "../oxide-core" }
 oxide-protocol = { path = "../oxide-protocol" }
-dioxus = { version = "0.7", default-features = false, features = [
-    "macro",
-    "hooks",
-] }
+dioxus = { version = "0.6", default-features = false, features = ["macro", "html", "signals", "hooks"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 postcard = { workspace = true }
@@ -22,9 +19,10 @@ futures-util = "0.3"
 uuid = { workspace = true }
 time = { workspace = true }
 tracing = { workspace = true }
+blake3 = { workspace = true }
 
 [features]
-default = ["web"]
+default = []
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "tokio"]
 server = ["tokio"]
