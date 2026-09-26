@@ -21,6 +21,7 @@ actix-session = "0.11.0"
 actix-identity = "0.9.0"
 actix-rt = "2.8"
 actix-web-prometheus = "0.1.2"
+prometheus = "0.14.0"
 actix-cors = "0.7"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
@@ -41,7 +42,7 @@ parking_lot = { workspace = true }
 postcard = { workspace = true }
 
 sled = { version = "0.34", optional = true }
-redis = { version = "0.24", features = [
+redis = { version = "1.7.1", features = [
     "tokio-comp",
     "connection-manager",
 ], optional = true }

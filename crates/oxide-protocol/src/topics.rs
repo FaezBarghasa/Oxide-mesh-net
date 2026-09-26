@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp, Endpoint, NodeCapabilities};
-use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint, DeviceSignature};
+use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint};
 pub use crate::wire::{AclAction, AclDirection};
 
 /// Topic namespace prefix
