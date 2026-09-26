@@ -2,9 +2,9 @@ use std::str::FromStr;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 use serde::{Deserialize, Serialize};
-use crate::{AuthConfig, OidcConfig, error::{CoordinatorError, Result}};
-use oxide_core::NodeId;
-use oxide_crypto::keys::{DeviceIdentityPublicKey, KeyFingerprint};
+use crate::{AuthConfig, error::{CoordinatorError, Result}};
+use oxide_core::{NodeId, MeshName};
+use oxide_crypto::keys::DeviceIdentityPublicKey;
 
 /// JWT claims for node authentication
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -92,7 +92,7 @@ impl AuthService {
     }
 
     /// Authenticate MQTT connection
-    pub async fn authenticate_mqtt(&self, connection: rumqttd::Connection) -> Result<rumqttd::Connection> {
+    pub async fn authenticate_mqtt(&self, connection: rumqttd::ConnectionId) -> Result<rumqttd::ConnectionId> {
         // Extract credentials from connection
         // This would check username/password or client certificate
         // For now, allow all connections
@@ -119,7 +119,7 @@ impl AuthService {
         }
 
         // Check OIDC if configured
-        if let Some(oidc) = &self.config.oidc {
+        if let Some(_oidc) = &self.config.oidc {
             return self.validate_oidc_token(token).await;
         }
 
@@ -127,7 +127,7 @@ impl AuthService {
     }
 
     /// Validate OIDC token
-    async fn validate_oidc_token(&self, token: &str) -> Result<(String, Vec<String>)> {
+    async fn validate_oidc_token(&self, _token: &str) -> Result<(String, Vec<String>)> {
         // Would validate OIDC ID token
         // For now, return error
         Err(CoordinatorError::Oidc("OIDC validation not implemented".into()))
@@ -135,7 +135,7 @@ impl AuthService {
 
     /// Create enrollment token
     pub async fn create_enrollment_token(&self, mesh_name: String, capabilities: Vec<String>, ttl: Option<Duration>) -> String {
-        let token = uuid::Uuid::new_v7().to_string();
+        let token = uuid::Uuid::now_v7().to_string();
         let expires_at = ttl.map(|d| {
             SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + d.as_secs()
         }).unwrap_or(0);
