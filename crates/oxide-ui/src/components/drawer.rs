@@ -6,6 +6,7 @@ use crate::components::icons::IconClose;
 #[derive(Props, Clone, PartialEq)]
 pub struct DrawerProps {
     pub is_open: bool,
+    #[props(into)]
     pub title: String,
     pub on_close: EventHandler<()>,
     pub children: Element,

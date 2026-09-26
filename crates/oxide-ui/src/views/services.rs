@@ -3,7 +3,6 @@
 use dioxus::prelude::*;
 use crate::components::*;
 use crate::components::icons::*;
-use crate::models::*;
 use crate::state::AppState;
 
 #[component]

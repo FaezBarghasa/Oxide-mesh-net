@@ -34,6 +34,14 @@ pub fn DashboardView(
     let out_rate_str = format_rate(tel.egress_bytes_sec);
     let peer_roster_title = format!("Dynamic Peer Roster ({} Nodes Active)", app.active_peers.len());
 
+    let nat_str = match tel.nat_type {
+        NatType::FullCone => "Full-Cone NAT",
+        NatType::RestrictedCone => "Restricted-Cone NAT",
+        NatType::PortRestricted => "Port-Restricted NAT",
+        NatType::Symmetric => "Symmetric (Hard NAT)",
+        NatType::Unknown => "Discovering...",
+    };
+
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 20px;",
             // Top Command Banner
@@ -42,18 +50,23 @@ pub fn DashboardView(
                     div { style: "display: flex; align-items: center; gap: 16px;",
                         div {
                             style: "width: 48px; height: 48px; border-radius: var(--radius-md); background: var(--bg-elevation-2); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong);",
-                            IconShield { size: 24, color: if is_connected { "var(--accent-emerald)" } else { "var(--text-muted)" } }
+                            IconShield { size: 24, color: "var(--accent-emerald)" }
                         }
                         div {
                             div { style: "display: flex; align-items: center; gap: 10px;",
                                 h2 { style: "font-size: 18px; font-weight: 700;", "Oxide Mesh Overlay" }
-                                match app.node_state {
-                                    NodeState::Connected => rsx! { Badge { variant: BadgeVariant::Healthy, "ONLINE" } },
-                                    NodeState::Connecting => rsx! { Badge { variant: BadgeVariant::Cyan, "CONNECTING" } },
-                                    NodeState::Disconnecting => rsx! { Badge { variant: BadgeVariant::Warning, "DISCONNECTING" } },
-                                    NodeState::Offline => rsx! { Badge { variant: BadgeVariant::Muted, "OFFLINE" } },
-                                    NodeState::EmergencyObfuscation => rsx! { Badge { variant: BadgeVariant::Violet, "EMERGENCY OBFUSCATION" } },
-                                    NodeState::Error => rsx! { Badge { variant: BadgeVariant::Critical, "ERROR" } },
+                                if app.node_state == NodeState::Connected {
+                                    Badge { variant: BadgeVariant::Healthy, "ONLINE" }
+                                } else if app.node_state == NodeState::Connecting {
+                                    Badge { variant: BadgeVariant::Cyan, "CONNECTING" }
+                                } else if app.node_state == NodeState::Disconnecting {
+                                    Badge { variant: BadgeVariant::Warning, "DISCONNECTING" }
+                                } else if app.node_state == NodeState::EmergencyObfuscation {
+                                    Badge { variant: BadgeVariant::Violet, "EMERGENCY OBFUSCATION" }
+                                } else if app.node_state == NodeState::Error {
+                                    Badge { variant: BadgeVariant::Critical, "ERROR" }
+                                } else {
+                                    Badge { variant: BadgeVariant::Muted, "OFFLINE" }
                                 }
                             }
                             div { style: "display: flex; align-items: center; gap: 14px; margin-top: 4px; font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);",
@@ -70,13 +83,7 @@ pub fn DashboardView(
                         div { style: "text-align: right;",
                             div { style: "font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;", "NAT Discovery" }
                             div { style: "font-weight: 600; font-size: 13px; color: var(--accent-cyan);",
-                                match tel.nat_type {
-                                    NatType::FullCone => "Full-Cone NAT",
-                                    NatType::RestrictedCone => "Restricted-Cone NAT",
-                                    NatType::PortRestricted => "Port-Restricted NAT",
-                                    NatType::Symmetric => "Symmetric (Hard NAT)",
-                                    NatType::Unknown => "Discovering...",
-                                }
+                                "{nat_str}"
                             }
                         }
                         Toggle {
@@ -139,7 +146,7 @@ pub fn DashboardView(
 
             // Dynamic Peer Roster Section
             Card {
-                title: peer_roster_title,
+                title: Some(peer_roster_title),
                 header_action: Some(rsx! {
                     div { style: "display: flex; gap: 8px;",
                         Button {
@@ -181,10 +188,12 @@ pub fn DashboardView(
                                 div {
                                     div { style: "display: flex; align-items: center; gap: 8px;",
                                         span { style: "font-weight: 600; font-size: 14px; color: var(--text-primary);", "{peer.hostname}" }
-                                        match peer.connection_vector {
-                                            PeerConnectionVector::DirectP2P => rsx! { Badge { variant: BadgeVariant::Healthy, "Direct P2P (UDP Hole-Punched)" } },
-                                            PeerConnectionVector::MasqueRelayed => rsx! { Badge { variant: BadgeVariant::Warning, "MASQUE Relayed (HTTP/3)" } },
-                                            PeerConnectionVector::FallbackWss => rsx! { Badge { variant: BadgeVariant::Violet, "WSS Fallback (TCP:443)" } },
+                                        if peer.connection_vector == PeerConnectionVector::DirectP2P {
+                                            Badge { variant: BadgeVariant::Healthy, "Direct P2P (UDP Hole-Punched)" }
+                                        } else if peer.connection_vector == PeerConnectionVector::MasqueRelayed {
+                                            Badge { variant: BadgeVariant::Warning, "MASQUE Relayed (HTTP/3)" }
+                                        } else {
+                                            Badge { variant: BadgeVariant::Violet, "WSS Fallback (TCP:443)" }
                                         }
                                     }
                                     div { style: "font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); margin-top: 2px;",
@@ -216,7 +225,7 @@ pub fn DashboardView(
             // Slide-out Diagnostic Drawer for Selected Peer
             Drawer {
                 is_open: app.is_drawer_open,
-                title: "Peer Deep Diagnostic Inspector".to_string(),
+                title: "Peer Deep Diagnostic Inspector",
                 on_close: move |_| {
                     let mut current = state.write();
                     current.is_drawer_open = false;
