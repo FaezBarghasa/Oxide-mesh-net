@@ -99,7 +99,7 @@ impl Default for HttpConfig {
     fn default() -> Self {
         Self {
             bind: "0.0.0.0:8080".parse().unwrap(),
-            workers: num_cpus::get(),
+            workers: std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4),
             tls: false,
             cert_path: None,
             key_path: None,
@@ -115,7 +115,7 @@ impl Default for HttpConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageConfig {
     /// Storage backend type
-    pub backend: StorageBackend,
+    pub backend: StorageBackendType,
     /// Data directory
     pub data_dir: PathBuf,
     /// Redis URL (for distributed storage)
@@ -127,7 +127,7 @@ pub struct StorageConfig {
 impl Default for StorageConfig {
     fn default() -> Self {
         Self {
-            backend: StorageBackend::Memory,
+            backend: StorageBackendType::Memory,
             data_dir: PathBuf::from("/var/lib/oxide-coordinator"),
             redis_url: None,
             raft: None,
@@ -136,7 +136,7 @@ impl Default for StorageConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum StorageBackend {
+pub enum StorageBackendType {
     Memory,
     Sled,
     Redis,

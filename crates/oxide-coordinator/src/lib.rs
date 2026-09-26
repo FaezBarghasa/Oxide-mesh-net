@@ -7,6 +7,6 @@ pub mod auth;
 pub mod storage;
 pub mod handlers;
 
-pub use config::{CoordinatorConfig, MqttListenerConfig, HttpConfig, StorageConfig, AuthConfig, OidcConfig};
+pub use config::{CoordinatorConfig, MqttListenerConfig, HttpConfig, StorageConfig, StorageBackendType, AuthConfig, OidcConfig};
 pub use engine::{Coordinator, AppState};
 pub use error::{CoordinatorError, Result};

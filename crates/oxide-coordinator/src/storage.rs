@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use serde::{Deserialize, Serialize};
-use crate::{StorageConfig, StorageBackend, error::{CoordinatorError, Result}};
+use crate::{StorageConfig, StorageBackendType, error::{CoordinatorError, Result}};
 use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp, Endpoint, NodeCapabilities};
 use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint};
 use oxide_protocol::topics::*;
@@ -35,8 +35,8 @@ pub struct Storage {
 impl Storage {
     pub fn new(config: &StorageConfig) -> Result<Self> {
         let backend: Box<dyn StorageBackend> = match config.backend {
-            StorageBackend::Memory => Box::new(MemoryStorage::new()),
-            StorageBackend::Sled => {
+            StorageBackendType::Memory => Box::new(MemoryStorage::new()),
+            StorageBackendType::Sled => {
                 #[cfg(feature = "sled")]
                 {
                     Box::new(SledStorage::new(&config.data_dir)?)
@@ -46,7 +46,7 @@ impl Storage {
                     return Err(CoordinatorError::Storage("Sled backend not compiled".into()));
                 }
             }
-            StorageBackend::Redis => {
+            StorageBackendType::Redis => {
                 #[cfg(feature = "redis")]
                 {
                     Box::new(RedisStorage::new(config.redis_url.as_deref().unwrap_or("redis://127.0.0.1:6379"))?)
@@ -56,7 +56,7 @@ impl Storage {
                     return Err(CoordinatorError::Storage("Redis backend not compiled".into()));
                 }
             }
-            StorageBackend::Raft => {
+            StorageBackendType::Raft => {
                 return Err(CoordinatorError::Storage("Raft backend not yet implemented".into()));
             }
         };
