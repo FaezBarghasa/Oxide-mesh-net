@@ -307,9 +307,8 @@ impl fmt::Display for Endpoint {
 
 impl FromStr for Endpoint {
     type Err = String;
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let socket_addr: SocketAddr = s.parse().map_err(|e| e.to_string())?;
+        let socket_addr = s.parse::<SocketAddr>().map_err(|e| e.to_string())?;
         Ok(Self::new(socket_addr.ip(), socket_addr.port()))
     }
 }

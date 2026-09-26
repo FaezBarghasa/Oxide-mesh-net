@@ -25,11 +25,10 @@ time = { workspace = true }
 tracing = { workspace = true }
 cfg-if = { workspace = true }
 
-# Platform-specific
-#[cfg(target_os = "linux")]
+[target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
 
-#[cfg(target_os = "windows")]
+[target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.58", features = ["Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_System_IO", "Win32_System_Threading"] }
 
 [dev-dependencies]

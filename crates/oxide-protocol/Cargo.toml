@@ -15,7 +15,7 @@ serde_json = { workspace = true }
 bincode = { workspace = true }
 postcard = { workspace = true }
 bytes = { workspace = true }
-zerocopy = { workspace = true, features = ["derive", "serde"] }
+zerocopy = { workspace = true, features = ["derive"] }
 bytemuck = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 uuid = { workspace = true, features = ["v4", "v7", "serde", "fast-rng"] }

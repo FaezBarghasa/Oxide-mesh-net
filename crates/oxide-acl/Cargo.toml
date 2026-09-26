@@ -21,7 +21,7 @@ parking_lot = { workspace = true }
 dashmap = { workspace = true }
 crossbeam = { workspace = true }
 smallvec = { workspace = true }
-zerocopy = { workspace = true, features = ["derive", "serde"] }
+zerocopy = { workspace = true, features = ["derive"] }
 bytemuck = { workspace = true, features = ["derive"] }
 ahash = "0.8"
 

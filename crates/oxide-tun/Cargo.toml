@@ -22,16 +22,18 @@ cfg-if = { workspace = true }
 zerocopy = { workspace = true, features = ["derive"] }
 bytemuck = { workspace = true, features = ["derive"] }
 
-# Linux-specific
-#[cfg(target_os = "linux")]
-nix = { version = "0.28", features = ["net", "fs", "process"] }
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { version = "0.31.3", features = ["net", "fs", "process"] }
 
-# Windows-specific
-#[cfg(target_os = "windows")]
-windows = { version = "0.58", features = ["Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_Device_Input", "Win32_System_IO", "Win32_System_Memory", "Win32_System_Threading"] }
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_NetworkManagement_IpHelper",
+    "Win32_System_IO",
+    "Win32_System_Threading",
+] }
 
-# macOS-specific
-#[cfg(target_os = "macos")]
+[target.'cfg(target_os = "macos")'.dependencies]
 libc = "0.2"
 
 [dev-dependencies]

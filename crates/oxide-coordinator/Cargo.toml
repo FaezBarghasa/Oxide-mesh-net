@@ -41,9 +41,8 @@ parking_lot = { workspace = true }
 postcard = { workspace = true }
 
 sled = { version = "0.34", optional = true }
-redis = { version = "1.7.1", features = [
-    "tokio",
-    "multiplexed",
+redis = { version = "0.24", features = [
+    "tokio-comp",
     "connection-manager",
 ], optional = true }
 
@@ -54,4 +53,3 @@ redis = ["dep:redis"]
 [dev-dependencies]
 proptest = { workspace = true }
 criterion = { workspace = true }
-actix-web = { version = "4.9", features = ["test"] }
