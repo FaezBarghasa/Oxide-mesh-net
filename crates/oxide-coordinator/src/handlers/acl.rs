@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{AppState, error::{CoordinatorError, Result}};
 use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp};
 use oxide_crypto::keys::KeyFingerprint;
+use oxide_protocol::topics::{AclAction, AclDirection};
 
 #[derive(Deserialize)]
 pub struct UpdateAclRequest {
@@ -24,8 +25,6 @@ pub struct AclRuleRequest {
     pub log: bool,
     pub priority: u32,
 }
-
-pub use oxide_protocol::topics::{AclAction, AclDirection};
 
 #[derive(Serialize)]
 pub struct AclPolicyResponse {
@@ -105,13 +104,10 @@ pub async fn update_acl(
             priority: r.priority,
         }).collect(),
         timestamp: chrono::Utc::now().timestamp(),
-        signature: oxide_crypto::keys::DeviceSignature::from_bytes(&[0; 64]).unwrap(), // Would sign with coordinator key
+        signature: oxide_crypto::keys::DeviceSignature::from_bytes(&[0; 64]).unwrap(),
     };
 
     data.storage.set_acl_policy(&policy).await?;
-
-    // Publish to MQTT for distribution
-    // data.broker.publish(...).await?;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({ "version": new_version })))
 }
@@ -127,18 +123,6 @@ pub async fn delete_acl(data: web::Data<AppState>) -> Result<impl Responder> {
     };
     data.storage.set_acl_policy(&policy).await?;
     Ok(HttpResponse::NoContent().finish())
-}
-
-impl Default for oxide_protocol::topics::AclPolicy {
-    fn default() -> Self {
-        Self {
-            version: 0,
-            default_action: oxide_protocol::topics::AclAction::Allow,
-            rules: vec![],
-            timestamp: 0,
-            signature: oxide_crypto::keys::DeviceSignature::from_bytes(&[0; 64]).unwrap(),
-        }
-    }
 }
 
 pub fn configure_acl_routes(cfg: &mut web::ServiceConfig) {

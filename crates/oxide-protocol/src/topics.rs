@@ -1,9 +1,7 @@
-//! MQTT topic topology for control plane
-
 use serde::{Deserialize, Serialize};
 use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp, Endpoint, NodeCapabilities};
-use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint};
-use crate::wire::{AclAction, AclDirection};
+use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint, DeviceSignature};
+pub use crate::wire::{AclAction, AclDirection};
 
 /// Topic namespace prefix
 pub const TOPIC_ROOT: &str = "oxide";
@@ -416,6 +414,18 @@ pub struct AclPolicy {
     pub rules: Vec<AclRule>,
     pub timestamp: i64,
     pub signature: oxide_crypto::keys::DeviceSignature,
+}
+
+impl Default for AclPolicy {
+    fn default() -> Self {
+        Self {
+            version: 0,
+            default_action: AclAction::Allow,
+            rules: Vec::new(),
+            timestamp: 0,
+            signature: oxide_crypto::keys::DeviceSignature::from_bytes(&[0; 64]).unwrap(),
+        }
+    }
 }
 
 /// ACL rule

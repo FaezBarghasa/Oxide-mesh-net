@@ -53,9 +53,12 @@ pub async fn readiness_check(data: web::Data<AppState>) -> impl Responder {
     ];
 
     let ready = checks.iter().all(|c| c.status == "ok");
-    let status_code = if ready { 200 } else { 503 };
 
-    HttpResponse::build(status_code.into()).json(ReadinessResponse { ready, checks })
+    if ready {
+        HttpResponse::Ok().json(ReadinessResponse { ready, checks })
+    } else {
+        HttpResponse::ServiceUnavailable().json(ReadinessResponse { ready, checks })
+    }
 }
 
 pub async fn liveness_check() -> impl Responder {

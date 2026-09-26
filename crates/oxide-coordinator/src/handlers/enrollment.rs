@@ -1,5 +1,4 @@
-//! Enrollment handlers
-
+use std::str::FromStr;
 use actix_web::{web, HttpResponse, Responder, post, get};
 use serde::{Deserialize, Serialize};
 use crate::{AppState, error::{CoordinatorError, Result}};
