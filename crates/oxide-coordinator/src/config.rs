@@ -118,8 +118,18 @@ pub struct StorageConfig {
     pub backend: StorageBackendType,
     /// Data directory
     pub data_dir: PathBuf,
-    /// Redis URL (for distributed storage)
+    /// Redis URL (for ephemeral caching and distributed synchronization)
     pub redis_url: Option<String>,
+    /// SurrealDB endpoint URL (e.g. ws://127.0.0.1:8000 or surrealkv://...)
+    pub surreal_url: Option<String>,
+    /// SurrealDB namespace
+    pub surreal_ns: String,
+    /// SurrealDB database
+    pub surreal_db: String,
+    /// SurrealDB username (for remote/root auth)
+    pub surreal_user: Option<String>,
+    /// SurrealDB password (for remote/root auth)
+    pub surreal_pass: Option<String>,
     /// Raft configuration (for cluster)
     pub raft: Option<RaftConfig>,
 }
@@ -127,9 +137,14 @@ pub struct StorageConfig {
 impl Default for StorageConfig {
     fn default() -> Self {
         Self {
-            backend: StorageBackendType::Memory,
+            backend: StorageBackendType::Hybrid,
             data_dir: PathBuf::from("/var/lib/oxide-coordinator"),
-            redis_url: None,
+            redis_url: Some("redis://127.0.0.1:6379".into()),
+            surreal_url: None,
+            surreal_ns: "oxide".into(),
+            surreal_db: "mesh".into(),
+            surreal_user: None,
+            surreal_pass: None,
             raft: None,
         }
     }
@@ -140,6 +155,10 @@ pub enum StorageBackendType {
     Memory,
     Sled,
     Redis,
+    SurrealMem,
+    SurrealKv,
+    SurrealWs,
+    Hybrid,
     Raft,
 }
 

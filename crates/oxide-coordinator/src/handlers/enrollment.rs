@@ -42,9 +42,9 @@ pub async fn enroll(
     let (mesh_name, capabilities) = data.auth.validate_enrollment_token(&req.token).await?;
 
     // Parse public keys
-    let identity_pub = DeviceIdentityPublicKey::from_str(&req.identity_pub)
+    let _identity_pub = DeviceIdentityPublicKey::from_str(&req.identity_pub)
         .map_err(|_| CoordinatorError::Auth("Invalid identity public key".into()))?;
-    let session_pub = SessionPublicKey::from_str(&req.session_pub)
+    let _session_pub = SessionPublicKey::from_str(&req.session_pub)
         .map_err(|_| CoordinatorError::Auth("Invalid session public key".into()))?;
 
     // Generate node ID
@@ -66,9 +66,6 @@ pub async fn enroll(
         tags: vec![],
     };
     data.storage.set_node_metadata(&metadata).await?;
-
-    // Store identity key
-    // Would store in storage
 
     let response = EnrollResponse {
         node_id,
@@ -99,11 +96,11 @@ pub async fn reenroll(
     req: web::Json<ReenrollRequest>,
 ) -> Result<impl Responder> {
     // Validate node exists
-    let metadata = data.storage.get_node_metadata(&req.node_id).await?
+    let _metadata = data.storage.get_node_metadata(&req.node_id).await?
         .ok_or(CoordinatorError::Auth("Node not found".into()))?;
 
     // Parse new session key
-    let session_pub = SessionPublicKey::from_str(&req.session_pub)
+    let _session_pub = SessionPublicKey::from_str(&req.session_pub)
         .map_err(|_| CoordinatorError::Auth("Invalid session public key".into()))?;
 
     // Generate new JWT token

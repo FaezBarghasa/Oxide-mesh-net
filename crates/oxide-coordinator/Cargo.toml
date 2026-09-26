@@ -45,13 +45,14 @@ sled = { version = "0.34", optional = true }
 surrealdb = { version = "3.3.0", default-features = false, features = [
     "kv-mem",
     "kv-surrealkv",
-    "drivers-ws",
-    "async",
+    "protocol-ws",
+    "rustls",
 ] }
 
 [features]
 default = []
 sled = ["dep:sled"]
+
 
 [dev-dependencies]
 proptest = { workspace = true }

@@ -3,7 +3,7 @@
 use actix_web::{web, HttpResponse, Responder, get, put, delete};
 use serde::{Deserialize, Serialize};
 use crate::{AppState, error::{CoordinatorError, Result}};
-use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp};
+use oxide_core::OverlayPrefix;
 use oxide_crypto::keys::KeyFingerprint;
 use oxide_protocol::topics::{AclAction, AclDirection};
 

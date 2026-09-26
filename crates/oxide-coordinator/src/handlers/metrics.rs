@@ -8,7 +8,7 @@ pub async fn metrics_endpoint(metrics: web::Data<PrometheusMetrics>) -> impl Res
     let encoder = TextEncoder::new();
     let mut buffer = Vec::new();
     let metric_families = metrics.registry.gather();
-    let _ = encoder.encode(&metric_families, &mut buffer);
+    let _ = encoder.encode(&metric_families[..], &mut buffer);
 
     HttpResponse::Ok()
         .content_type("text/plain; version=0.0.4; charset=utf-8")

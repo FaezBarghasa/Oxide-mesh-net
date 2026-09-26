@@ -29,7 +29,7 @@ impl Coordinator {
     /// Create a new coordinator
     pub async fn new(config: CoordinatorConfig) -> Result<Self> {
         let auth_service = Arc::new(AuthService::new(&config.auth)?);
-        let storage = Arc::new(Storage::new(&config.storage)?);
+        let storage = Arc::new(Storage::new_async(&config.storage).await?);
 
         Ok(Self {
             config,
