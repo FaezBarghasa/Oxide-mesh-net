@@ -42,14 +42,16 @@ parking_lot = { workspace = true }
 postcard = { workspace = true }
 
 sled = { version = "0.34", optional = true }
-redis = { version = "1.7.1", features = [
-    "tokio-comp",
-    "connection-manager",
-], optional = true }
+surrealdb = { version = "3.3.0", default-features = false, features = [
+    "kv-mem",
+    "kv-surrealkv",
+    "drivers-ws",
+    "async",
+] }
 
 [features]
+default = []
 sled = ["dep:sled"]
-redis = ["dep:redis"]
 
 [dev-dependencies]
 proptest = { workspace = true }

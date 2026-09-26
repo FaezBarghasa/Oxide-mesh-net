@@ -1,0 +1,145 @@
+# oxide-mesh-net: Anti-DPI & Censorship Evasion Configuration Profile
+# Optimized for high-adversity environments with state-level Deep Packet Inspection (DPI)
+
+[node]
+node_id = "oxide-client-edge-01"
+listen_address = "0.0.0.0"
+mode = "client" # "client", "exit_node", or "relay"
+
+# ==============================================================================
+# 1. PROTOCOL MORPHING & SIGNATURE SCRAMBLING
+# ==============================================================================
+# Neutralizes signature-based DPI that recognizes WireGuard headers (0x01..0x04)
+# and standard QUIC Initial packet envelopes.
+[transport.morphing]
+enabled = true
+
+# Custom 4-byte header magic discriminators replacing standard protocol magic bytes
+# Both client and server must share identical magic values.
+header_magic_init      = 0xA4F2D81B
+header_magic_response  = 0x7E3C9104
+header_magic_data      = 0x5D82AA39
+header_magic_keepalive = 0x12C0FFE8
+
+# Junk packet injection prior to handshake to defeat stateful DPI flow trackers
+# Injects random unparseable UDP payloads to confuse early flow classification
+junk_packet_count_min = 2
+junk_packet_count_max = 5
+junk_packet_size_min  = 64
+junk_packet_size_max  = 512
+
+# Handshake packet padding (defeats fixed-size packet matching: e.g. 148 / 92 bytes)
+# Adds randomized padding to ensure every initiation packet has a variable size
+handshake_padding_min = 40
+handshake_padding_max = 280
+
+# General transport payload padding
+# Pads data frames to multiples of this value to eliminate packet length heuristics
+payload_padding_boundary = 128
+
+# ==============================================================================
+# 2. REALITY-STYLE TLS CAMOUFLAGE & ACTIVE PROBING DEFENSE
+# ==============================================================================
+# Disguises the mesh connection as standard TLS 1.3 / HTTPS to an unblocked domain.
+# Defeats active scanning clusters: unauthorized probes are proxied to a real website.
+[transport.tls_camouflage]
+enabled = true
+
+# Target legitimate server whose TLS identity and certificate will be mirrored
+# Choose a domain that is well-peered, unblocked, and supports TLS 1.3 / HTTP/2 or HTTP/3
+sni_target = "www.microsoft.com"
+sni_port   = 443
+
+# Pre-shared public key of the coordinator's Reality certificate
+server_public_key = "4f8a91bc7d2e3f4a0b5c6d7e8f90123456789abcdef0123456789abcdef01234"
+
+# Short IDs used to authenticate authorized mesh packets during the TLS handshake
+# Incoming connections without a valid short_id are treated as scanner probes
+short_ids = ["a1b2c3d4", "e5f60718"]
+
+# Fallback action when an active DPI probe connects without a valid cryptographic token
+# "proxy_pass" forwards the probe directly to the sni_target so scanners see valid certificates
+probe_defense_action = "proxy_pass"
+probe_fallback_target = "www.microsoft.com:443"
+
+# ==============================================================================
+# 3. PACKET FRAGMENTATION (TCP/IP & APPLICATION LEVEL)
+# ==============================================================================
+# Splits initial handshakes across multiple TCP/IP segments.
+# Bypasses shallow DPI inspection boxes that do not reassemble packet streams.
+[transport.fragmentation]
+enabled = true
+
+# Split the TLS ClientHello directly inside the SNI field
+# Offset determines where the initial TCP segment boundary is cut
+sni_split_offset = 3
+
+# Inject microscopic transmission delay between fragmented segments (in milliseconds)
+# Defeats simple look-ahead window reassembly on DPI middleboxes
+split_delay_ms = 4
+
+# IP-level packet fragmentation (forces middleboxes into expensive reassembly pipelines)
+force_ip_fragmentation = false
+fragment_mtu = 1200
+
+# ==============================================================================
+# 4. UDP PORT HOPPING & RSS STRIPING
+# ==============================================================================
+# Periodically shifts the active UDP transmission port before DPI flow trackers
+# can establish sustained heuristic classification and apply traffic throttling.
+[transport.port_hopping]
+enabled = true
+
+# Ephemeral port range to hop across
+port_range_start = 25000
+port_range_end   = 45000
+
+# Interval in seconds between dynamic port transitions
+hop_interval_seconds = 30
+
+# Shared pseudo-random seed used by both endpoints to synchronize the next hop port
+# Derived dynamically from the session key if left blank
+synchronized_prng_seed = ""
+
+# ==============================================================================
+# 5. EMERGENCY TCP FALLBACK & ACTIX WEB REVERSE-TUNNEL
+# ==============================================================================
+# When UDP is completely throttled, filtered, or blocked by national firewalls,
+# traffic shifts automatically to an obfuscated TCP tunnel via Actix Web.
+[transport.tcp_fallback]
+enabled = true
+auto_switch_on_udp_failure = true
+udp_failure_threshold_seconds = 8
+
+# Encapsulation mode for TCP fallback
+# "websocket_tls": Obfuscates IP frames inside an Actix Web WSS binary stream
+# "http2_stream": Multiplexed HTTP/2 POST stream mimicking background file uploads
+encapsulation_mode = "websocket_tls"
+
+# Fallback endpoint running the Actix Web edge service
+relay_host = "relay.oxide-mesh.net"
+relay_port = 443
+relay_path = "/ws/v1/telemetry"
+
+# Custom HTTP headers to look indistinguishable from ordinary web app traffic
+[transport.tcp_fallback.headers]
+"User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+"Sec-WebSocket-Protocol" = "oxide-v1"
+
+# ==============================================================================
+# 6. ANTI-POLLUTION DNS & SPLIT ROUTING
+# ==============================================================================
+# Neutralizes DNS cache poisoning, NXDOMAIN injection, and loopback redirection.
+[dns.protection]
+# Force resolution through DNS-over-HTTPS (DoH) targeting direct IP addresses
+# Bypasses local ISP DNS interceptors entirely
+doh_direct_endpoints = [
+    "https://1.1.1.1/dns-query",
+    "https://8.8.8.8/dns-query",
+    "https://9.9.9.9/dns-query"
+]
+
+# Bootstrap IPs to prevent initial plain-text DNS lookups
+[dns.protection.bootstraps]
+"cloudflare-dns.com" = "1.1.1.1"
+"dns.google"         = "8.8.8.8"
