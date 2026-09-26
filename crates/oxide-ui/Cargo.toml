@@ -1,0 +1,37 @@
+[package]
+name = "oxide-ui"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = ["gui", "network-programming", "wasm"]
+description = "Pure-Rust Cross-Platform Reactive Client Interface for oxide-mesh-net"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+oxide-protocol = { path = "../oxide-protocol" }
+dioxus = { version = "0.7", default-features = false, features = [
+    "macro",
+    "hooks",
+] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+postcard = { workspace = true }
+tokio = { workspace = true, optional = true }
+futures-util = "0.3"
+uuid = { workspace = true }
+time = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop", "tokio"]
+server = ["tokio"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
