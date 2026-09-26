@@ -1,9 +1,8 @@
 //! ACL rule definitions and SIMD-accelerated evaluation
 
-use std::sync::Arc;
 use std::collections::HashMap;
 use smallvec::SmallVec;
-use oxide_core::{OverlayIp, OverlayPrefix, NodeId};
+use oxide_core::{OverlayIp, OverlayPrefix};
 use oxide_crypto::keys::KeyFingerprint;
 use crate::error::{AclError, Result};
 use crate::simd::SimdEvaluator;
@@ -133,7 +132,7 @@ impl PrefixTrie {
                 (0..len).map(|i| {
                     let byte_idx = i / 8;
                     let bit_idx = 7 - (i % 8);
-                    (addr_bytes[byte_idx] >> bit_idx) & 1
+                    ((addr_bytes[byte_idx] >> bit_idx) & 1) as u32
                 }).collect::<Vec<_>>()
             }
         };
@@ -156,7 +155,7 @@ impl PrefixTrie {
                 (0..128).map(|i| {
                     let byte_idx = i / 8;
                     let bit_idx = 7 - (i % 8);
-                    (addr_bytes[byte_idx] >> bit_idx) & 1
+                    ((addr_bytes[byte_idx] >> bit_idx) & 1) as u32
                 }).collect::<Vec<_>>()
             }
         };
@@ -233,12 +232,12 @@ impl AclEngine {
         self.rules.sort_by_key(|r| std::cmp::Reverse(r.priority));
 
         for rule in &mut self.rules {
-            rule.compiled = Some(self.compile_rule(rule)?);
+            rule.compiled = Some(Self::compile_rule(rule)?);
         }
         Ok(())
     }
 
-    fn compile_rule(&self, rule: &AclRule) -> Result<CompiledRule> {
+    fn compile_rule(rule: &AclRule) -> Result<CompiledRule> {
         let mut compiled = CompiledRule {
             identity_mask: None,
             src_prefix_trie: None,
@@ -408,7 +407,7 @@ impl AclEngine {
 
     /// Add a rule dynamically
     pub fn add_rule(&mut self, rule: AclRule) -> Result<()> {
-        let compiled = self.compile_rule(&rule)?;
+        let compiled = Self::compile_rule(&rule)?;
         let mut rule = rule;
         rule.compiled = Some(compiled);
         

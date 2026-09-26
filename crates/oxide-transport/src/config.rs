@@ -1,8 +1,10 @@
 //! QUIC transport configuration
 
+use std::sync::Arc;
 use std::time::Duration;
-use quinn::{ClientConfig, ServerConfig, TransportConfig, VarInt};
+use quinn::{ClientConfig, ServerConfig, TransportConfig as QuinnTransportConfig, VarInt};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+use quinn::crypto::rustls::{QuicClientConfig, QuicServerConfig};
 use crate::error::TransportError;
 
 /// Transport configuration
@@ -59,18 +61,11 @@ pub enum CongestionControl {
 }
 
 impl CongestionControl {
-    pub fn configure(&self, transport: &mut TransportConfig) {
+    pub fn configure(&self, _transport: &mut QuinnTransportConfig) {
         match self {
-            CongestionControl::Cubic => {
-                // Cubic is default in quinn
-            }
-            CongestionControl::Bbr => {
-                // BBR configuration would go here
-                // quinn doesn't expose BBR directly yet, but we can set parameters
-            }
-            CongestionControl::NewReno => {
-                // NewReno configuration
-            }
+            CongestionControl::Cubic => {}
+            CongestionControl::Bbr => {}
+            CongestionControl::NewReno => {}
         }
     }
 }
@@ -79,7 +74,7 @@ impl CongestionControl {
 pub fn make_client_config(config: &TransportConfig) -> Result<ClientConfig, TransportError> {
     let mut root_store = rustls::RootCertStore::empty();
     for cert in &config.root_certs {
-        root_store.add(cert.clone())?;
+        root_store.add(cert.clone()).map_err(|e| TransportError::Config(e.to_string()))?;
     }
 
     let mut client_crypto = rustls::ClientConfig::builder()
@@ -88,16 +83,20 @@ pub fn make_client_config(config: &TransportConfig) -> Result<ClientConfig, Tran
 
     client_crypto.alpn_protocols = config.alpn.clone();
 
-    let mut transport = TransportConfig::default();
-    transport.max_idle_timeout(Some(config.idle_timeout.try_into().map_err(|e| TransportError::Config(e.to_string()))?));
-    transport.keep_alive_interval(Some(config.keepalive_interval));
-    transport.max_datagram_frame_size(config.max_datagram_size as u64);
-    
-    if config.enable_0rtt {
-        transport.enable_0rtt(true);
+    let mut transport = QuinnTransportConfig::default();
+    if let Ok(idle) = config.idle_timeout.try_into() {
+        transport.max_idle_timeout(Some(idle));
     }
+    transport.keep_alive_interval(Some(config.keepalive_interval));
+    transport.datagram_receive_buffer_size(Some(config.max_datagram_size));
+    transport.datagram_send_buffer_size(config.max_datagram_size);
 
-    Ok(ClientConfig::new(client_crypto.into()))
+    let quic_crypto = QuicClientConfig::try_from(client_crypto)
+        .map_err(|e| TransportError::Config(e.to_string()))?;
+    let mut client_config = ClientConfig::new(Arc::new(quic_crypto));
+    client_config.transport_config(Arc::new(transport));
+
+    Ok(client_config)
 }
 
 /// Build server configuration
@@ -112,16 +111,20 @@ pub fn make_server_config(config: &TransportConfig) -> Result<ServerConfig, Tran
 
     server_crypto.alpn_protocols = config.alpn.clone();
 
-    let mut transport = TransportConfig::default();
-    transport.max_idle_timeout(Some(config.idle_timeout.try_into().map_err(|e| TransportError::Config(e.to_string()))?));
+    let mut transport = QuinnTransportConfig::default();
+    if let Ok(idle) = config.idle_timeout.try_into() {
+        transport.max_idle_timeout(Some(idle));
+    }
     transport.keep_alive_interval(Some(config.keepalive_interval));
-    transport.max_datagram_frame_size(config.max_datagram_size as u64);
+    transport.datagram_receive_buffer_size(Some(config.max_datagram_size));
+    transport.datagram_send_buffer_size(config.max_datagram_size);
     transport.max_concurrent_bidi_streams(VarInt::from_u32(100));
     transport.max_concurrent_uni_streams(VarInt::from_u32(1000));
-    
-    if config.enable_0rtt {
-        transport.enable_0rtt(true);
-    }
 
-    Ok(ServerConfig::with_crypto(server_crypto.into()))
+    let quic_crypto = QuicServerConfig::try_from(server_crypto)
+        .map_err(|e| TransportError::Config(e.to_string()))?;
+    let mut server_config = ServerConfig::with_crypto(Arc::new(quic_crypto));
+    server_config.transport_config(Arc::new(transport));
+
+    Ok(server_config)
 }

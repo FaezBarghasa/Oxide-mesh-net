@@ -4,14 +4,28 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret as X25519StaticSecret};
-use ed25519_dalek::{SigningKey as Ed25519SigningKey, VerifyingKey as Ed25519VerifyingKey, Signature as Ed25519Signature};
-use p256::ecdsa::{SigningKey as P256SigningKey, VerifyingKey as P256VerifyingKey, Signature as P256Signature};
+use ed25519_dalek::{
+    SigningKey as Ed25519SigningKey, VerifyingKey as Ed25519VerifyingKey,
+    Signature as Ed25519Signature, Signer, Verifier,
+};
 use blake3;
 
 /// Long-term device identity key pair (Ed25519 for signing)
-#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone)]
 pub struct DeviceIdentityKey {
-    signing_key: Ed25519SigningKey,
+    pub(crate) signing_key: Ed25519SigningKey,
+}
+
+impl Zeroize for DeviceIdentityKey {
+    fn zeroize(&mut self) {
+        self.signing_key = Ed25519SigningKey::from_bytes(&[0u8; 32]);
+    }
+}
+
+impl Drop for DeviceIdentityKey {
+    fn drop(&mut self) {
+        self.zeroize();
+    }
 }
 
 impl DeviceIdentityKey {
@@ -22,8 +36,7 @@ impl DeviceIdentityKey {
     }
 
     pub fn from_bytes(bytes: &[u8; 32]) -> Result<Self, crate::error::CryptoError> {
-        let signing_key = Ed25519SigningKey::from_bytes(bytes)
-            .map_err(|e| crate::error::CryptoError::InvalidKeyFormat(e.to_string()))?;
+        let signing_key = Ed25519SigningKey::from_bytes(bytes);
         Ok(Self { signing_key })
     }
 
@@ -40,6 +53,10 @@ impl DeviceIdentityKey {
 
     pub fn to_bytes(&self) -> [u8; 32] {
         self.signing_key.to_bytes()
+    }
+
+    pub fn signing_key(&self) -> &Ed25519SigningKey {
+        &self.signing_key
     }
 }
 
@@ -74,7 +91,7 @@ impl DeviceIdentityPublicKey {
 
     pub fn verify(&self, msg: &[u8], sig: &DeviceSignature) -> Result<(), crate::error::CryptoError> {
         self.verifying_key
-            .verify_strict(msg, &sig.0)
+            .verify(msg, &sig.0)
             .map_err(|e| crate::error::CryptoError::Verification(e.to_string()))
     }
 
@@ -122,15 +139,14 @@ impl DeviceSignature {
     }
 
     pub fn from_bytes(bytes: &[u8; 64]) -> Result<Self, crate::error::CryptoError> {
-        let sig = Ed25519Signature::from_bytes(bytes)
-            .map_err(|e| crate::error::CryptoError::InvalidKeyFormat(e.to_string()))?;
+        let sig = Ed25519Signature::from_bytes(bytes);
         Ok(Self(sig))
     }
 }
 
 /// Key fingerprint (Blake3 hash of public key)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct KeyFingerprint([u8; 32]);
+pub struct KeyFingerprint(pub [u8; 32]);
 
 impl KeyFingerprint {
     pub fn as_bytes(&self) -> &[u8; 32] {
@@ -158,6 +174,8 @@ pub struct SessionKeyPair {
     static_secret: X25519StaticSecret,
     public_key: X25519PublicKey,
 }
+
+pub type SessionKey = SessionKeyPair;
 
 impl SessionKeyPair {
     pub fn generate() -> Self {
@@ -236,7 +254,7 @@ impl std::str::FromStr for SessionPublicKey {
 
 /// Shared secret from Diffie-Hellman
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
-pub struct SharedSecret([u8; 32]);
+pub struct SharedSecret(pub [u8; 32]);
 
 impl SharedSecret {
     pub fn from_bytes(bytes: &[u8; 32]) -> Self {
@@ -249,7 +267,6 @@ impl SharedSecret {
         &self.0
     }
 
-    /// Derive multiple keys from shared secret using HKDF
     pub fn derive_keys(&self, salt: &[u8], info: &[u8], output_len: usize) -> Vec<u8> {
         let hk = hkdf::Hkdf::<sha2::Sha256>::new(Some(salt), &self.0);
         let mut okm = vec![0u8; output_len];
@@ -257,9 +274,8 @@ impl SharedSecret {
         okm
     }
 
-    /// Derive encryption key and nonce for AEAD
     pub fn derive_aead_key(&self, context: &[u8]) -> (AeadKey, AeadNonce) {
-        let okm = self.derive_keys(b"oxide-mesh-aead", context, 44); // 32 + 12
+        let okm = self.derive_keys(b"oxide-mesh-aead", context, 44);
         let mut key = [0u8; 32];
         let mut nonce = [0u8; 12];
         key.copy_from_slice(&okm[..32]);
@@ -276,7 +292,7 @@ impl fmt::Debug for SharedSecret {
 
 /// AEAD encryption key (ChaCha20-Poly1305 or AES-GCM)
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
-pub struct AeadKey([u8; 32]);
+pub struct AeadKey(pub [u8; 32]);
 
 impl AeadKey {
     pub fn from_bytes(bytes: &[u8; 32]) -> Self {
@@ -297,8 +313,8 @@ impl fmt::Debug for AeadKey {
 }
 
 /// AEAD nonce (12 bytes for ChaCha20-Poly1305 / AES-GCM)
-#[derive(Clone, Copy, Zeroize, ZeroizeOnDrop)]
-pub struct AeadNonce([u8; 12]);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AeadNonce(pub [u8; 12]);
 
 impl AeadNonce {
     pub fn from_bytes(bytes: &[u8; 12]) -> Self {
@@ -318,11 +334,5 @@ impl AeadNonce {
                 break;
             }
         }
-    }
-}
-
-impl fmt::Debug for AeadNonce {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("AeadNonce").field("bytes", &self.0).finish()
     }
 }

@@ -1,8 +1,7 @@
 //! Wire protocol framing for data plane packets
 
-use std::io;
-use bytes::{Buf, BufMut, BytesMut};
-use crate::{PacketType, OverlayIp, ProtocolVersion};
+use bytes::{BufMut, BytesMut};
+use oxide_core::{PacketType, OverlayIp, ProtocolVersion};
 use oxide_core::error::{OxideError, Result};
 use zerocopy::{FromBytes, IntoBytes, Immutable, KnownLayout};
 
@@ -14,7 +13,7 @@ pub const MIN_PACKET_SIZE: usize = 16;
 pub const PROTOCOL_MAGIC: u32 = 0x4F584944; // "OXID" in little-endian
 
 /// Wire packet header (16 bytes, aligned for SIMD)
-#[repr(C, packed)]
+#[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromBytes, IntoBytes, Immutable, KnownLayout)]
 pub struct PacketHeader {
     pub magic: u32,
@@ -60,6 +59,7 @@ impl PacketHeader {
 }
 
 /// Complete wire packet with header and payload
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirePacket {
     pub header: PacketHeader,
     pub payload: Vec<u8>,
@@ -124,6 +124,7 @@ impl WirePacket {
 }
 
 /// Batch packet for GRO/GSO (multiple packets in one buffer)
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BatchPacket {
     pub packets: Vec<WirePacket>,
 }

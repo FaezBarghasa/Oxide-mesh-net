@@ -1,6 +1,5 @@
 //! TUN interface configuration
 
-use std::net::IpAddr;
 use ipnet::IpNet;
 use crate::error::Result;
 
@@ -66,8 +65,8 @@ impl TunConfig {
 
     /// Set MTU
     pub fn with_mtu(mut self, mtu: u16) -> Result<Self> {
-        if mtu < 68 || mtu > 65535 {
-            return Err(crate::error::TunError::InvalidConfig("MTU must be between 68 and 65535".into()));
+        if mtu < 68 {
+            return Err(crate::error::TunError::InvalidConfig("MTU must be at least 68".into()));
         }
         self.mtu = mtu;
         Ok(self)
@@ -75,7 +74,7 @@ impl TunConfig {
 
     /// Set IPv4 address
     pub fn with_ipv4(mut self, ipv4: IpNet) -> Result<Self> {
-        if !ipv4.is_ipv4() {
+        if !matches!(ipv4, IpNet::V4(_)) {
             return Err(crate::error::TunError::InvalidConfig("IPv4 address required".into()));
         }
         self.ipv4 = Some(ipv4);
@@ -84,7 +83,7 @@ impl TunConfig {
 
     /// Set IPv6 address
     pub fn with_ipv6(mut self, ipv6: IpNet) -> Result<Self> {
-        if !ipv6.is_ipv6() {
+        if !matches!(ipv6, IpNet::V6(_)) {
             return Err(crate::error::TunError::InvalidConfig("IPv6 address required".into()));
         }
         self.ipv6 = Some(ipv6);

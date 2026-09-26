@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp, Endpoint, NodeCapabilities};
 use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint};
+use crate::wire::{AclAction, AclDirection};
 
 /// Topic namespace prefix
 pub const TOPIC_ROOT: &str = "oxide";
@@ -21,19 +22,27 @@ pub const NOT_RETAINED: bool = false;
 
 /// Build a topic string
 pub fn topic(parts: &[&str]) -> String {
-    let mut parts = parts.to_vec();
-    parts.insert(0, TOPIC_ROOT);
-    parts.join(TOPIC_SEP)
+    let mut all = Vec::with_capacity(1 + parts.len());
+    all.push(TOPIC_ROOT);
+    all.extend_from_slice(parts);
+    all.join(TOPIC_SEP)
 }
 
 /// Mesh-scoped topic
 pub fn mesh_topic(mesh: &MeshName, parts: &[&str]) -> String {
-    topic(&[&[mesh.as_str()], parts].concat())
+    let mut all = Vec::with_capacity(1 + parts.len());
+    all.push(mesh.as_str());
+    all.extend_from_slice(parts);
+    topic(&all)
 }
 
 /// Node-scoped topic
 pub fn node_topic(mesh: &MeshName, node: &NodeId, parts: &[&str]) -> String {
-    mesh_topic(mesh, &[&[&node.to_string()], parts].concat())
+    let node_str = node.to_string();
+    let mut all = Vec::with_capacity(1 + parts.len());
+    all.push(node_str.as_str());
+    all.extend_from_slice(parts);
+    mesh_topic(mesh, &all)
 }
 
 /// Topic patterns for subscription
@@ -423,19 +432,7 @@ pub struct AclRule {
     pub priority: u32, // Higher = more specific
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum AclAction {
-    Allow,
-    Deny,
-    Log,
-}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum AclDirection {
-    Ingress,
-    Egress,
-    Both,
-}
 
 /// DNS record payload
 #[derive(Debug, Clone, Serialize, Deserialize)]

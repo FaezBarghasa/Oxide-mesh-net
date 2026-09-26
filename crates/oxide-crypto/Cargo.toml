@@ -28,6 +28,8 @@ hmac = { workspace = true }
 sha2 = { workspace = true }
 hkdf = { workspace = true }
 subtle = { workspace = true }
+bs58 = { workspace = true }
+hex = { workspace = true }
 
 # Post-quantum cryptography (using pqcrypto or similar when available)
 # For now we'll use hybrid approach with classical + placeholder for PQC

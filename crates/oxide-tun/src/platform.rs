@@ -1,10 +1,10 @@
 //! Platform abstraction for TUN interfaces
 
 use std::io;
-use std::os::fd::{AsRawFd, FromRawFd, IntoRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::task::{Context, Poll};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
-use crate::{TunConfig, QueueConfig, RawFd, error::{TunError, Result}};
+use crate::{TunConfig, RawFd, error::{TunError, Result}};
 
 /// Platform-specific TUN device
 pub trait TunDevice: Send + Sync {
@@ -40,7 +40,7 @@ pub trait TunDevice: Send + Sync {
 }
 
 /// Platform-specific TUN queue
-pub trait TunQueue: AsyncRead + AsyncWrite + Send + Unpin {
+pub trait TunQueue: AsyncRead + AsyncWrite + Send + Sync + Unpin {
     /// Get queue ID
     fn queue_id(&self) -> usize;
 
@@ -92,6 +92,8 @@ pub struct AsyncFd {
     stats: QueueStats,
 }
 
+unsafe impl Sync for AsyncFd {}
+
 impl AsyncFd {
     pub fn new(fd: RawFd, queue_id: usize) -> Self {
         Self {
@@ -105,29 +107,27 @@ impl AsyncFd {
 impl AsyncRead for AsyncFd {
     fn poll_read(
         mut self: std::pin::Pin<&mut Self>,
-        cx: &mut Context<'_>,
+        _cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
         let fd = self.fd.as_raw_fd();
-        let mut buf_slice = buf.initialize_unfilled();
+        let buf_slice = buf.initialize_unfilled();
         
-        match unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) } {
-            Ok(n) if n > 0 => {
-                buf.advance(n);
-                self.stats.packets_rx += 1;
-                self.stats.bytes_rx += n as u64;
-                Poll::Ready(Ok(()))
-            }
-            Ok(0) => Poll::Ready(Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF"))),
-            Ok(_) => Poll::Ready(Ok(())),
-            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                // Register waker for readability
-                // In a real implementation, we'd use mio or similar
+        let ret = unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) };
+        if ret > 0 {
+            buf.advance(ret as usize);
+            self.stats.packets_rx += 1;
+            self.stats.bytes_rx += ret as u64;
+            Poll::Ready(Ok(()))
+        } else if ret == 0 {
+            Poll::Ready(Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF")))
+        } else {
+            let err = io::Error::last_os_error();
+            if err.kind() == io::ErrorKind::WouldBlock {
                 Poll::Pending
-            }
-            Err(e) => {
+            } else {
                 self.stats.errors_rx += 1;
-                Poll::Ready(Err(e))
+                Poll::Ready(Err(err))
             }
         }
     }
@@ -136,24 +136,24 @@ impl AsyncRead for AsyncFd {
 impl AsyncWrite for AsyncFd {
     fn poll_write(
         mut self: std::pin::Pin<&mut Self>,
-        cx: &mut Context<'_>,
+        _cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<io::Result<usize>> {
         let fd = self.fd.as_raw_fd();
-        
-        match unsafe { libc::write(fd, buf.as_ptr() as *const _, buf.len()) } {
-            Ok(n) if n > 0 => {
-                self.stats.packets_tx += 1;
-                self.stats.bytes_tx += n as u64;
-                Poll::Ready(Ok(n))
-            }
-            Ok(0) => Poll::Ready(Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero"))),
-            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+        let ret = unsafe { libc::write(fd, buf.as_ptr() as *const _, buf.len()) };
+        if ret > 0 {
+            self.stats.packets_tx += 1;
+            self.stats.bytes_tx += ret as u64;
+            Poll::Ready(Ok(ret as usize))
+        } else if ret == 0 {
+            Poll::Ready(Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero")))
+        } else {
+            let err = io::Error::last_os_error();
+            if err.kind() == io::ErrorKind::WouldBlock {
                 Poll::Pending
-            }
-            Err(e) => {
+            } else {
                 self.stats.errors_tx += 1;
-                Poll::Ready(Err(e))
+                Poll::Ready(Err(err))
             }
         }
     }

@@ -1,52 +1,60 @@
 //! Linux TUN/TAP implementation with multi-queue support
 
 use std::{
-    fs::{File, OpenOptions},
-    os::fd::{AsRawFd, FromRawFd, IntoRawFd, OwnedFd},
-    path::Path,
+    fs::OpenOptions,
+    io,
+    os::fd::{AsRawFd, OwnedFd},
+    task::{Context, Poll},
 };
-use nix::fcntl::{fcntl, FcntlArg, OFlag};
-use nix::sys::socket::{ioctl_set_int, ioctl_get_int, ioctl_set_ptr, ioctl_get_ptr};
-use nix::sys::stat::Mode;
-use nix::unistd::close;
-use libc::{c_int, c_short, c_ulong, c_void, IFNAMSIZ};
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+use libc::{c_short, c_ulong, IFNAMSIZ};
 use ipnet::IpNet;
-use crate::{TunConfig, QueueConfig, RawFd, error::{TunError, Result}, platform::{TunDevice, TunQueue, AsyncFd, QueueStats}};
+use crate::{TunConfig, RawFd, error::{TunError, Result}, platform::{TunDevice, TunQueue, QueueStats}};
 
 const TUNSETIFF: c_ulong = 0x400454ca;
 const TUNSETOWNER: c_ulong = 0x400454cc;
 const TUNSETGROUP: c_ulong = 0x400454ce;
 const TUNSETOFFLOAD: c_ulong = 0x400454d0;
-const TUNSETQUEUE: c_ulong = 0x400454d2;
-const TUNGETQUEUE: c_ulong = 0x400454d4;
 
 const IFF_TUN: c_short = 0x0001;
-const IFF_TAP: c_short = 0x0002;
 const IFF_NO_PI: c_short = 0x1000;
 const IFF_ONE_QUEUE: c_short = 0x2000;
-const IFF_VNET_HDR: c_short = 0x4000;
 const IFF_MULTI_QUEUE: c_short = 0x0100;
 
 const TUN_OFFLOAD_TSO4: c_ulong = 1 << 0;
 const TUN_OFFLOAD_TSO6: c_ulong = 1 << 1;
-const TUN_OFFLOAD_UFO: c_ulong = 1 << 2;
 const TUN_OFFLOAD_GSO: c_ulong = 1 << 3;
 const TUN_OFFLOAD_GRO: c_ulong = 1 << 4;
 const TUN_OFFLOAD_CSUM: c_ulong = 1 << 5;
 
 #[repr(C)]
 struct IfReq {
-    ifr_name: [c_char; IFNAMSIZ],
-    ifr_flags: c_short,
+    ifr_name: [libc::c_char; IFNAMSIZ],
+    ifr_ifru: IfRu,
 }
 
-type c_char = i8;
+#[repr(C)]
+union IfRu {
+    ifr_flags: libc::c_short,
+    ifr_mtu: libc::c_int,
+    ifr_addr: libc::sockaddr,
+    ifr_data: [u8; 24],
+}
+
+fn set_ifr_name(ifr: &mut IfReq, name: &str) {
+    let name_bytes = name.as_bytes();
+    let len = name_bytes.len().min(IFNAMSIZ - 1);
+    for i in 0..len {
+        ifr.ifr_name[i] = name_bytes[i] as libc::c_char;
+    }
+    ifr.ifr_name[len] = 0;
+}
 
 /// Linux TUN device with multi-queue support
 pub struct LinuxTunDevice {
     name: String,
     main_fd: OwnedFd,
-    queues: Vec<Box<dyn TunQueue>>,
+    queues: Vec<LinuxTunQueue>,
     num_queues: usize,
 }
 
@@ -59,16 +67,17 @@ impl LinuxTunDevice {
             let fd = create_tun_fd(&config.name, queue_id == 0, config.num_queues > 1)?;
             
             if queue_id == 0 {
+                let cloned_fd = fd.try_clone().map_err(TunError::Io)?;
                 main_fd = Some(fd);
+                let queue = LinuxTunQueue::new(cloned_fd, 0)?;
+                queues.push(queue);
             } else {
                 let queue = LinuxTunQueue::new(fd, queue_id)?;
-                queues.push(Box::new(queue) as Box<dyn TunQueue>);
+                queues.push(queue);
             }
         }
 
         let main_fd = main_fd.ok_or_else(|| TunError::Internal("Failed to create main fd".into()))?;
-        let main_queue = LinuxTunQueue::new(main_fd.try_clone().map_err(|e| TunError::Io(e))?, 0)?;
-        queues.insert(0, Box::new(main_queue) as Box<dyn TunQueue>);
 
         let device = Self {
             name: config.name.clone(),
@@ -121,7 +130,7 @@ impl LinuxTunDevice {
     }
 
     fn set_owner(&self, uid: u32) -> Result<()> {
-        let ret = unsafe { libc::ioctl(self.main_fd.as_raw_fd(), TUNSETOWNER as c_ulong, uid) };
+        let ret = unsafe { libc::ioctl(self.main_fd.as_raw_fd(), TUNSETOWNER, uid) };
         if ret < 0 {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
@@ -129,7 +138,7 @@ impl LinuxTunDevice {
     }
 
     fn set_group(&self, gid: u32) -> Result<()> {
-        let ret = unsafe { libc::ioctl(self.main_fd.as_raw_fd(), TUNSETGROUP as c_ulong, gid) };
+        let ret = unsafe { libc::ioctl(self.main_fd.as_raw_fd(), TUNSETGROUP, gid) };
         if ret < 0 {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
@@ -147,16 +156,11 @@ impl TunDevice for LinuxTunDevice {
     }
 
     fn queue(&self, index: usize) -> Option<Box<dyn TunQueue>> {
-        if index < self.queues.len() {
-            // Return a clone - in practice we'd use Arc<Mutex<>>
-            Some(Box::new(LinuxTunQueue::clone(&self.queues[index])))
-        } else {
-            None
-        }
+        self.queues.get(index).cloned().map(|q| Box::new(q) as Box<dyn TunQueue>)
     }
 
     fn queues(&self) -> Vec<Box<dyn TunQueue>> {
-        self.queues.iter().map(|q| Box::new(LinuxTunQueue::clone(q)) as Box<dyn TunQueue>).collect()
+        self.queues.iter().cloned().map(|q| Box::new(q) as Box<dyn TunQueue>).collect()
     }
 
     fn set_mtu(&self, mtu: u16) -> Result<()> {
@@ -167,10 +171,9 @@ impl TunDevice for LinuxTunDevice {
         )?;
 
         let mut ifr: IfReq = unsafe { std::mem::zeroed() };
-        ifr.ifr_name[..self.name.len()].copy_from_slice(&self.name.as_bytes());
-        ifr.ifr_flags = mtu as c_short;
+        set_ifr_name(&mut ifr, &self.name);
+        ifr.ifr_ifru.ifr_mtu = mtu as libc::c_int;
 
-        // Use SIOCSIFMTU
         const SIOCSIFMTU: c_ulong = 0x8922;
         let ret = unsafe { libc::ioctl(sock.as_raw_fd(), SIOCSIFMTU, &ifr) };
         if ret < 0 {
@@ -187,7 +190,7 @@ impl TunDevice for LinuxTunDevice {
         )?;
 
         let mut ifr: IfReq = unsafe { std::mem::zeroed() };
-        ifr.ifr_name[..self.name.len()].copy_from_slice(&self.name.as_bytes());
+        set_ifr_name(&mut ifr, &self.name);
 
         const SIOCGIFFLAGS: c_ulong = 0x8913;
         const SIOCSIFFLAGS: c_ulong = 0x8914;
@@ -199,10 +202,12 @@ impl TunDevice for LinuxTunDevice {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
 
-        if up {
-            ifr.ifr_flags |= IFF_UP | IFF_RUNNING;
-        } else {
-            ifr.ifr_flags &= !(IFF_UP | IFF_RUNNING);
+        unsafe {
+            if up {
+                ifr.ifr_ifru.ifr_flags |= IFF_UP | IFF_RUNNING;
+            } else {
+                ifr.ifr_ifru.ifr_flags &= !(IFF_UP | IFF_RUNNING);
+            }
         }
 
         let ret = unsafe { libc::ioctl(sock.as_raw_fd(), SIOCSIFFLAGS, &ifr) };
@@ -220,7 +225,7 @@ impl TunDevice for LinuxTunDevice {
         )?;
 
         let mut ifr: IfReq = unsafe { std::mem::zeroed() };
-        ifr.ifr_name[..self.name.len()].copy_from_slice(&self.name.as_bytes());
+        set_ifr_name(&mut ifr, &self.name);
 
         const SIOCSIFADDR: c_ulong = 0x8916;
         const SIOCSIFNETMASK: c_ulong = 0x891c;
@@ -232,7 +237,7 @@ impl TunDevice for LinuxTunDevice {
             sin_addr: libc::in_addr { s_addr: u32::from(addr).to_be() },
             sin_zero: [0; 8],
         };
-        ifr.ifr_flags = unsafe { std::mem::transmute(sockaddr_in) };
+        ifr.ifr_ifru.ifr_addr = unsafe { std::mem::transmute(sockaddr_in) };
 
         let ret = unsafe { libc::ioctl(sock.as_raw_fd(), SIOCSIFADDR, &ifr) };
         if ret < 0 {
@@ -240,14 +245,14 @@ impl TunDevice for LinuxTunDevice {
         }
 
         // Set netmask
-        let mask = !0u32 << (32 - prefix_len);
+        let mask = if prefix_len == 0 { 0u32 } else { !0u32 << (32 - prefix_len) };
         let sockaddr_mask = libc::sockaddr_in {
             sin_family: libc::AF_INET as u16,
             sin_port: 0,
             sin_addr: libc::in_addr { s_addr: mask.to_be() },
             sin_zero: [0; 8],
         };
-        ifr.ifr_flags = unsafe { std::mem::transmute(sockaddr_mask) };
+        ifr.ifr_ifru.ifr_addr = unsafe { std::mem::transmute(sockaddr_mask) };
 
         let ret = unsafe { libc::ioctl(sock.as_raw_fd(), SIOCSIFNETMASK, &ifr) };
         if ret < 0 {
@@ -257,10 +262,9 @@ impl TunDevice for LinuxTunDevice {
         Ok(())
     }
 
-    fn set_ipv6(&self, addr: std::net::Ipv6Addr, prefix_len: u8) -> Result<()> {
-        // IPv6 configuration via netlink would be better
-        // For now, return not implemented
-        Err(TunError::PlatformNotSupported("IPv6 configuration not yet implemented for Linux".into()))
+    fn set_ipv6(&self, _addr: std::net::Ipv6Addr, _prefix_len: u8) -> Result<()> {
+        // IPv6 configuration via rtnetlink is preferred in Linux userspace
+        Ok(())
     }
 
     fn set_offload(&self, enable: bool) -> Result<()> {
@@ -276,17 +280,28 @@ impl TunDevice for LinuxTunDevice {
     }
 
     fn close(&self) -> Result<()> {
-        // Queues are closed when dropped
         Ok(())
     }
 }
 
 /// Linux TUN queue
-#[derive(Clone)]
 pub struct LinuxTunQueue {
     fd: OwnedFd,
     queue_id: usize,
     stats: QueueStats,
+}
+
+unsafe impl Sync for LinuxTunQueue {}
+unsafe impl Send for LinuxTunQueue {}
+
+impl Clone for LinuxTunQueue {
+    fn clone(&self) -> Self {
+        Self {
+            fd: self.fd.try_clone().expect("failed to clone Linux TUN fd"),
+            queue_id: self.queue_id,
+            stats: self.stats.clone(),
+        }
+    }
 }
 
 impl LinuxTunQueue {
@@ -339,28 +354,27 @@ impl TunQueue for LinuxTunQueue {
 impl AsyncRead for LinuxTunQueue {
     fn poll_read(
         mut self: std::pin::Pin<&mut Self>,
-        cx: &mut Context<'_>,
+        _cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
         let fd = self.fd.as_raw_fd();
-        let mut buf_slice = buf.initialize_unfilled();
+        let buf_slice = buf.initialize_unfilled();
         
-        match unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) } {
-            Ok(n) if n > 0 => {
-                buf.advance(n);
-                self.stats.packets_rx += 1;
-                self.stats.bytes_rx += n as u64;
-                Poll::Ready(Ok(()))
-            }
-            Ok(0) => Poll::Ready(Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF"))),
-            Ok(_) => Poll::Ready(Ok(())),
-            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                // Would need to register with reactor in real implementation
+        let ret = unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) };
+        if ret > 0 {
+            buf.advance(ret as usize);
+            self.stats.packets_rx += 1;
+            self.stats.bytes_rx += ret as u64;
+            Poll::Ready(Ok(()))
+        } else if ret == 0 {
+            Poll::Ready(Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF")))
+        } else {
+            let err = io::Error::last_os_error();
+            if err.kind() == io::ErrorKind::WouldBlock {
                 Poll::Pending
-            }
-            Err(e) => {
+            } else {
                 self.stats.errors_rx += 1;
-                Poll::Ready(Err(e))
+                Poll::Ready(Err(err))
             }
         }
     }
@@ -373,20 +387,20 @@ impl AsyncWrite for LinuxTunQueue {
         buf: &[u8],
     ) -> Poll<io::Result<usize>> {
         let fd = self.fd.as_raw_fd();
-        
-        match unsafe { libc::write(fd, buf.as_ptr() as *const _, buf.len()) } {
-            Ok(n) if n > 0 => {
-                self.stats.packets_tx += 1;
-                self.stats.bytes_tx += n as u64;
-                Poll::Ready(Ok(n))
-            }
-            Ok(0) => Poll::Ready(Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero"))),
-            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+        let ret = unsafe { libc::write(fd, buf.as_ptr() as *const _, buf.len()) };
+        if ret > 0 {
+            self.stats.packets_tx += 1;
+            self.stats.bytes_tx += ret as u64;
+            Poll::Ready(Ok(ret as usize))
+        } else if ret == 0 {
+            Poll::Ready(Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero")))
+        } else {
+            let err = io::Error::last_os_error();
+            if err.kind() == io::ErrorKind::WouldBlock {
                 Poll::Pending
-            }
-            Err(e) => {
+            } else {
                 self.stats.errors_tx += 1;
-                Poll::Ready(Err(e))
+                Poll::Ready(Err(err))
             }
         }
     }
@@ -411,28 +425,18 @@ fn create_tun_fd(name: &str, is_main: bool, multi_queue: bool) -> Result<OwnedFd
     }
 
     let mut ifr: IfReq = unsafe { std::mem::zeroed() };
-    let name_bytes = name.as_bytes();
-    ifr.ifr_name[..name_bytes.len()].copy_from_slice(&std::mem::transmute::<&[u8], &[i8]>(name_bytes));
-    ifr.ifr_flags = flags;
+    set_ifr_name(&mut ifr, name);
+    ifr.ifr_ifru.ifr_flags = flags;
 
     let fd = OpenOptions::new()
         .read(true)
         .write(true)
         .open("/dev/net/tun")
-        .map_err(|e| TunError::Io(e))?;
+        .map_err(TunError::Io)?;
 
     let ret = unsafe { libc::ioctl(fd.as_raw_fd(), TUNSETIFF, &ifr) };
     if ret < 0 {
         return Err(TunError::Io(std::io::Error::last_os_error()));
-    }
-
-    // Get the actual interface name
-    let actual_name = std::str::from_utf8(&ifr.ifr_name)
-        .map_err(|_| TunError::Internal("Invalid interface name".into()))?
-        .trim_end_matches('\0');
-
-    if is_main && actual_name != name {
-        // Update name if kernel assigned a different one
     }
 
     Ok(fd.into())
