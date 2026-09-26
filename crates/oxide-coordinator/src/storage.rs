@@ -1010,3 +1010,105 @@ mod sled_storage {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_surreal_storage_nodes() {
+        let storage = surreal_storage::SurrealStorage::new_mem("test_ns", "test_db")
+            .await
+            .expect("SurrealDB Mem init");
+
+        let node_id = NodeId::new();
+        let metadata = NodeMetadata {
+            node_id,
+            display_name: Some("test-edge-1".into()),
+            os: "linux".into(),
+            arch: "x86_64".into(),
+            version: "0.1.0".into(),
+            tags: vec!["gateway".into(), "edge".into()],
+        };
+
+        // Insert
+        storage.set_node_metadata(&metadata).await.expect("set_node_metadata");
+
+        // Retrieve
+        let retrieved = storage.get_node_metadata(&node_id).await.expect("get_node_metadata");
+        assert!(retrieved.is_some());
+        let r = retrieved.unwrap();
+        assert_eq!(r.node_id, node_id);
+        assert_eq!(r.display_name.as_deref(), Some("test-edge-1"));
+        assert_eq!(r.tags, vec!["gateway".to_string(), "edge".to_string()]);
+
+        // List
+        let list = storage.list_nodes().await.expect("list_nodes");
+        assert_eq!(list.len(), 1);
+
+        // Delete
+        storage.delete_node_metadata(&node_id).await.expect("delete_node_metadata");
+        let retrieved_after = storage.get_node_metadata(&node_id).await.expect("get after delete");
+        assert!(retrieved_after.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_surreal_storage_routes_and_topology() {
+        let storage = surreal_storage::SurrealStorage::new_mem("test_ns", "test_db")
+            .await
+            .expect("SurrealDB Mem init");
+
+        let prefix = "100.64.10.0/24".parse().unwrap();
+        let node_id = NodeId::new();
+        let peer_id = NodeId::new();
+
+        let route = RouteAdvertisement {
+            prefix,
+            node_id,
+            metric: 10,
+            direct_next_hop: None,
+            active: true,
+            last_advertised: chrono::Utc::now().timestamp(),
+        };
+
+        // Set route
+        storage.set_route(&route).await.expect("set_route");
+
+        // Get route
+        let r = storage.get_route(&prefix).await.expect("get_route");
+        assert!(r.is_some());
+        assert_eq!(r.unwrap().metric, 10);
+
+        // List routes
+        let routes = storage.list_routes().await.expect("list_routes");
+        assert_eq!(routes.len(), 1);
+
+        // Record graph topology link
+        storage.record_topology_link(&node_id, &peer_id, 14.5, 0.001)
+            .await
+            .expect("record_topology_link");
+
+        // Delete route
+        storage.delete_route(&prefix).await.expect("delete_route");
+        assert!(storage.get_route(&prefix).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn test_memory_storage_fallback() {
+        let storage = MemoryStorage::new();
+        let node_id = NodeId::new();
+        let metadata = NodeMetadata {
+            node_id,
+            display_name: Some("mem-node".into()),
+            os: "macos".into(),
+            arch: "aarch64".into(),
+            version: "0.1.0".into(),
+            tags: vec![],
+        };
+
+        storage.set_node_metadata(&metadata).await.unwrap();
+        let res = storage.get_node_metadata(&node_id).await.unwrap();
+        assert!(res.is_some());
+        assert_eq!(res.unwrap().display_name.as_deref(), Some("mem-node"));
+    }
+}
