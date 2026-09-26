@@ -31,6 +31,7 @@ use tokio::sync::RwLock;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct EnrollmentToken {
     token: String,
     mesh_name: String,

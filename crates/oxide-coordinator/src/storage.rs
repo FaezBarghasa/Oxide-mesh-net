@@ -612,7 +612,7 @@ pub mod redis_storage {
             let key = format!("oxide:node:{}", node_id);
             let data: Option<String> = conn.get(&key).await
                 .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-            data.map(|d| serde_json::from_str(&d).map_err(|e| CoordinatorError::Storage(e.to_string())))
+            data.as_deref().map(|d| serde_json::from_str(d).map_err(|e| CoordinatorError::Storage(e.to_string())))
                 .transpose()
         }
 
@@ -642,7 +642,7 @@ pub mod redis_storage {
             let key = format!("oxide:route:{}", prefix);
             let data: Option<String> = conn.get(&key).await
                 .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-            data.map(|d| serde_json::from_str(&d).map_err(|e| CoordinatorError::Storage(e.to_string())))
+            data.as_deref().map(|d| serde_json::from_str(d).map_err(|e| CoordinatorError::Storage(e.to_string())))
                 .transpose()
         }
 
@@ -672,7 +672,7 @@ pub mod redis_storage {
             let key = "oxide:acl:policy";
             let data: Option<String> = conn.get(key).await
                 .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-            data.map(|d| serde_json::from_str(&d).map_err(|e| CoordinatorError::Storage(e.to_string())))
+            data.as_deref().map(|d| serde_json::from_str(d).map_err(|e| CoordinatorError::Storage(e.to_string())))
                 .transpose()
         }
 
