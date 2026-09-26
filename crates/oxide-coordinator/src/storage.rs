@@ -13,10 +13,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 use crate::{StorageConfig, StorageBackendType, error::{CoordinatorError, Result}};
-use oxide_core::{NodeId, OverlayPrefix, OverlayIp};
+use oxide_core::{NodeId, OverlayPrefix};
 use oxide_protocol::topics::*;
 
 /// Storage backend trait implemented by all coordinator storage drivers
@@ -74,16 +74,9 @@ impl Storage {
                 }
             }
             StorageBackendType::Redis => {
-                #[cfg(feature = "redis")]
-                {
-                    let url = config.redis_url.as_deref().unwrap_or("redis://127.0.0.1:6379");
-                    info!("Initializing Redis Storage at {}", url);
-                    Arc::new(redis_storage::RedisStorage::new(url).await?)
-                }
-                #[cfg(not(feature = "redis"))]
-                {
-                    return Err(CoordinatorError::Storage("Redis backend not compiled (feature 'redis' disabled)".into()));
-                }
+                let url = config.redis_url.as_deref().unwrap_or("redis://127.0.0.1:6379");
+                info!("Initializing Redis Storage at {}", url);
+                Arc::new(redis_storage::RedisStorage::new(url).await?)
             }
             StorageBackendType::SurrealMem => {
                 info!("Initializing SurrealDB 3.3.0 In-Memory Engine (ns={}, db={})", config.surreal_ns, config.surreal_db);
@@ -106,52 +99,43 @@ impl Storage {
                 ).await?)
             }
             StorageBackendType::Hybrid => {
-                #[cfg(feature = "redis")]
-                {
-                    let redis_url = config.redis_url.as_deref().unwrap_or("redis://127.0.0.1:6379");
-                    info!("Initializing Hybrid Storage: SurrealDB 3.3.0 beside Redis ({})", redis_url);
-                    
-                    let surreal = match &config.surreal_url {
-                        Some(url) if url.starts_with("ws://") || url.starts_with("wss://") => {
-                            surreal_storage::SurrealStorage::new_ws(
-                                url,
-                                &config.surreal_ns,
-                                &config.surreal_db,
-                                config.surreal_user.as_deref(),
-                                config.surreal_pass.as_deref(),
-                            ).await?
+                let redis_url = config.redis_url.as_deref().unwrap_or("redis://127.0.0.1:6379");
+                info!("Initializing Hybrid Storage: SurrealDB 3.3.0 beside Redis ({})", redis_url);
+                
+                let surreal = match &config.surreal_url {
+                    Some(url) if url.starts_with("ws://") || url.starts_with("wss://") => {
+                        surreal_storage::SurrealStorage::new_ws(
+                            url,
+                            &config.surreal_ns,
+                            &config.surreal_db,
+                            config.surreal_user.as_deref(),
+                            config.surreal_pass.as_deref(),
+                        ).await?
+                    }
+                    _ => {
+                        let kv_path = config.data_dir.join("surrealkv");
+                        if let Err(e) = std::fs::create_dir_all(&config.data_dir) {
+                            warn!("Failed to create data dir {:?}: {}", config.data_dir, e);
                         }
-                        _ => {
-                            let kv_path = config.data_dir.join("surrealkv");
-                            if let Err(e) = std::fs::create_dir_all(&config.data_dir) {
-                                warn!("Failed to create data dir {:?}: {}", config.data_dir, e);
-                            }
-                            match surreal_storage::SurrealStorage::new_surrealkv(&kv_path, &config.surreal_ns, &config.surreal_db).await {
-                                Ok(s) => s,
-                                Err(e) => {
-                                    warn!("Failed to initialize SurrealKV ({}), falling back to SurrealDB in-memory engine: {}", kv_path.display(), e);
-                                    surreal_storage::SurrealStorage::new_mem(&config.surreal_ns, &config.surreal_db).await?
-                                }
+                        match surreal_storage::SurrealStorage::new_surrealkv(&kv_path, &config.surreal_ns, &config.surreal_db).await {
+                            Ok(s) => s,
+                            Err(e) => {
+                                warn!("Failed to initialize SurrealKV ({}), falling back to SurrealDB in-memory engine: {}", kv_path.display(), e);
+                                surreal_storage::SurrealStorage::new_mem(&config.surreal_ns, &config.surreal_db).await?
                             }
                         }
-                    };
+                    }
+                };
 
-                    let redis = match redis_storage::RedisStorage::new(redis_url).await {
-                        Ok(r) => Some(r),
-                        Err(e) => {
-                            warn!("Redis unavailable at {} ({}). Proceeding with standalone SurrealDB 3.3.0 engine.", redis_url, e);
-                            None
-                        }
-                    };
+                let redis = match redis_storage::RedisStorage::new(redis_url).await {
+                    Ok(r) => Some(r),
+                    Err(e) => {
+                        warn!("Redis unavailable at {} ({}). Proceeding with standalone SurrealDB 3.3.0 engine.", redis_url, e);
+                        None
+                    }
+                };
 
-                    Arc::new(HybridStorage::new(surreal, redis))
-                }
-                #[cfg(not(feature = "redis"))]
-                {
-                    info!("Initializing SurrealDB 3.3.0 Storage (Redis feature disabled)");
-                    let kv_path = config.data_dir.join("surrealkv");
-                    Arc::new(surreal_storage::SurrealStorage::new_surrealkv(&kv_path, &config.surreal_ns, &config.surreal_db).await?)
-                }
+                Arc::new(HybridStorage::new(surreal, redis))
             }
             StorageBackendType::Raft => {
                 return Err(CoordinatorError::Storage("Raft consensus backend not yet implemented".into()));
@@ -300,7 +284,7 @@ pub mod surreal_storage {
                 .map_err(|e| CoordinatorError::Storage(format!("SurrealDB remote WS connect failed: {}", e)))?;
 
             if let (Some(u), Some(p)) = (user, pass) {
-                let _ = db.signin(Root { username: u, password: p })
+                let _ = db.signin(Root { username: u.to_string(), password: p.to_string() })
                     .await
                     .map_err(|e| CoordinatorError::Storage(format!("SurrealDB auth failed: {}", e)))?;
             }
@@ -311,35 +295,14 @@ pub mod surreal_storage {
 
             Ok(Self { engine: SurrealEngine::Remote(db) })
         }
-
-        async fn query_sql(&self, sql: &str, binds: Vec<(&str, String)>) -> Result<()> {
-            match &self.engine {
-                SurrealEngine::Local(db) => {
-                    let mut q = db.query(sql);
-                    for (k, v) in binds {
-                        q = q.bind((k.to_string(), v));
-                    }
-                    q.await.map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                }
-                SurrealEngine::Remote(db) => {
-                    let mut q = db.query(sql);
-                    for (k, v) in binds {
-                        q = q.bind((k.to_string(), v));
-                    }
-                    q.await.map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                }
-            }
-            Ok(())
-        }
     }
 
     #[async_trait::async_trait]
     impl StorageBackend for SurrealStorage {
         async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {
-            let record_id = format!("node:⟨{}⟩", node_id);
             let sql = "SELECT * FROM type::thing('node', $id)";
             
-            let res: Option<SurrealNodeRecord> = match &self.engine {
+            let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).bind(("id", node_id.to_string())).await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
@@ -352,14 +315,20 @@ pub mod surreal_storage {
                 }
             };
 
-            Ok(res.map(|r| NodeMetadata {
-                node_id: r.node_id,
-                display_name: r.display_name,
-                os: r.os,
-                arch: r.arch,
-                version: r.version,
-                tags: r.tags,
-            }))
+            if let Some(v) = val {
+                let json_str = serde_json::to_string(&v).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                let r: SurrealNodeRecord = serde_json::from_str(&json_str).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                Ok(Some(NodeMetadata {
+                    node_id: r.node_id,
+                    display_name: r.display_name,
+                    os: r.os,
+                    arch: r.arch,
+                    version: r.version,
+                    tags: r.tags,
+                }))
+            } else {
+                Ok(None)
+            }
         }
 
         async fn set_node_metadata(&self, metadata: &NodeMetadata) -> Result<()> {
@@ -413,7 +382,7 @@ pub mod surreal_storage {
 
         async fn list_nodes(&self) -> Result<Vec<NodeMetadata>> {
             let sql = "SELECT * FROM node";
-            let records: Vec<SurrealNodeRecord> = match &self.engine {
+            let vals: Vec<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
@@ -426,20 +395,27 @@ pub mod surreal_storage {
                 }
             };
 
-            Ok(records.into_iter().map(|r| NodeMetadata {
-                node_id: r.node_id,
-                display_name: r.display_name,
-                os: r.os,
-                arch: r.arch,
-                version: r.version,
-                tags: r.tags,
-            }).collect())
+            let mut nodes = Vec::new();
+            for v in vals {
+                let json_str = serde_json::to_string(&v).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                if let Ok(r) = serde_json::from_str::<SurrealNodeRecord>(&json_str) {
+                    nodes.push(NodeMetadata {
+                        node_id: r.node_id,
+                        display_name: r.display_name,
+                        os: r.os,
+                        arch: r.arch,
+                        version: r.version,
+                        tags: r.tags,
+                    });
+                }
+            }
+            Ok(nodes)
         }
 
         async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {
             let p_str = prefix.to_string();
             let sql = "SELECT * FROM type::thing('route', $id)";
-            let record: Option<SurrealRouteRecord> = match &self.engine {
+            let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).bind(("id", p_str)).await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
@@ -452,7 +428,14 @@ pub mod surreal_storage {
                 }
             };
 
-            record.map(|r| serde_json::from_str(&r.route_json).map_err(|e| CoordinatorError::Storage(e.to_string()))).transpose()
+            if let Some(v) = val {
+                let json_str = serde_json::to_string(&v).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                let r: SurrealRouteRecord = serde_json::from_str(&json_str).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                let route: RouteAdvertisement = serde_json::from_str(&r.route_json).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                Ok(Some(route))
+            } else {
+                Ok(None)
+            }
         }
 
         async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {
@@ -499,7 +482,7 @@ pub mod surreal_storage {
 
         async fn list_routes(&self) -> Result<Vec<RouteAdvertisement>> {
             let sql = "SELECT * FROM route";
-            let records: Vec<SurrealRouteRecord> = match &self.engine {
+            let vals: Vec<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
@@ -512,14 +495,21 @@ pub mod surreal_storage {
                 }
             };
 
-            records.into_iter()
-                .map(|r| serde_json::from_str(&r.route_json).map_err(|e| CoordinatorError::Storage(e.to_string())))
-                .collect()
+            let mut routes = Vec::new();
+            for v in vals {
+                let json_str = serde_json::to_string(&v).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                if let Ok(r) = serde_json::from_str::<SurrealRouteRecord>(&json_str) {
+                    if let Ok(route) = serde_json::from_str::<RouteAdvertisement>(&r.route_json) {
+                        routes.push(route);
+                    }
+                }
+            }
+            Ok(routes)
         }
 
         async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {
             let sql = "SELECT * FROM type::thing('acl', 'current')";
-            let record: Option<SurrealAclRecord> = match &self.engine {
+            let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
@@ -532,7 +522,14 @@ pub mod surreal_storage {
                 }
             };
 
-            record.map(|r| serde_json::from_str(&r.policy_json).map_err(|e| CoordinatorError::Storage(e.to_string()))).transpose()
+            if let Some(v) = val {
+                let json_str = serde_json::to_string(&v).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                let r: SurrealAclRecord = serde_json::from_str(&json_str).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                let policy: AclPolicy = serde_json::from_str(&r.policy_json).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                Ok(Some(policy))
+            } else {
+                Ok(None)
+            }
         }
 
         async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {
@@ -591,7 +588,6 @@ pub mod surreal_storage {
 // ============================================================================
 // Redis Ephemeral Caching & Sync Layer
 // ============================================================================
-#[cfg(feature = "redis")]
 pub mod redis_storage {
     use super::*;
     use redis::{aio::ConnectionManager, AsyncCommands, Client};
@@ -713,26 +709,18 @@ pub mod redis_storage {
 // ============================================================================
 pub struct HybridStorage {
     surreal: surreal_storage::SurrealStorage,
-    #[cfg(feature = "redis")]
     redis: Option<redis_storage::RedisStorage>,
 }
 
 impl HybridStorage {
-    #[cfg(feature = "redis")]
     pub fn new(surreal: surreal_storage::SurrealStorage, redis: Option<redis_storage::RedisStorage>) -> Self {
         Self { surreal, redis }
-    }
-
-    #[cfg(not(feature = "redis"))]
-    pub fn new(surreal: surreal_storage::SurrealStorage) -> Self {
-        Self { surreal }
     }
 }
 
 #[async_trait::async_trait]
 impl StorageBackend for HybridStorage {
     async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             if let Ok(Some(cached)) = redis.get_node_metadata(node_id).await {
                 return Ok(Some(cached));
@@ -741,7 +729,6 @@ impl StorageBackend for HybridStorage {
 
         let metadata = self.surreal.get_node_metadata(node_id).await?;
 
-        #[cfg(feature = "redis")]
         if let (Some(redis), Some(meta)) = (&self.redis, &metadata) {
             let _ = redis.set_node_metadata(meta).await;
         }
@@ -754,7 +741,6 @@ impl StorageBackend for HybridStorage {
         self.surreal.set_node_metadata(metadata).await?;
 
         // Update/invalidate Redis L1 cache
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             let _ = redis.set_node_metadata(metadata).await;
         }
@@ -765,7 +751,6 @@ impl StorageBackend for HybridStorage {
     async fn delete_node_metadata(&self, node_id: &NodeId) -> Result<()> {
         self.surreal.delete_node_metadata(node_id).await?;
 
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             let _ = redis.delete_node_metadata(node_id).await;
         }
@@ -778,7 +763,6 @@ impl StorageBackend for HybridStorage {
     }
 
     async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             if let Ok(Some(cached)) = redis.get_route(prefix).await {
                 return Ok(Some(cached));
@@ -787,7 +771,6 @@ impl StorageBackend for HybridStorage {
 
         let route = self.surreal.get_route(prefix).await?;
 
-        #[cfg(feature = "redis")]
         if let (Some(redis), Some(r)) = (&self.redis, &route) {
             let _ = redis.set_route(r).await;
         }
@@ -798,7 +781,6 @@ impl StorageBackend for HybridStorage {
     async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {
         self.surreal.set_route(route).await?;
 
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             let _ = redis.set_route(route).await;
         }
@@ -809,7 +791,6 @@ impl StorageBackend for HybridStorage {
     async fn delete_route(&self, prefix: &OverlayPrefix) -> Result<()> {
         self.surreal.delete_route(prefix).await?;
 
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             let _ = redis.delete_route(prefix).await;
         }
@@ -822,7 +803,6 @@ impl StorageBackend for HybridStorage {
     }
 
     async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             if let Ok(Some(cached)) = redis.get_acl_policy().await {
                 return Ok(Some(cached));
@@ -831,7 +811,6 @@ impl StorageBackend for HybridStorage {
 
         let policy = self.surreal.get_acl_policy().await?;
 
-        #[cfg(feature = "redis")]
         if let (Some(redis), Some(p)) = (&self.redis, &policy) {
             let _ = redis.set_acl_policy(p).await;
         }
@@ -842,7 +821,6 @@ impl StorageBackend for HybridStorage {
     async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {
         self.surreal.set_acl_policy(policy).await?;
 
-        #[cfg(feature = "redis")]
         if let Some(redis) = &self.redis {
             let _ = redis.set_acl_policy(policy).await;
         }
@@ -850,18 +828,16 @@ impl StorageBackend for HybridStorage {
         Ok(())
     }
 
-    async fn record_presence(&self, node_id: &NodeId, ttl: Duration) -> Result<()> {
-        #[cfg(feature = "redis")]
+    async fn record_presence(&self, _node_id: &NodeId, _ttl: Duration) -> Result<()> {
         if let Some(redis) = &self.redis {
-            return redis.record_presence(node_id, ttl).await;
+            return redis.record_presence(_node_id, _ttl).await;
         }
         Ok(())
     }
 
-    async fn is_node_online(&self, node_id: &NodeId) -> Result<bool> {
-        #[cfg(feature = "redis")]
+    async fn is_node_online(&self, _node_id: &NodeId) -> Result<bool> {
         if let Some(redis) = &self.redis {
-            return redis.is_node_online(node_id).await;
+            return redis.is_node_online(_node_id).await;
         }
         Ok(true)
     }

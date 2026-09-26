@@ -4,7 +4,6 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
-use crate::error::Result;
 
 /// Coordinator configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]

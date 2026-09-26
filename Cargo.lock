@@ -281,7 +281,7 @@ dependencies = [
  "actix-web",
  "futures-lite",
  "pin-project",
- "prometheus 0.13.4",
+ "prometheus",
  "quanta 0.10.1",
  "thiserror 1.0.69",
 ]
@@ -1664,7 +1664,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfc320937d09e6de266b31b9afb480f197d7a861be86be7cb2ea7e5d1bfffc5e"
 dependencies = [
  "bytes 1.12.1",
+ "futures-core",
  "memchr",
+ "pin-project-lite",
+ "tokio 1.53.1",
+ "tokio-util",
 ]
 
 [[package]]
@@ -3840,22 +3844,6 @@ dependencies = [
  "typenum",
  "version_check",
  "zeroize",
-]
-
-[[package]]
-name = "geo"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f811f663912a69249fa620dcd2a005db7254529da2d8a0b23942e81f47084501"
-dependencies = [
- "float_next_after",
- "geo-types",
- "geographiclib-rs",
- "log",
- "num-traits",
- "robust",
- "rstar 0.12.2",
- "serde",
 ]
 
 [[package]]
@@ -6774,8 +6762,9 @@ dependencies = [
  "oxide-protocol",
  "parking_lot 0.12.5",
  "postcard",
- "prometheus 0.14.0",
+ "prometheus",
  "proptest",
+ "redis",
  "rumqttc",
  "rumqttd",
  "serde",
@@ -7781,22 +7770,8 @@ dependencies = [
  "lazy_static",
  "memchr",
  "parking_lot 0.12.5",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "prometheus"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ca5326d8d0b950a9acd87e6a3f94745394f62e4dae1b1ee22b2bc0c394af43a"
-dependencies = [
- "cfg-if 1.0.5",
- "fnv",
- "lazy_static",
- "memchr",
- "parking_lot 0.12.5",
  "protobuf",
- "thiserror 2.0.21",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -7820,23 +7795,9 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "3.7.2"
+version = "2.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d65a1d4ddae7d8b5de68153b48f6aa3bba8cb002b243dbdbc55a5afbc98f99f4"
-dependencies = [
- "once_cell",
- "protobuf-support",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "protobuf-support"
-version = "3.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e36c2f31e0a47f9280fb347ef5e461ffcd2c52dd520d8e216b52f93b0b0d7d6"
-dependencies = [
- "thiserror 1.0.69",
-]
+checksum = "106dd99e98437432fed6519dedecfade6a06a73bb7b2a1e019fdd2bee5778d94"
 
 [[package]]
 name = "psl-types"
@@ -8484,6 +8445,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03251193000f4bd3b042892be858ee50e8b3719f2b08e5833ac4353724632430"
 
 [[package]]
+name = "redis"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e23805debcc4435229c51187c0023a4d04499d354c101490e60744c087e973a"
+dependencies = [
+ "arc-swap",
+ "async-trait",
+ "bytes 1.12.1",
+ "combine",
+ "futures 0.3.34",
+ "futures-util",
+ "itoa 1.0.18",
+ "percent-encoding 2.3.2",
+ "pin-project-lite",
+ "ryu",
+ "sha1_smol",
+ "socket2 0.4.10",
+ "tokio 1.53.1",
+ "tokio-retry",
+ "tokio-util",
+ "url 2.5.8",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8691,7 +8676,7 @@ checksum = "13b48b66c1cd4bf814516ea48f727d4b3697e3fa8841be99a7d9cbb8c9ac1666"
 dependencies = [
  "bytes 1.12.1",
  "chrono",
- "geo 0.32.0",
+ "geo",
  "regex",
  "revision-derive",
  "roaring",
@@ -9528,6 +9513,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha1_smol"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbfa15b3dddfee50a0fff136974b3e1bde555604ba463834a7eb7deb6417705d"
+
+[[package]]
 name = "sha2"
 version = "0.10.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9745,6 +9736,16 @@ name = "snap"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "199905e6153d6405f9728fe44daace35f8f837bbf830bb6e85fbd5828709a886"
+
+[[package]]
+name = "socket2"
+version = "0.4.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f7916fc008ca5542385b89a3d3ce689953c143e9304a9bf8beec1de48994c0d"
+dependencies = [
+ "libc",
+ "winapi 0.3.9",
+]
 
 [[package]]
 name = "socket2"
@@ -10108,7 +10109,7 @@ dependencies = [
  "dashmap",
  "ext-sort",
  "futures 0.3.34",
- "geo 0.32.0",
+ "geo",
  "geo-types",
  "getrandom 0.3.4",
  "headers",
@@ -10260,7 +10261,7 @@ dependencies = [
  "chrono",
  "dmp",
  "fastnum",
- "geo 0.32.0",
+ "geo",
  "geo-types",
  "half",
  "hex",
@@ -10466,7 +10467,7 @@ dependencies = [
  "bytes 1.12.1",
  "chrono",
  "flatbuffers",
- "geo 0.28.0",
+ "geo",
  "rust_decimal",
  "semver 1.0.28",
  "serde",
@@ -10511,7 +10512,7 @@ dependencies = [
  "chrono",
  "deunicode",
  "fuzzy-matcher",
- "geo 0.32.0",
+ "geo",
  "md-5",
  "pbkdf2",
  "rand 0.9.5",
@@ -10543,7 +10544,7 @@ checksum = "6397f3b9141dbceca638116045b525c9f31bea3a6b374ab3546fa052bfb07e33"
 dependencies = [
  "bytes 1.12.1",
  "chrono",
- "geo 0.32.0",
+ "geo",
  "getrandom 0.3.4",
  "hex",
  "phf 0.13.1",
@@ -10578,7 +10579,7 @@ checksum = "bab01f470fa61bc45a4c46286f7ba94297d6ec7c46708845d9e164311fb8e443"
 dependencies = [
  "bytes 1.12.1",
  "chrono",
- "geo 0.32.0",
+ "geo",
  "phf 0.13.1",
  "reblessive",
  "regex",
@@ -10607,7 +10608,7 @@ dependencies = [
  "castaway",
  "chrono",
  "flatbuffers",
- "geo 0.32.0",
+ "geo",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "hex",
@@ -11130,6 +11131,17 @@ dependencies = [
  "tokio-executor",
  "tokio-io",
  "tokio-sync",
+]
+
+[[package]]
+name = "tokio-retry"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a129d95275ebf4c493ec53bf0f8cd95f5ac161bc4f381700809a54f595d4470"
+dependencies = [
+ "pin-project-lite",
+ "rand 0.10.3",
+ "tokio 1.53.1",
 ]
 
 [[package]]
