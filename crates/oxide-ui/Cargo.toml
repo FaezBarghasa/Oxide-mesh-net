@@ -10,7 +10,12 @@ description = "Pure-Rust Cross-Platform Reactive Client Interface for oxide-mesh
 [dependencies]
 oxide-core = { path = "../oxide-core" }
 oxide-protocol = { path = "../oxide-protocol" }
-dioxus = { version = "0.6", default-features = false, features = ["macro", "html", "signals", "hooks"] }
+dioxus = { version = "0.7.10", default-features = false, features = [
+    "macro",
+    "html",
+    "signals",
+    "hooks",
+] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 postcard = { workspace = true }
