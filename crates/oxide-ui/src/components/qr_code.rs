@@ -2,11 +2,16 @@
 
 use dioxus::prelude::*;
 
+#[derive(Props, Clone, PartialEq)]
+pub struct SvgQrCodeProps {
+    #[props(into)]
+    pub data: String,
+    #[props(default = 160)]
+    pub size: u32,
+}
+
 #[component]
-pub fn SvgQrCode(
-    data: String,
-    #[props(default = 160)] size: u32,
-) -> Element {
+pub fn SvgQrCode(props: SvgQrCodeProps) -> Element {
     // Generate a deterministic visual 21x21 QR pattern based on input hash
     let mut matrix = vec![vec![false; 21]; 21];
 
@@ -32,7 +37,7 @@ pub fn SvgQrCode(
     }
 
     // Pseudo-random data payload representation for deterministic UI rendering
-    let hash_bytes = blake3::hash(data.as_bytes());
+    let hash_bytes = blake3::hash(props.data.as_bytes());
     let bytes = hash_bytes.as_bytes();
 
     let mut bit_idx = 0;
@@ -63,8 +68,8 @@ pub fn SvgQrCode(
         div {
             style: "background: #ffffff; padding: 12px; border-radius: 8px; display: inline-flex; box-shadow: 0 4px 16px rgba(0,0,0,0.5);",
             svg {
-                width: "{size}",
-                height: "{size}",
+                width: "{props.size}",
+                height: "{props.size}",
                 view_box: "0 0 126 126",
                 rect { width: "126", height: "126", fill: "#ffffff" }
                 for (x, y) in rects {

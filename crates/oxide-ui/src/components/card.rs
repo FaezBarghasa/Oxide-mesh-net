@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct CardProps {
-    #[props(default)]
+    #[props(into, default)]
     pub title: Option<String>,
     #[props(default)]
     pub header_action: Option<Element>,

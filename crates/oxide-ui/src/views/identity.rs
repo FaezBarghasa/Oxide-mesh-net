@@ -3,7 +3,6 @@
 use dioxus::prelude::*;
 use crate::components::*;
 use crate::components::icons::*;
-use crate::models::*;
 use crate::state::AppState;
 
 #[component]
@@ -161,7 +160,7 @@ pub fn IdentityView(
                                 class: "metric-box",
                                 style: "margin-top: 4px; border: 1px solid var(--border-focus);",
                                 div {
-                                    style: if sim_res.starts_with("PERMIT") { "font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent-emerald);" } else { "font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent-rose);" },
+                                    style: "font-family: var(--font-mono); font-size: 13px; font-weight: 700;",
                                     "{sim_res}"
                                 }
                             }
