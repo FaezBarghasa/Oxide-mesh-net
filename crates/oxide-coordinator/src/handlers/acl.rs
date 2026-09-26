@@ -25,19 +25,7 @@ pub struct AclRuleRequest {
     pub priority: u32,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
-pub enum AclAction {
-    Allow,
-    Deny,
-    Log,
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
-pub enum AclDirection {
-    Ingress,
-    Egress,
-    Both,
-}
+pub use oxide_protocol::topics::{AclAction, AclDirection};
 
 #[derive(Serialize)]
 pub struct AclPolicyResponse {

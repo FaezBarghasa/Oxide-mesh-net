@@ -1,5 +1,4 @@
-//! Authentication service
-
+use std::str::FromStr;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 use serde::{Deserialize, Serialize};
