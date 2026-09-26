@@ -5,7 +5,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum CoordinatorError {
     #[error("MQTT error: {0}")]
-    Mqtt(#[from] rumqttd::Error),
+    Mqtt(String),
 
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
