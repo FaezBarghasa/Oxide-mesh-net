@@ -8,7 +8,7 @@ use quinn::crypto::rustls::{QuicClientConfig, QuicServerConfig};
 use crate::error::TransportError;
 
 /// Transport configuration
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct TransportConfig {
     /// Local bind addresses for UDP sockets
     pub bind_addrs: Vec<std::net::SocketAddr>,
@@ -32,6 +32,24 @@ pub struct TransportConfig {
     pub root_certs: Vec<CertificateDer<'static>>,
     /// ALPN protocols
     pub alpn: Vec<Vec<u8>>,
+}
+
+impl Clone for TransportConfig {
+    fn clone(&self) -> Self {
+        Self {
+            bind_addrs: self.bind_addrs.clone(),
+            max_connections: self.max_connections,
+            idle_timeout: self.idle_timeout,
+            keepalive_interval: self.keepalive_interval,
+            max_datagram_size: self.max_datagram_size,
+            enable_0rtt: self.enable_0rtt,
+            congestion_control: self.congestion_control,
+            server_cert: self.server_cert.clone(),
+            server_key: self.server_key.as_ref().map(|k| k.clone_key()),
+            root_certs: self.root_certs.clone(),
+            alpn: self.alpn.clone(),
+        }
+    }
 }
 
 impl Default for TransportConfig {

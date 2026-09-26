@@ -7,19 +7,18 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::{
-    net::UdpSocket,
-    sync::{mpsc, oneshot, RwLock},
+    sync::{broadcast, mpsc, oneshot, RwLock},
     task::JoinHandle,
 };
-use quinn::{Endpoint, Connection, RecvStream, SendStream, Datagram};
+use quinn::{Endpoint, Connection, RecvStream, SendStream};
 use bytes::Bytes;
-use tracing::{debug, info, warn, error};
+use tracing::{debug, info, warn};
 use crate::{
     config::{TransportConfig, make_client_config, make_server_config},
     error::{TransportError, Result},
 };
-use oxide_protocol::{WirePacket, PacketType, PacketHeader};
-use oxide_core::{NodeId, Endpoint as CoreEndpoint};
+use oxide_protocol::WirePacket;
+use oxide_core::NodeId;
 
 /// Transport event types
 #[derive(Debug, Clone)]
@@ -43,7 +42,7 @@ pub enum TransportEvent {
 /// Transport handle for sending data
 #[derive(Clone)]
 pub struct TransportHandle {
-    event_tx: mpsc::UnboundedSender<TransportEvent>,
+    event_tx: broadcast::Sender<TransportEvent>,
     command_tx: mpsc::UnboundedSender<TransportCommand>,
 }
 
@@ -90,6 +89,7 @@ pub struct TransportStats {
 /// Connection state
 struct ConnectionState {
     connection: Connection,
+    #[allow(dead_code)]
     node_id: NodeId,
     remote_endpoint: SocketAddr,
     last_activity: Instant,
@@ -111,8 +111,8 @@ pub struct TransportEngine {
     endpoint: Option<Endpoint>,
     connections: Arc<RwLock<HashMap<NodeId, ConnectionState>>>,
     endpoint_by_addr: Arc<RwLock<HashMap<SocketAddr, NodeId>>>,
-    event_tx: mpsc::UnboundedSender<TransportEvent>,
-    command_rx: mpsc::UnboundedReceiver<TransportCommand>,
+    event_tx: broadcast::Sender<TransportEvent>,
+    command_rx: Option<mpsc::UnboundedReceiver<TransportCommand>>,
     stats: Arc<RwLock<TransportStats>>,
     _worker_handles: Vec<JoinHandle<()>>,
 }
@@ -120,7 +120,7 @@ pub struct TransportEngine {
 impl TransportEngine {
     /// Create a new transport engine
     pub fn new(config: TransportConfig) -> Result<(Self, TransportHandle)> {
-        let (event_tx, event_rx) = mpsc::unbounded_channel();
+        let (event_tx, _) = broadcast::channel(4096);
         let (command_tx, command_rx) = mpsc::unbounded_channel();
 
         let engine = Self {
@@ -128,14 +128,14 @@ impl TransportEngine {
             endpoint: None,
             connections: Arc::new(RwLock::new(HashMap::new())),
             endpoint_by_addr: Arc::new(RwLock::new(HashMap::new())),
-            event_tx,
-            command_rx,
+            event_tx: event_tx.clone(),
+            command_rx: Some(command_rx),
             stats: Arc::new(RwLock::new(TransportStats::default())),
             _worker_handles: Vec::new(),
         };
 
         let handle = TransportHandle {
-            event_tx: engine.event_tx.clone(),
+            event_tx,
             command_tx,
         };
 
@@ -144,18 +144,20 @@ impl TransportEngine {
 
     /// Start the transport engine
     pub async fn start(&mut self) -> Result<()> {
-        // Create QUIC endpoint
         let client_config = make_client_config(&self.config)?;
-        let mut endpoint = Endpoint::client(self.config.bind_addrs[0])?;
+        let mut endpoint = if self.config.server_cert.is_some() {
+            let server_config = make_server_config(&self.config)?;
+            Endpoint::server(server_config, self.config.bind_addrs[0])?
+        } else {
+            Endpoint::client(self.config.bind_addrs[0])?
+        };
         endpoint.set_default_client_config(client_config);
 
-        // If we have server config, also listen for incoming
-        if self.config.server_cert.is_some() {
-            let server_config = make_server_config(&self.config)?;
-            endpoint = Endpoint::new(server_config, vec![self.config.bind_addrs[0]])?;
-        }
-
         self.endpoint = Some(endpoint.clone());
+
+        let command_rx = self.command_rx.take().ok_or_else(|| {
+            TransportError::Internal("TransportEngine already started".into())
+        })?;
 
         // Start command processor
         let connections = self.connections.clone();
@@ -191,14 +193,63 @@ impl TransportEngine {
 
         self._worker_handles.push(monitor);
 
+        // Accept incoming connections if server
+        if self.config.server_cert.is_some() {
+            let connections = self.connections.clone();
+            let endpoint_by_addr = self.endpoint_by_addr.clone();
+            let stats = self.stats.clone();
+            let event_tx = self.event_tx.clone();
+            let endpoint_in = endpoint.clone();
+
+            let accept_worker = tokio::spawn(async move {
+                while let Some(incoming) = endpoint_in.accept().await {
+                    let connections = connections.clone();
+                    let endpoint_by_addr = endpoint_by_addr.clone();
+                    let stats = stats.clone();
+                    let event_tx = event_tx.clone();
+
+                    tokio::spawn(async move {
+                        if let Ok(connection) = incoming.await {
+                            let remote = connection.remote_address();
+                            let node_id = NodeId::new();
+                            let state = ConnectionState {
+                                connection,
+                                node_id,
+                                remote_endpoint: remote,
+                                last_activity: Instant::now(),
+                                stats: ConnectionStats::default(),
+                            };
+                            connections.write().await.insert(node_id, state);
+                            endpoint_by_addr.write().await.insert(remote, node_id);
+                            event_tx.send(TransportEvent::Connected { node_id, endpoint: remote }).ok();
+
+                            let c1 = connections.clone();
+                            let s1 = stats.clone();
+                            let e1 = event_tx.clone();
+                            tokio::spawn(async move {
+                                Self::datagram_receiver(c1, s1, e1, node_id).await;
+                            });
+
+                            let c2 = connections.clone();
+                            let s2 = stats.clone();
+                            let e2 = event_tx.clone();
+                            tokio::spawn(async move {
+                                Self::stream_receiver(c2, s2, e2, node_id).await;
+                            });
+                        }
+                    });
+                }
+            });
+            self._worker_handles.push(accept_worker);
+        }
+
         info!("Transport engine started");
         Ok(())
     }
 
-    /// Get event receiver
-    pub fn take_event_receiver(&mut self) -> Option<mpsc::UnboundedReceiver<TransportEvent>> {
-        // This would need a different design - for now return None
-        None
+    /// Subscribe to transport events
+    pub fn subscribe(&self) -> broadcast::Receiver<TransportEvent> {
+        self.event_tx.subscribe()
     }
 
     /// Command processor loop
@@ -206,9 +257,9 @@ impl TransportEngine {
         connections: Arc<RwLock<HashMap<NodeId, ConnectionState>>>,
         endpoint_by_addr: Arc<RwLock<HashMap<SocketAddr, NodeId>>>,
         stats: Arc<RwLock<TransportStats>>,
-        event_tx: mpsc::UnboundedSender<TransportEvent>,
+        event_tx: broadcast::Sender<TransportEvent>,
         endpoint: Endpoint,
-        config: TransportConfig,
+        _config: TransportConfig,
         mut command_rx: mpsc::UnboundedReceiver<TransportCommand>,
     ) {
         while let Some(cmd) = command_rx.recv().await {
@@ -238,10 +289,11 @@ impl TransportEngine {
                     let _ = response.send(result);
                 }
                 TransportCommand::GetStats { response } => {
-                    let stats = stats.read().await.clone();
-                    let _ = response.send(stats);
+                    let s = stats.read().await.clone();
+                    let _ = response.send(s);
                 }
                 TransportCommand::Shutdown => {
+                    info!("Transport engine shutting down");
                     break;
                 }
             }
@@ -253,7 +305,7 @@ impl TransportEngine {
         connections: &Arc<RwLock<HashMap<NodeId, ConnectionState>>>,
         endpoint_by_addr: &Arc<RwLock<HashMap<SocketAddr, NodeId>>>,
         stats: &Arc<RwLock<TransportStats>>,
-        event_tx: &mpsc::UnboundedSender<TransportEvent>,
+        event_tx: &broadcast::Sender<TransportEvent>,
         endpoint: &Endpoint,
         node_id: NodeId,
         addr: SocketAddr,
@@ -298,23 +350,21 @@ impl TransportEngine {
         event_tx.send(TransportEvent::Connected { node_id, endpoint: addr }).ok();
 
         // Spawn datagram receiver
-        let connections = connections.clone();
-        let stats = stats.clone();
-        let event_tx = event_tx.clone();
-        let node_id_clone = node_id;
+        let c1 = connections.clone();
+        let s1 = stats.clone();
+        let e1 = event_tx.clone();
 
         tokio::spawn(async move {
-            Self::datagram_receiver(connections, stats, event_tx, node_id_clone).await;
+            Self::datagram_receiver(c1, s1, e1, node_id).await;
         });
 
         // Spawn stream receiver
-        let connections = connections.clone();
-        let stats = stats.clone();
-        let event_tx = event_tx.clone();
-        let node_id_clone = node_id;
+        let c2 = connections.clone();
+        let s2 = stats.clone();
+        let e2 = event_tx.clone();
 
         tokio::spawn(async move {
-            Self::stream_receiver(connections, stats, event_tx, node_id_clone).await;
+            Self::stream_receiver(c2, s2, e2, node_id).await;
         });
 
         Ok(())
@@ -383,22 +433,21 @@ impl TransportEngine {
     async fn datagram_receiver(
         connections: Arc<RwLock<HashMap<NodeId, ConnectionState>>>,
         stats: Arc<RwLock<TransportStats>>,
-        event_tx: mpsc::UnboundedSender<TransportEvent>,
+        event_tx: broadcast::Sender<TransportEvent>,
         node_id: NodeId,
     ) {
         loop {
             let conn = {
                 let conns = connections.read().await;
-                conns.get(&node_id).cloned()
+                conns.get(&node_id).map(|s| s.connection.clone())
             };
 
-            let Some(state) = conn else {
+            let Some(connection) = conn else {
                 break;
             };
 
-            match state.connection.read_datagram().await {
-                Ok(datagram) => {
-                    let bytes = datagram.into_bytes();
+            match connection.read_datagram().await {
+                Ok(bytes) => {
                     if let Ok(packet) = WirePacket::from_bytes(&bytes) {
                         {
                             let mut s = stats.write().await;
@@ -435,22 +484,22 @@ impl TransportEngine {
     async fn stream_receiver(
         connections: Arc<RwLock<HashMap<NodeId, ConnectionState>>>,
         stats: Arc<RwLock<TransportStats>>,
-        event_tx: mpsc::UnboundedSender<TransportEvent>,
+        event_tx: broadcast::Sender<TransportEvent>,
         node_id: NodeId,
     ) {
         let conn = {
             let conns = connections.read().await;
-            conns.get(&node_id).cloned()
+            conns.get(&node_id).map(|s| s.connection.clone())
         };
 
-        let Some(state) = conn else {
+        let Some(connection) = conn else {
             return;
         };
 
         loop {
-            match state.connection.accept_bi().await {
+            match connection.accept_bi().await {
                 Ok((send, recv)) => {
-                    let stream_id = send.id().0;
+                    let stream_id = send.id().index();
                     event_tx.send(TransportEvent::StreamOpened { node_id, stream_id }).ok();
 
                     let stats = stats.clone();
@@ -474,10 +523,10 @@ impl TransportEngine {
 
     /// Handle a single stream
     async fn handle_stream(
-        mut send: SendStream,
+        _send: SendStream,
         mut recv: RecvStream,
         stats: Arc<RwLock<TransportStats>>,
-        event_tx: mpsc::UnboundedSender<TransportEvent>,
+        event_tx: broadcast::Sender<TransportEvent>,
         node_id: NodeId,
         stream_id: u64,
     ) {
@@ -487,7 +536,6 @@ impl TransportEngine {
             match recv.read(&mut buffer).await {
                 Ok(Some(n)) => {
                     let data = Bytes::copy_from_slice(&buffer[..n]);
-                    let fin = recv.finished().await.unwrap_or(false);
                     
                     {
                         let mut s = stats.write().await;
@@ -498,54 +546,53 @@ impl TransportEngine {
                         node_id,
                         stream_id,
                         data,
-                        fin,
+                        fin: false,
                     }).ok();
-
-                    if fin {
-                        break;
-                    }
                 }
-                Ok(None) => break,
+                Ok(None) => {
+                    event_tx.send(TransportEvent::StreamData {
+                        node_id,
+                        stream_id,
+                        data: Bytes::new(),
+                        fin: true,
+                    }).ok();
+                    event_tx.send(TransportEvent::StreamClosed { node_id, stream_id }).ok();
+                    break;
+                }
                 Err(e) => {
                     warn!("Stream read error: {}", e);
                     break;
                 }
             }
         }
-
-        event_tx.send(TransportEvent::StreamClosed { node_id, stream_id }).ok();
-        {
-            let mut s = stats.write().await;
-            s.streams_closed += 1;
-        }
     }
 
-    /// Connection monitor for idle timeouts
+    /// Monitor connection health and idle timeouts
     async fn connection_monitor(
         connections: Arc<RwLock<HashMap<NodeId, ConnectionState>>>,
         endpoint_by_addr: Arc<RwLock<HashMap<SocketAddr, NodeId>>>,
-        event_tx: mpsc::UnboundedSender<TransportEvent>,
+        event_tx: broadcast::Sender<TransportEvent>,
         idle_timeout: Duration,
     ) {
-        let mut interval = tokio::time::interval(Duration::from_secs(10));
+        let mut interval = tokio::time::interval(Duration::from_secs(5));
         
         loop {
             interval.tick().await;
-            
+
             let now = Instant::now();
-            let mut to_remove = Vec::new();
-            
+            let mut timed_out = Vec::new();
+
             {
                 let conns = connections.read().await;
                 for (node_id, state) in conns.iter() {
                     if now.duration_since(state.last_activity) > idle_timeout {
-                        to_remove.push(*node_id);
+                        timed_out.push(*node_id);
                     }
                 }
             }
-            
-            for node_id in to_remove {
-                warn!("Connection to {} timed out", node_id);
+
+            for node_id in timed_out {
+                warn!("Connection timed out for {}", node_id);
                 event_tx.send(TransportEvent::Disconnected {
                     node_id,
                     reason: "Idle timeout".into(),
@@ -564,10 +611,8 @@ impl TransportEngine {
 
 impl TransportHandle {
     /// Subscribe to transport events
-    pub fn subscribe(&self) -> mpsc::UnboundedReceiver<TransportEvent> {
-        // In a real implementation, this would use a broadcast channel
-        // For now, we'll need to redesign this
-        unimplemented!("Use broadcast channel for events")
+    pub fn subscribe(&self) -> broadcast::Receiver<TransportEvent> {
+        self.event_tx.subscribe()
     }
 
     /// Connect to a peer
