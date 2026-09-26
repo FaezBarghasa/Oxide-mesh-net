@@ -32,6 +32,7 @@ pub fn DashboardView(
     let is_connected = app.node_state == NodeState::Connected;
     let in_rate_str = format_rate(tel.ingress_bytes_sec);
     let out_rate_str = format_rate(tel.egress_bytes_sec);
+    let peer_roster_title = format!("Dynamic Peer Roster ({} Nodes Active)", app.active_peers.len());
 
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 20px;",
@@ -138,7 +139,7 @@ pub fn DashboardView(
 
             // Dynamic Peer Roster Section
             Card {
-                title: Some(format!("Dynamic Peer Roster ({} Nodes Active)", app.active_peers.len())),
+                title: peer_roster_title,
                 header_action: Some(rsx! {
                     div { style: "display: flex; gap: 8px;",
                         Button {
@@ -220,7 +221,7 @@ pub fn DashboardView(
                     let mut current = state.write();
                     current.is_drawer_open = false;
                 },
-                if let Some(ref diag) = app.selected_peer_diagnostics {
+                if let Some(diag) = &app.selected_peer_diagnostics {
                     div { style: "display: flex; flex-direction: column; gap: 14px;",
                         div { class: "metric-box",
                             div { class: "metric-label", "Peer Identifier" }

@@ -25,7 +25,7 @@ pub fn IdentityView(
             div { class: "grid-2",
                 Card {
                     title: Some("RFC 8628 Ephemeral Device Authorization Flow".to_string()),
-                    if let Some(ref dauth) = auth {
+                    if let Some(dauth) = auth {
                         div { style: "display: flex; align-items: center; gap: 20px; flex-wrap: wrap;",
                             SvgQrCode {
                                 data: format!("{}/auth?code={}", dauth.verification_uri, dauth.user_code),
@@ -89,12 +89,16 @@ pub fn IdentityView(
                             div { style: "display: grid; grid-template-columns: 80px repeat(5, 44px); gap: 4px; align-items: center;",
                                 div { style: "font-size: 10px; color: var(--text-muted); font-weight: 700;", "SRC / DST" }
                                 for dst in tags.iter() {
-                                    div { style: "font-size: 9px; color: var(--text-muted); text-align: center; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis;", "{dst.trim_start_matches(\"tag:\")}" }
+                                    div { style: "font-size: 9px; color: var(--text-muted); text-align: center; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis;",
+                                        "{dst}"
+                                    }
                                 }
                             }
                             for src in tags.iter() {
                                 div { style: "display: grid; grid-template-columns: 80px repeat(5, 44px); gap: 4px; align-items: center;",
-                                    div { style: "font-size: 10px; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis;", "{src.trim_start_matches(\"tag:\")}" }
+                                    div { style: "font-size: 10px; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis;",
+                                        "{src}"
+                                    }
                                     for dst in tags.iter() {
                                         div {
                                             class: if (src == &"tag:admin") || (src == &"tag:dev" && dst == &"tag:gateway") || (src == dst) { "matrix-cell matrix-allow" } else { "matrix-cell matrix-deny" },

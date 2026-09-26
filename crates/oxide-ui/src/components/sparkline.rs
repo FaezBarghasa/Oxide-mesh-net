@@ -2,29 +2,35 @@
 
 use dioxus::prelude::*;
 
+#[derive(Props, Clone, PartialEq)]
+pub struct SparklineProps {
+    pub points: Vec<f64>,
+    #[props(default = "#00f0ff")]
+    pub stroke_color: &'static str,
+    #[props(default = "rgba(0, 240, 255, 0.15)")]
+    pub fill_color: &'static str,
+    #[props(default = 38)]
+    pub height: u32,
+}
+
 #[component]
-pub fn Sparkline(
-    points: Vec<f64>,
-    #[props(default = "#00f0ff")] stroke_color: &'static str,
-    #[props(default = "rgba(0, 240, 255, 0.15)")] fill_color: &'static str,
-    #[props(default = 38)] height: u32,
-) -> Element {
-    if points.is_empty() {
+pub fn Sparkline(props: SparklineProps) -> Element {
+    if props.points.is_empty() {
         return rsx! { div { class: "sparkline-container" } };
     }
 
-    let min_val = points.iter().cloned().fold(f64::INFINITY, f64::min);
-    let max_val = points.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+    let min_val = props.points.iter().cloned().fold(f64::INFINITY, f64::min);
+    let max_val = props.points.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
     let range = if (max_val - min_val).abs() < 1e-6 { 1.0 } else { max_val - min_val };
 
-    let count = points.len();
+    let count = props.points.len();
     let width = 200.0;
-    let h = height as f64;
+    let h = props.height as f64;
 
     let mut path_data = String::new();
     let mut area_data = String::new();
 
-    for (i, &pt) in points.iter().enumerate() {
+    for (i, &pt) in props.points.iter().enumerate() {
         let x = if count > 1 { (i as f64 / (count - 1) as f64) * width } else { 0.0 };
         let normalized = (pt - min_val) / range;
         let y = h - (normalized * (h - 6.0) + 3.0);
@@ -41,6 +47,10 @@ pub fn Sparkline(
     if count > 1 {
         area_data.push_str(&format!(" L {:.1} {:.1} Z", width, h));
     }
+
+    let height = props.height;
+    let stroke_color = props.stroke_color;
+    let fill_color = props.fill_color;
 
     rsx! {
         div { class: "sparkline-container",

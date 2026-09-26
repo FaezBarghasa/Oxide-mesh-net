@@ -2,23 +2,27 @@
 
 use dioxus::prelude::*;
 
+#[derive(Props, Clone, PartialEq)]
+pub struct ToggleProps {
+    pub checked: bool,
+    #[props(default)]
+    pub disabled: Option<bool>,
+    pub on_toggle: EventHandler<bool>,
+}
+
 #[component]
-pub fn Toggle(
-    checked: bool,
-    disabled: Option<bool>,
-    on_toggle: EventHandler<bool>,
-) -> Element {
-    let is_disabled = disabled.unwrap_or(false);
+pub fn Toggle(props: ToggleProps) -> Element {
+    let is_disabled = props.disabled.unwrap_or(false);
 
     rsx! {
         label { class: "switch",
             input {
                 r#type: "checkbox",
-                checked: "{checked}",
+                checked: "{props.checked}",
                 disabled: is_disabled,
                 onchange: move |evt| {
                     if !is_disabled {
-                        on_toggle.call(evt.value() == "true");
+                        props.on_toggle.call(evt.value() == "true");
                     }
                 }
             }
