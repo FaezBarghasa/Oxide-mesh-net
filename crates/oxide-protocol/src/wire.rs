@@ -230,6 +230,128 @@ pub enum AclDirection {
     Both,
 }
 
+/// 64-bit cryptographic discriminator tags for anti-DPI packet classification
+pub const DISCRIMINATOR_OXIDE_DATA: u64 = 0x4F584944_44415441; // "OXIDDATA"
+pub const DISCRIMINATOR_OXIDE_CTRL: u64 = 0x4F584944_4354524C; // "OXIDCTRL"
+pub const JUNK_PREAMBLE_MAGIC_1: u32 = 0xDEADBEEF;
+pub const JUNK_PREAMBLE_MAGIC_2: u32 = 0xBAADF00D;
+
+/// Pre-decapsulation packet classification verdict
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PreParseVerdict {
+    /// Valid data packet with sequence ID and expected payload length
+    ValidData { packet_id: u32, payload_len: u16 },
+    /// Valid control plane packet
+    ValidControl { packet_id: u32, payload_len: u16 },
+    /// Recognized junk camouflage frame to be dropped without touching crypto state
+    JunkIgnored,
+    /// Malformed or unrecognized packet
+    Malformed,
+}
+
+/// Zero-allocation stateless pre-decapsulation parser
+///
+/// Filters junk frames and extracts framing parameters before AEAD decryption and sequence tracking.
+#[inline]
+pub fn pre_parse_packet(buffer: &[u8]) -> PreParseVerdict {
+    if buffer.len() < PacketHeader::SIZE {
+        if buffer.len() >= 4 {
+            let magic = u32::from_be_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
+            if magic == JUNK_PREAMBLE_MAGIC_1 || magic == JUNK_PREAMBLE_MAGIC_2 {
+                return PreParseVerdict::JunkIgnored;
+            }
+        }
+        return PreParseVerdict::Malformed;
+    }
+
+    let magic = u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
+    if magic != PROTOCOL_MAGIC {
+        let be_magic = u32::from_be_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
+        if be_magic == JUNK_PREAMBLE_MAGIC_1 || be_magic == JUNK_PREAMBLE_MAGIC_2 {
+            return PreParseVerdict::JunkIgnored;
+        }
+        return PreParseVerdict::Malformed;
+    }
+
+    let ptype = buffer[6];
+    let packet_id = u32::from_le_bytes([buffer[8], buffer[9], buffer[10], buffer[11]]);
+    let payload_len = u16::from_le_bytes([buffer[12], buffer[13]]);
+
+    if buffer.len() < PacketHeader::SIZE + (payload_len as usize) {
+        return PreParseVerdict::Malformed;
+    }
+
+    if (0x10..=0x13).contains(&ptype) {
+        PreParseVerdict::ValidControl { packet_id, payload_len }
+    } else {
+        PreParseVerdict::ValidData { packet_id, payload_len }
+    }
+}
+
+/// 128-bit sliding bitmask replay window (RFC 6479 inspired)
+///
+/// Accepts legitimate out-of-order packets up to 128 packets behind the highest sequence,
+/// while rejecting duplicate replays and packets older than the 128-packet window.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ReplayWindow128 {
+    last_seq: u64,
+    window: u128,
+}
+
+impl Default for ReplayWindow128 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ReplayWindow128 {
+    pub const fn new() -> Self {
+        Self {
+            last_seq: 0,
+            window: 0,
+        }
+    }
+
+    /// Validate sequence number and update the sliding window.
+    ///
+    /// Returns `true` if packet is valid (new or valid out-of-order), `false` if replayed or stale.
+    #[inline]
+    pub fn check_and_update(&mut self, seq: u64) -> bool {
+        if seq == 0 {
+            return false;
+        }
+
+        if seq > self.last_seq {
+            let diff = seq - self.last_seq;
+            if diff < 128 {
+                self.window = (self.window << diff) | 1;
+            } else {
+                self.window = 1;
+            }
+            self.last_seq = seq;
+            true
+        } else {
+            let diff = self.last_seq - seq;
+            if diff >= 128 {
+                // Older than 128 packets
+                return false;
+            }
+            let bit = 1u128 << diff;
+            if (self.window & bit) != 0 {
+                // Replay detected
+                return false;
+            }
+            self.window |= bit;
+            true
+        }
+    }
+
+    #[inline]
+    pub fn last_sequence(&self) -> u64 {
+        self.last_seq
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,5 +372,53 @@ mod tests {
         let parsed = WirePacket::from_bytes(&bytes).unwrap();
         assert_eq!(packet.payload, parsed.payload);
         assert_eq!(packet.header.packet_id, parsed.header.packet_id);
+    }
+
+    #[test]
+    fn test_replay_window_in_order() {
+        let mut window = ReplayWindow128::new();
+        assert!(window.check_and_update(1));
+        assert!(window.check_and_update(2));
+        assert!(window.check_and_update(3));
+        assert_eq!(window.last_sequence(), 3);
+    }
+
+    #[test]
+    fn test_replay_window_duplicate_rejection() {
+        let mut window = ReplayWindow128::new();
+        assert!(window.check_and_update(10));
+        assert!(!window.check_and_update(10)); // Duplicate
+        assert!(window.check_and_update(11));
+        assert!(!window.check_and_update(10)); // Duplicate inside window
+    }
+
+    #[test]
+    fn test_replay_window_out_of_order() {
+        let mut window = ReplayWindow128::new();
+        assert!(window.check_and_update(10));
+        assert!(window.check_and_update(5)); // Valid out-of-order (< 128)
+        assert!(!window.check_and_update(5)); // Now duplicate
+        assert!(window.check_and_update(9)); // Another valid out-of-order
+    }
+
+    #[test]
+    fn test_replay_window_stale_rejection() {
+        let mut window = ReplayWindow128::new();
+        assert!(window.check_and_update(200));
+        assert!(!window.check_and_update(50)); // diff = 150 >= 128 -> Stale
+        assert!(window.check_and_update(100)); // diff = 100 < 128 -> Valid
+    }
+
+    #[test]
+    fn test_pre_parse_junk_and_authentic() {
+        let junk = vec![0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x02];
+        assert_eq!(pre_parse_packet(&junk), PreParseVerdict::JunkIgnored);
+
+        let packet = WirePacket::new(PacketType::Ipv4, 42, vec![0xAA, 0xBB]).unwrap();
+        let bytes = packet.to_bytes();
+        assert_eq!(
+            pre_parse_packet(&bytes),
+            PreParseVerdict::ValidData { packet_id: 42, payload_len: 2 }
+        );
     }
 }
