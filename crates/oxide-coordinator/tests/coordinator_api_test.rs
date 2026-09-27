@@ -1,7 +1,6 @@
 //! Integration test suite for oxide-coordinator Actix Web endpoints using in-memory SurrealDB
 
 use actix_web::{App, test, web};
-use actix_web_prometheus::PrometheusMetricsBuilder;
 use oxide_coordinator::{
     AppState,
     auth::AuthService,
@@ -18,13 +17,14 @@ async fn setup_test_app_state() -> AppState {
     let auth_service = Arc::new(AuthService::new(&auth_config).expect("auth service init"));
 
     let storage_config = StorageConfig {
-        backend: StorageBackendType::Memory,
-        namespace: "test_mesh".into(),
-        database: "test_db".into(),
-        path: None,
-        endpoint: None,
-        username: None,
-        password: None,
+        backend: StorageBackendType::SurrealMem,
+        data_dir: std::path::PathBuf::from("/tmp/oxide_coordinator_test"),
+        surreal_url: None,
+        surreal_ns: "test_mesh".into(),
+        surreal_db: "test_db".into(),
+        surreal_user: None,
+        surreal_pass: None,
+        raft: None,
     };
     let storage = Arc::new(Storage::new_async(&storage_config).await.expect("storage init"));
     let mesh_name = MeshName::new("oxide-test-mesh").expect("valid mesh name");
@@ -126,7 +126,8 @@ async fn test_nodes_and_routes_api() {
 
     let body: serde_json::Value = test::read_body_json(resp).await;
     assert_eq!(body["total"], 1);
-    assert_eq!(body["routes"][0]["prefix"], "100.64.0.0/24");
+    assert_eq!(body["routes"][0]["prefix"]["addr"]["V4"], "100.64.0.0");
+    assert_eq!(body["routes"][0]["prefix"]["prefix_len"], 24);
     assert_eq!(body["routes"][0]["metric"], 100);
 }
 
@@ -147,12 +148,10 @@ async fn test_acl_policy_api() {
     assert!(resp.status().is_success());
 
     // 2. PUT /api/v1/acl with new policy
-    let policy = AclPolicy {
-        version: 1,
-        default_action: oxide_protocol::topics::AclAction::Deny,
-        rules: vec![],
-        updated_at: chrono::Utc::now().timestamp(),
-    };
+    let mut policy = AclPolicy::default();
+    policy.version = 1;
+    policy.default_action = oxide_protocol::topics::AclAction::Deny;
+    policy.timestamp = chrono::Utc::now().timestamp();
 
     let req = test::TestRequest::put()
         .uri("/api/v1/acl")

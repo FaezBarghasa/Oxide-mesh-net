@@ -5,7 +5,7 @@
 use clap::Parser;
 use oxide_coordinator::{Coordinator, CoordinatorConfig, HttpConfig, StorageBackendType, StorageConfig};
 use std::net::SocketAddr;
-use tracing::{error, info};
+use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
@@ -46,10 +46,10 @@ async fn main() -> anyhow::Result<()> {
     info!("Initializing oxide-coordinator for mesh '{}'...", cli.mesh);
 
     let storage_backend = match cli.storage.to_lowercase().as_str() {
-        "mem" => StorageBackendType::Memory,
+        "mem" => StorageBackendType::SurrealMem,
         "surrealkv" => StorageBackendType::SurrealKv,
         "ws" => StorageBackendType::SurrealWs,
-        _ => StorageBackendType::Memory,
+        _ => StorageBackendType::SurrealMem,
     };
 
     let mut config = CoordinatorConfig::default();
@@ -57,17 +57,23 @@ async fn main() -> anyhow::Result<()> {
     config.http = HttpConfig {
         bind: cli.bind,
         workers: 4,
+        tls: false,
+        cert_path: None,
+        key_path: None,
+        request_timeout: std::time::Duration::from_secs(30),
+        body_limit: 1024 * 1024,
         cors: true,
         static_dir: None,
     };
     config.storage = StorageConfig {
         backend: storage_backend,
-        namespace: cli.namespace,
-        database: cli.database,
-        path: None,
-        endpoint: None,
-        username: None,
-        password: None,
+        data_dir: std::path::PathBuf::from("/var/lib/oxide-coordinator"),
+        surreal_url: None,
+        surreal_ns: cli.namespace,
+        surreal_db: cli.database,
+        surreal_user: None,
+        surreal_pass: None,
+        raft: None,
     };
 
     let mut coordinator = Coordinator::new(config).await?;
