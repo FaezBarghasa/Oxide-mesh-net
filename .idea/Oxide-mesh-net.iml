@@ -2,6 +2,19 @@
 <module type="EMPTY_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-acl/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-coordinator/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-crypto/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-daemon/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-dns/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-protocol/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-protocol/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-transport/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-transport/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-tun/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/oxide-ui/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
