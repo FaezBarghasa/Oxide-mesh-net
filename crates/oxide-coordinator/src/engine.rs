@@ -81,7 +81,8 @@ impl Coordinator {
         let http_config = self.config.http.clone();
         let auth_service = self.auth_service.clone();
         let storage = self.storage.clone();
-        let mesh_name = self.config.mesh_name.clone();
+        let mesh_name = MeshName::new(&self.config.mesh_name)
+            .map_err(|e| CoordinatorError::Internal(e.to_string()))?;
 
         let prometheus = PrometheusMetricsBuilder::new("oxide_coordinator")
             .endpoint("/metrics")

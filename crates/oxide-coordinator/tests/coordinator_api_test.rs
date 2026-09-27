@@ -27,9 +27,7 @@ async fn setup_test_app_state() -> AppState {
         password: None,
     };
     let storage = Arc::new(Storage::new_async(&storage_config).await.expect("storage init"));
-    let mesh_name = MeshName::from_string("oxide-test-mesh".to_string()).unwrap_or_else(|_| {
-        MeshName::from_string("oxidetestmesh".to_string()).expect("valid mesh name")
-    });
+    let mesh_name = MeshName::new("oxide-test-mesh").expect("valid mesh name");
 
     AppState {
         auth: auth_service,

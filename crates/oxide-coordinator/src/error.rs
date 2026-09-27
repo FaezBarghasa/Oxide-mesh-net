@@ -38,10 +38,16 @@ pub enum CoordinatorError {
     Jwt(#[from] jsonwebtoken::errors::Error),
 
     #[error("Actix error: {0}")]
-    Actix(#[from] actix_web::Error),
+    Actix(String),
 
     #[error("Internal error: {0}")]
     Internal(String),
+}
+
+impl From<actix_web::Error> for CoordinatorError {
+    fn from(err: actix_web::Error) -> Self {
+        Self::Actix(err.to_string())
+    }
 }
 
 impl actix_web::ResponseError for CoordinatorError {
