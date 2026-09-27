@@ -6968,6 +6968,7 @@ dependencies = [
  "async-trait",
  "cfg-if 1.0.5",
  "chrono",
+ "clap",
  "criterion",
  "dashmap",
  "futures-util",

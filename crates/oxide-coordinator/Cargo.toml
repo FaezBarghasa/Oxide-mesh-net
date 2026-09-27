@@ -45,6 +45,7 @@ postcard = { workspace = true }
 
 
 surrealdb = { workspace = true }
+clap = { workspace = true }
 sled = { version = "0.34", optional = true }
 
 [features]
