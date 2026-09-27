@@ -802,12 +802,12 @@ mod tests {
         let peer_id = NodeId::new();
 
         let route = RouteAdvertisement {
-            prefix,
             node_id,
+            prefix,
             metric: 10,
-            direct_next_hop: None,
-            active: true,
-            last_advertised: chrono::Utc::now().timestamp(),
+            next_hop: None,
+            communities: vec![],
+            timestamp: chrono::Utc::now().timestamp(),
         };
 
         // Set route
