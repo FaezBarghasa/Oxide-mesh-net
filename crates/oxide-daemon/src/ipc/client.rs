@@ -40,7 +40,7 @@ impl IpcClient {
     pub async fn status(&mut self) -> Result<DaemonStatusDto, std::io::Error> {
         match self.send(&IpcRequest::Status).await? {
             IpcResponse::Status(dto) => Ok(dto),
-            IpcResponse::Error { error } => Err(Error::new(ErrorKind::Other, error)),
+            IpcResponse::Error { error } => Err(Error::other(error)),
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }
@@ -49,7 +49,7 @@ impl IpcClient {
     pub async fn up(&mut self, config_path: Option<String>) -> Result<String, std::io::Error> {
         match self.send(&IpcRequest::Up { config_path }).await? {
             IpcResponse::Success { message } => Ok(message),
-            IpcResponse::Error { error } => Err(Error::new(ErrorKind::Other, error)),
+            IpcResponse::Error { error } => Err(Error::other(error)),
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }
@@ -58,7 +58,7 @@ impl IpcClient {
     pub async fn down(&mut self) -> Result<String, std::io::Error> {
         match self.send(&IpcRequest::Down).await? {
             IpcResponse::Success { message } => Ok(message),
-            IpcResponse::Error { error } => Err(Error::new(ErrorKind::Other, error)),
+            IpcResponse::Error { error } => Err(Error::other(error)),
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }
@@ -67,7 +67,7 @@ impl IpcClient {
     pub async fn routes(&mut self) -> Result<Vec<RouteEntryDto>, std::io::Error> {
         match self.send(&IpcRequest::Routes).await? {
             IpcResponse::Routes(routes) => Ok(routes),
-            IpcResponse::Error { error } => Err(Error::new(ErrorKind::Other, error)),
+            IpcResponse::Error { error } => Err(Error::other(error)),
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }
@@ -76,7 +76,7 @@ impl IpcClient {
     pub async fn peers(&mut self) -> Result<Vec<PeerStatusDto>, std::io::Error> {
         match self.send(&IpcRequest::Peers).await? {
             IpcResponse::Peers(peers) => Ok(peers),
-            IpcResponse::Error { error } => Err(Error::new(ErrorKind::Other, error)),
+            IpcResponse::Error { error } => Err(Error::other(error)),
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }
@@ -88,7 +88,7 @@ impl IpcClient {
     ) -> Result<String, std::io::Error> {
         match self.send(&IpcRequest::AclReload { rules_json }).await? {
             IpcResponse::Success { message } => Ok(message),
-            IpcResponse::Error { error } => Err(Error::new(ErrorKind::Other, error)),
+            IpcResponse::Error { error } => Err(Error::other(error)),
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }

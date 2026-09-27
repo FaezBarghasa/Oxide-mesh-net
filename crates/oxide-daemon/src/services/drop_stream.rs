@@ -35,25 +35,25 @@ impl DropStreamer {
     ) -> Result<(FileChunkHeader, Vec<u8>)> {
         let mut file = tokio::fs::File::open(file_path)
             .await
-            .map_err(|e| oxide_core::error::OxideError::Io(e))?;
+            .map_err(oxide_core::error::OxideError::Io)?;
 
         let file_len = file
             .metadata()
             .await
-            .map_err(|e| oxide_core::error::OxideError::Io(e))?
+            .map_err(oxide_core::error::OxideError::Io)?
             .len();
-        let total_chunks = (file_len + chunk_size as u64 - 1) / chunk_size as u64;
+        let total_chunks = file_len.div_ceil(chunk_size as u64);
 
         let offset = chunk_index * chunk_size as u64;
         file.seek(SeekFrom::Start(offset))
             .await
-            .map_err(|e| oxide_core::error::OxideError::Io(e))?;
+            .map_err(oxide_core::error::OxideError::Io)?;
 
         let mut buffer = vec![0u8; chunk_size];
         let bytes_read = file
             .read(&mut buffer)
             .await
-            .map_err(|e| oxide_core::error::OxideError::Io(e))?;
+            .map_err(oxide_core::error::OxideError::Io)?;
         buffer.truncate(bytes_read);
 
         let hash = blake3::hash(&buffer);
