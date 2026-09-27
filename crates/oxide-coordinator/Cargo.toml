@@ -41,13 +41,9 @@ cfg-if = { workspace = true }
 parking_lot = { workspace = true }
 postcard = { workspace = true }
 
+
+surrealdb = { workspace = true }
 sled = { version = "0.34", optional = true }
-surrealdb = { version = "3.3.0", default-features = false, features = [
-    "kv-mem",
-    "kv-surrealkv",
-    "protocol-ws",
-    "rustls",
-] }
 
 [features]
 default = []
