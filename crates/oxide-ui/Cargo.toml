@@ -28,8 +28,12 @@ tracing = { workspace = true }
 blake3 = { workspace = true }
 
 [features]
-default = []
+default = ["desktop"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "tokio"]
+mobile = ["desktop"]
 server = ["tokio"]
 
+[dev-dependencies]
+dioxus-ssr = "0.7.10"
+tokio = { workspace = true, features = ["full"] }
