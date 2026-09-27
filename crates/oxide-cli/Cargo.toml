@@ -9,6 +9,8 @@ description = "Command-line interface for oxide-mesh-net"
 
 [dependencies]
 oxide-core = { path = "../oxide-core" }
+oxide-daemon = { path = "../oxide-daemon" }
+oxide-acl = { path = "../oxide-acl" }
 tokio = { workspace = true }
 clap = { workspace = true }
 tracing = { workspace = true }

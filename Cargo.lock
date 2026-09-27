@@ -287,6 +287,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-ws"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "decf53c3cdd63dd6f289980b430238f9a2f6d19f8bce8e418272e08d3da43f0f"
+dependencies = [
+ "actix-codec",
+ "actix-http",
+ "actix-web",
+ "bytestring",
+ "futures-core",
+ "futures-sink",
+ "tokio 1.53.1",
+ "tokio-util",
+]
+
+[[package]]
 name = "addr"
 version = "0.15.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6923,7 +6939,9 @@ name = "oxide-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "oxide-acl",
  "oxide-core",
+ "oxide-daemon",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -6944,6 +6962,7 @@ dependencies = [
  "actix-web",
  "actix-web-httpauth",
  "actix-web-prometheus",
+ "actix-ws",
  "anyhow",
  "arc-swap",
  "async-trait",
@@ -6951,6 +6970,7 @@ dependencies = [
  "chrono",
  "criterion",
  "dashmap",
+ "futures-util",
  "jsonwebtoken 11.1.0",
  "oidc",
  "oxide-core",
@@ -7037,6 +7057,10 @@ version = "0.1.0"
 dependencies = [
  "actix-cors",
  "actix-web",
+ "arc-swap",
+ "async-trait",
+ "blake3",
+ "bytes 1.12.1",
  "clap",
  "oxide-acl",
  "oxide-core",
@@ -7045,6 +7069,7 @@ dependencies = [
  "oxide-protocol",
  "oxide-transport",
  "oxide-tun",
+ "parking_lot 0.12.5",
  "serde",
  "serde_json",
  "thiserror 2.0.21",

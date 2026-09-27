@@ -90,7 +90,7 @@ mod tests {
 
         for epoch in 0..100 {
             let port = hopper.compute_port_for_epoch(epoch);
-            assert!(port >= 30000 && port <= 40000);
+            assert!((30000..=40000).contains(&port));
         }
     }
 

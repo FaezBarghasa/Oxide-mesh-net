@@ -87,6 +87,14 @@ impl RadixRoutingTable {
         }
     }
 
+    /// Return all active routes in the table
+    pub fn all_routes(&self) -> Vec<RouteEntry> {
+        let mut routes = Vec::with_capacity(self.v4_routes.len() + self.v6_routes.len());
+        routes.extend(self.v4_routes.iter().cloned());
+        routes.extend(self.v6_routes.iter().cloned());
+        routes
+    }
+
     /// Longest Prefix Match lookup
     #[inline]
     pub fn lookup(&self, ip: OverlayIp) -> Option<RouteTarget> {
