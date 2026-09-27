@@ -144,6 +144,14 @@ panic = "abort"
 inherits = "release"
 lto = "thin"
 
+[profile.release-wasm]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
 [profile.bench]
 inherits = "release"
 debug = true

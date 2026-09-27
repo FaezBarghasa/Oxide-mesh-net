@@ -45,6 +45,7 @@ pub struct TransportCircuitBreaker {
     lost_packets: u64,
     high_loss_since: Option<Instant>,
     consecutive_recovery_pings: usize,
+    #[allow(dead_code)]
     last_probe_sent: Instant,
 }
 

@@ -234,6 +234,7 @@ impl AclEngine {
         for rule in &mut self.rules {
             rule.compiled = Some(Self::compile_rule(rule)?);
         }
+        self.simd_evaluator.compile_rules(&self.rules);
         Ok(())
     }
 

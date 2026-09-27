@@ -33,9 +33,3 @@ web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "tokio"]
 server = ["tokio"]
 
-[profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
