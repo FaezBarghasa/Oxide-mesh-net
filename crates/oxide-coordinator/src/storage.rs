@@ -214,6 +214,27 @@ pub mod surreal_storage {
     }
 
     impl SurrealStorage {
+        async fn init_schema(&self) -> Result<()> {
+            let sql = "
+                DEFINE TABLE IF NOT EXISTS node SCHEMALESS;
+                DEFINE TABLE IF NOT EXISTS route SCHEMALESS;
+                DEFINE TABLE IF NOT EXISTS acl SCHEMALESS;
+                DEFINE TABLE IF NOT EXISTS presence SCHEMALESS;
+                DEFINE TABLE IF NOT EXISTS connected_to TYPE RELATION SCHEMALESS;
+            ";
+            match &self.engine {
+                SurrealEngine::Local(db) => {
+                    db.query(sql).await
+                        .map_err(|e| CoordinatorError::Storage(format!("SurrealDB schema init failed: {}", e)))?;
+                }
+                SurrealEngine::Remote(db) => {
+                    db.query(sql).await
+                        .map_err(|e| CoordinatorError::Storage(format!("SurrealDB schema init failed: {}", e)))?;
+                }
+            }
+            Ok(())
+        }
+
         pub async fn new_mem(ns: &str, db_name: &str) -> Result<Self> {
             let db = Surreal::new::<Mem>(())
                 .await
@@ -223,7 +244,9 @@ pub mod surreal_storage {
                 .await
                 .map_err(|e| CoordinatorError::Storage(format!("SurrealDB use_ns/use_db failed: {}", e)))?;
 
-            Ok(Self { engine: SurrealEngine::Local(db) })
+            let s = Self { engine: SurrealEngine::Local(db) };
+            s.init_schema().await?;
+            Ok(s)
         }
 
         pub async fn new_surrealkv(path: &PathBuf, ns: &str, db_name: &str) -> Result<Self> {
@@ -236,7 +259,9 @@ pub mod surreal_storage {
                 .await
                 .map_err(|e| CoordinatorError::Storage(format!("SurrealDB use_ns/use_db failed: {}", e)))?;
 
-            Ok(Self { engine: SurrealEngine::Local(db) })
+            let s = Self { engine: SurrealEngine::Local(db) };
+            s.init_schema().await?;
+            Ok(s)
         }
 
         pub async fn new_ws(url: &str, ns: &str, db_name: &str, user: Option<&str>, pass: Option<&str>) -> Result<Self> {
@@ -254,14 +279,16 @@ pub mod surreal_storage {
                 .await
                 .map_err(|e| CoordinatorError::Storage(format!("SurrealDB use_ns/use_db failed: {}", e)))?;
 
-            Ok(Self { engine: SurrealEngine::Remote(db) })
+            let s = Self { engine: SurrealEngine::Remote(db) };
+            s.init_schema().await?;
+            Ok(s)
         }
     }
 
     #[async_trait::async_trait]
     impl StorageBackend for SurrealStorage {
         async fn get_node_metadata(&self, node_id: &NodeId) -> Result<Option<NodeMetadata>> {
-            let sql = "SELECT * FROM type::thing('node', $id)";
+            let sql = "SELECT * FROM type::record('node', $id)";
             
             let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
@@ -304,7 +331,7 @@ pub mod surreal_storage {
                 updated_at: chrono::Utc::now().timestamp(),
             };
 
-            let sql = "UPSERT type::thing('node', $id) CONTENT $content";
+            let sql = "UPSERT type::record('node', $id) CONTENT $content";
             let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
 
             match &self.engine {
@@ -327,7 +354,7 @@ pub mod surreal_storage {
         }
 
         async fn delete_node_metadata(&self, node_id: &NodeId) -> Result<()> {
-            let sql = "DELETE type::thing('node', $id)";
+            let sql = "DELETE type::record('node', $id)";
             match &self.engine {
                 SurrealEngine::Local(db) => {
                     db.query(sql).bind(("id", node_id.to_string())).await
@@ -375,7 +402,7 @@ pub mod surreal_storage {
 
         async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {
             let p_str = prefix.to_string();
-            let sql = "SELECT * FROM type::thing('route', $id)";
+            let sql = "SELECT * FROM type::record('route', $id)";
             let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).bind(("id", p_str)).await
@@ -409,7 +436,7 @@ pub mod surreal_storage {
                 updated_at: chrono::Utc::now().timestamp(),
             };
 
-            let sql = "UPSERT type::thing('route', $id) CONTENT $content";
+            let sql = "UPSERT type::record('route', $id) CONTENT $content";
             let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
 
             match &self.engine {
@@ -426,7 +453,7 @@ pub mod surreal_storage {
         }
 
         async fn delete_route(&self, prefix: &OverlayPrefix) -> Result<()> {
-            let sql = "DELETE type::thing('route', $id)";
+            let sql = "DELETE type::record('route', $id)";
             let p_str = prefix.to_string();
             match &self.engine {
                 SurrealEngine::Local(db) => {
@@ -469,7 +496,7 @@ pub mod surreal_storage {
         }
 
         async fn get_acl_policy(&self) -> Result<Option<AclPolicy>> {
-            let sql = "SELECT * FROM type::thing('acl', 'current')";
+            let sql = "SELECT * FROM type::record('acl', 'current')";
             let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).await
@@ -502,7 +529,7 @@ pub mod surreal_storage {
                 updated_at: chrono::Utc::now().timestamp(),
             };
 
-            let sql = "UPSERT type::thing('acl', 'current') CONTENT $content";
+            let sql = "UPSERT type::record('acl', 'current') CONTENT $content";
             let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
 
             match &self.engine {
@@ -525,7 +552,7 @@ pub mod surreal_storage {
                 node_id: *node_id,
                 expires_at,
             };
-            let sql = "UPSERT type::thing('presence', $id) CONTENT $content";
+            let sql = "UPSERT type::record('presence', $id) CONTENT $content";
             let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             match &self.engine {
                 SurrealEngine::Local(db) => {
@@ -542,7 +569,7 @@ pub mod surreal_storage {
 
         async fn is_node_online(&self, node_id: &NodeId) -> Result<bool> {
             let now = chrono::Utc::now().timestamp();
-            let sql = "SELECT * FROM type::thing('presence', $id) WHERE expires_at > $now";
+            let sql = "SELECT * FROM type::record('presence', $id) WHERE expires_at > $now";
             let val: Option<surrealdb::types::Value> = match &self.engine {
                 SurrealEngine::Local(db) => {
                     let mut resp = db.query(sql).bind(("id", node_id.to_string())).bind(("now", now)).await
@@ -560,7 +587,7 @@ pub mod surreal_storage {
 
         async fn record_topology_link(&self, from: &NodeId, to: &NodeId, latency_ms: f32, loss_rate: f32) -> Result<()> {
             // SurrealQL Graph Relation: RELATE node:from->connected_to->node:to
-            let sql = "RELATE type::thing('node', $from)->connected_to->type::thing('node', $to) SET latency_ms = $latency, loss_rate = $loss, updated_at = time::now()";
+            let sql = "RELATE type::record('node', $from)->connected_to->type::record('node', $to) SET latency_ms = $latency, loss_rate = $loss, updated_at = time::now()";
             match &self.engine {
                 SurrealEngine::Local(db) => {
                     db.query(sql)

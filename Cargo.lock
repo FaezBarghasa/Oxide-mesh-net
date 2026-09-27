@@ -7068,7 +7068,6 @@ dependencies = [
 name = "oxide-protocol"
 version = "0.1.0"
 dependencies = [
- "bincode",
  "bytemuck",
  "bytes 1.12.1",
  "criterion",

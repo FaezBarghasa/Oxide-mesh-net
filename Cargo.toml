@@ -27,7 +27,7 @@ async-trait = "0.1.77"
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-bincode = "3.0.0"
+rkyv = "0.8.18"
 postcard = "1.0"
 rmp-serde = "1.1"
 
