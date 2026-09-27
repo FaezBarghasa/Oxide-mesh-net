@@ -1,13 +1,11 @@
 //! Tier F-6: Native Platform Shells, System Trays & Mobile Adapters
 
-use dioxus::prelude::*;
 use crate::components::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn PlatformView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn PlatformView(state: Signal<AppState>) -> Element {
     let _app = state();
 
     rsx! {

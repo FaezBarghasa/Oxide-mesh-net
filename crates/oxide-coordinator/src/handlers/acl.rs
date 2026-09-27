@@ -1,11 +1,14 @@
 //! ACL management handlers
 
-use actix_web::{web, HttpResponse, Responder, get, put, delete};
-use serde::{Deserialize, Serialize};
-use crate::{AppState, error::{CoordinatorError, Result}};
+use crate::{
+    AppState,
+    error::{CoordinatorError, Result},
+};
+use actix_web::{HttpResponse, Responder, delete, get, put, web};
 use oxide_core::OverlayPrefix;
 use oxide_crypto::keys::KeyFingerprint;
 use oxide_protocol::topics::{AclAction, AclDirection};
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct UpdateAclRequest {
@@ -49,23 +52,26 @@ pub struct AclRuleResponse {
 
 #[get("/acl")]
 pub async fn get_acl(data: web::Data<AppState>) -> Result<impl Responder> {
-    let policy = data.storage.get_acl_policy().await?
-        .unwrap_or_default();
+    let policy = data.storage.get_acl_policy().await?.unwrap_or_default();
 
     let response = AclPolicyResponse {
         version: policy.version,
         default_action: policy.default_action,
-        rules: policy.rules.into_iter().map(|r| AclRuleResponse {
-            id: r.id,
-            action: r.action,
-            src_identities: r.src_identities,
-            dst_prefixes: r.dst_prefixes,
-            protocols: r.protocols,
-            port_ranges: r.port_ranges,
-            direction: r.direction,
-            log: r.log,
-            priority: r.priority,
-        }).collect(),
+        rules: policy
+            .rules
+            .into_iter()
+            .map(|r| AclRuleResponse {
+                id: r.id,
+                action: r.action,
+                src_identities: r.src_identities,
+                dst_prefixes: r.dst_prefixes,
+                protocols: r.protocols,
+                port_ranges: r.port_ranges,
+                direction: r.direction,
+                log: r.log,
+                priority: r.priority,
+            })
+            .collect(),
         updated_at: policy.timestamp,
     };
 
@@ -92,17 +98,21 @@ pub async fn update_acl(
     let policy = oxide_protocol::topics::AclPolicy {
         version: new_version,
         default_action: req.default_action,
-        rules: req.rules.iter().map(|r| oxide_protocol::topics::AclRule {
-            id: r.id.clone(),
-            action: r.action,
-            src_identities: r.src_identities.clone(),
-            dst_prefixes: r.dst_prefixes.clone(),
-            protocols: r.protocols.clone(),
-            port_ranges: r.port_ranges.clone(),
-            direction: r.direction,
-            log: r.log,
-            priority: r.priority,
-        }).collect(),
+        rules: req
+            .rules
+            .iter()
+            .map(|r| oxide_protocol::topics::AclRule {
+                id: r.id.clone(),
+                action: r.action,
+                src_identities: r.src_identities.clone(),
+                dst_prefixes: r.dst_prefixes.clone(),
+                protocols: r.protocols.clone(),
+                port_ranges: r.port_ranges.clone(),
+                direction: r.direction,
+                log: r.log,
+                priority: r.priority,
+            })
+            .collect(),
         timestamp: chrono::Utc::now().timestamp(),
         signature: oxide_crypto::keys::DeviceSignature::from_bytes(&[0; 64]).unwrap(),
     };
@@ -126,7 +136,5 @@ pub async fn delete_acl(data: web::Data<AppState>) -> Result<impl Responder> {
 }
 
 pub fn configure_acl_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_acl)
-       .service(update_acl)
-       .service(delete_acl);
+    cfg.service(get_acl).service(update_acl).service(delete_acl);
 }

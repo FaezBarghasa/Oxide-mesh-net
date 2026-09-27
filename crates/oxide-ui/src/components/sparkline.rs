@@ -20,8 +20,16 @@ pub fn Sparkline(props: SparklineProps) -> Element {
     }
 
     let min_val = props.points.iter().cloned().fold(f64::INFINITY, f64::min);
-    let max_val = props.points.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-    let range = if (max_val - min_val).abs() < 1e-6 { 1.0 } else { max_val - min_val };
+    let max_val = props
+        .points
+        .iter()
+        .cloned()
+        .fold(f64::NEG_INFINITY, f64::max);
+    let range = if (max_val - min_val).abs() < 1e-6 {
+        1.0
+    } else {
+        max_val - min_val
+    };
 
     let count = props.points.len();
     let width = 200.0;
@@ -31,7 +39,11 @@ pub fn Sparkline(props: SparklineProps) -> Element {
     let mut area_data = String::new();
 
     for (i, &pt) in props.points.iter().enumerate() {
-        let x = if count > 1 { (i as f64 / (count - 1) as f64) * width } else { 0.0 };
+        let x = if count > 1 {
+            (i as f64 / (count - 1) as f64) * width
+        } else {
+            0.0
+        };
         let normalized = (pt - min_val) / range;
         let y = h - (normalized * (h - 6.0) + 3.0);
 

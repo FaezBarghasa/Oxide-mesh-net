@@ -1,15 +1,13 @@
 //! Tier F-2: Routing Fabric, Exit Node Selection & Subnet Governance
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::models::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn RoutingView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn RoutingView(state: Signal<AppState>) -> Element {
     let app = state();
     let mut cidr_input = use_signal(|| "192.168.10.0/24".to_string());
     let mut test_query = use_signal(|| "104.244.42.1".to_string());

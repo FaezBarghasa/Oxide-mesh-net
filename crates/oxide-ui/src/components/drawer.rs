@@ -1,7 +1,7 @@
 //! Diagnostic slide-out drawer with backdrop blur
 
-use dioxus::prelude::*;
 use crate::components::icons::IconClose;
+use dioxus::prelude::*;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct DrawerProps {

@@ -12,28 +12,35 @@ pub struct SvgQrCodeProps {
 
 #[component]
 pub fn SvgQrCode(props: SvgQrCodeProps) -> Element {
-    // Generate a deterministic visual 21x21 QR pattern based on input hash
-    let mut matrix = vec![vec![false; 21]; 21];
-
     // Standard 3 Finder patterns
-    let add_finder = |m: &mut Vec<Vec<bool>>, start_r: usize, start_c: usize| {
-        for r in 0..7 {
-            for c in 0..7 {
-                if r == 0 || r == 6 || c == 0 || c == 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4) {
-                    m[start_r + r][start_c + c] = true;
+    let add_finder = |m: &mut [[bool; 21]; 21], start_r: usize, start_c: usize| {
+        for (r, row) in m.iter_mut().enumerate().skip(start_r).take(7) {
+            let rel_r = r - start_r;
+            for (c, cell) in row.iter_mut().enumerate().skip(start_c).take(7) {
+                let rel_c = c - start_c;
+                if rel_r == 0
+                    || rel_r == 6
+                    || rel_c == 0
+                    || rel_c == 6
+                    || ((2..=4).contains(&rel_r) && (2..=4).contains(&rel_c))
+                {
+                    *cell = true;
                 }
             }
         }
     };
 
+    let mut matrix = [[false; 21]; 21];
     add_finder(&mut matrix, 0, 0);
     add_finder(&mut matrix, 0, 14);
     add_finder(&mut matrix, 14, 0);
 
     // Timing patterns
-    for i in 8..13 {
-        matrix[6][i] = i % 2 == 0;
-        matrix[i][6] = i % 2 == 0;
+    for (i, cell) in matrix[6].iter_mut().enumerate().take(13).skip(8) {
+        *cell = i % 2 == 0;
+    }
+    for (i, row) in matrix.iter_mut().enumerate().take(13).skip(8) {
+        row[6] = i % 2 == 0;
     }
 
     // Pseudo-random data payload representation for deterministic UI rendering
@@ -41,14 +48,14 @@ pub fn SvgQrCode(props: SvgQrCodeProps) -> Element {
     let bytes = hash_bytes.as_bytes();
 
     let mut bit_idx = 0;
-    for r in 0..21 {
-        for c in 0..21 {
+    for (r, row) in matrix.iter_mut().enumerate() {
+        for (c, cell) in row.iter_mut().enumerate() {
             let is_finder = (r < 8 && c < 8) || (r < 8 && c >= 13) || (r >= 13 && c < 8);
             let is_timing = r == 6 || c == 6;
             if !is_finder && !is_timing {
                 let byte = bytes[bit_idx % bytes.len()];
                 let bit = (byte >> (bit_idx % 8)) & 1 == 1;
-                matrix[r][c] = bit;
+                *cell = bit;
                 bit_idx += 1;
             }
         }
@@ -56,9 +63,9 @@ pub fn SvgQrCode(props: SvgQrCodeProps) -> Element {
 
     let cell_size = 6.0;
     let mut rects = Vec::new();
-    for r in 0..21 {
-        for c in 0..21 {
-            if matrix[r][c] {
+    for (r, row) in matrix.iter().enumerate() {
+        for (c, &is_filled) in row.iter().enumerate() {
+            if is_filled {
                 rects.push((c as f64 * cell_size, r as f64 * cell_size));
             }
         }

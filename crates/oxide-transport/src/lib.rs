@@ -9,9 +9,9 @@ pub mod porthopper;
 pub mod routing;
 
 pub use circuit_breaker::{CircuitBreakerConfig, CircuitStatus, TransportCircuitBreaker};
-pub use config::{TransportConfig, CongestionControl, make_client_config, make_server_config};
+pub use config::{CongestionControl, TransportConfig, make_client_config, make_server_config};
 pub use dplpmtud::{DplpmtudConfig, DplpmtudEngine, DplpmtudPhase};
-pub use engine::{TransportEngine, TransportHandle, TransportEvent, TransportStats};
-pub use error::{TransportError, Result};
+pub use engine::{TransportEngine, TransportEvent, TransportHandle, TransportStats};
+pub use error::{Result, TransportError};
 pub use porthopper::{PortHopper, PortHopperConfig};
 pub use routing::{L1DirectMappedCache, RadixRoutingTable, RcuRouter, RouteEntry, RouteTarget};

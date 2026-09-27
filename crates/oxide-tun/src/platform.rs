@@ -1,10 +1,13 @@
 //! Platform abstraction for TUN interfaces
 
+use crate::{
+    RawFd, TunConfig,
+    error::{Result, TunError},
+};
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::task::{Context, Poll};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
-use crate::{TunConfig, RawFd, error::{TunError, Result}};
 
 /// Platform-specific TUN device
 pub trait TunDevice: Send + Sync {
@@ -81,7 +84,9 @@ pub fn create_tun(config: &TunConfig) -> Result<Box<dyn TunDevice>> {
     }
     #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
     {
-        Err(TunError::PlatformNotSupported("Platform not supported".into()))
+        Err(TunError::PlatformNotSupported(
+            "Platform not supported".into(),
+        ))
     }
 }
 
@@ -112,7 +117,7 @@ impl AsyncRead for AsyncFd {
     ) -> Poll<io::Result<()>> {
         let fd = self.fd.as_raw_fd();
         let buf_slice = buf.initialize_unfilled();
-        
+
         let ret = unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) };
         if ret > 0 {
             buf.advance(ret as usize);
@@ -162,7 +167,10 @@ impl AsyncWrite for AsyncFd {
         Poll::Ready(Ok(()))
     }
 
-    fn poll_shutdown(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_shutdown(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut Context<'_>,
+    ) -> Poll<io::Result<()>> {
         Poll::Ready(Ok(()))
     }
 }
@@ -184,7 +192,11 @@ impl TunQueue for AsyncFd {
             if flags < 0 {
                 return Err(TunError::Io(io::Error::last_os_error()));
             }
-            let flags = if nonblocking { flags | libc::O_NONBLOCK } else { flags & !libc::O_NONBLOCK };
+            let flags = if nonblocking {
+                flags | libc::O_NONBLOCK
+            } else {
+                flags & !libc::O_NONBLOCK
+            };
             let ret = unsafe { libc::fcntl(self.fd.as_raw_fd(), libc::F_SETFL, flags) };
             if ret < 0 {
                 return Err(TunError::Io(io::Error::last_os_error()));
@@ -193,7 +205,9 @@ impl TunQueue for AsyncFd {
         }
         #[cfg(not(target_os = "linux"))]
         {
-            Err(TunError::PlatformNotSupported("Non-blocking not implemented for this platform".into()))
+            Err(TunError::PlatformNotSupported(
+                "Non-blocking not implemented for this platform".into(),
+            ))
         }
     }
 

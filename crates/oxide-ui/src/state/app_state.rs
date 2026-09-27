@@ -155,15 +155,13 @@ impl Default for AppState {
                 },
             ],
 
-            advertised_subnets: vec![
-                AdvertisedSubnet {
-                    cidr: "192.168.10.0/24".to_string(),
-                    interface_name: "eth0.lan".to_string(),
-                    is_active: true,
-                    has_conflict: false,
-                    active_vrrp_leader: Some("local-node".to_string()),
-                },
-            ],
+            advertised_subnets: vec![AdvertisedSubnet {
+                cidr: "192.168.10.0/24".to_string(),
+                interface_name: "eth0.lan".to_string(),
+                is_active: true,
+                has_conflict: false,
+                active_vrrp_leader: Some("local-node".to_string()),
+            }],
 
             split_rules: vec![
                 SplitRouteRule {
@@ -195,7 +193,8 @@ impl Default for AppState {
             reality_config: RealityTlsConfig {
                 enabled: true,
                 sni_target: "www.microsoft.com".to_string(),
-                server_public_key_hex: "3a9f1b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a".to_string(),
+                server_public_key_hex:
+                    "3a9f1b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a".to_string(),
                 short_id_hex: "0123456789abcdef".to_string(),
                 diverted_probes_count: 142,
                 remote_sni_reachable: true,
@@ -267,42 +266,36 @@ impl Default for AppState {
                 is_resolution_active: true,
             },
 
-            drop_transfers: vec![
-                OxideDropTransfer {
-                    transfer_id: "tx-492".to_string(),
-                    filename: "kernel-image-v6.11.tar.zst".to_string(),
-                    file_size_bytes: 42_500_000,
-                    peer_id: "peer-node-eu-01".to_string(),
-                    peer_hostname: "gateway-frankfurt.mesh.oxide".to_string(),
-                    is_incoming: false,
-                    progress_ratio: 0.76,
-                    speed_mbps: 48.2,
-                    blake3_verified: true,
-                    is_completed: false,
-                }
-            ],
+            drop_transfers: vec![OxideDropTransfer {
+                transfer_id: "tx-492".to_string(),
+                filename: "kernel-image-v6.11.tar.zst".to_string(),
+                file_size_bytes: 42_500_000,
+                peer_id: "peer-node-eu-01".to_string(),
+                peer_hostname: "gateway-frankfurt.mesh.oxide".to_string(),
+                is_incoming: false,
+                progress_ratio: 0.76,
+                speed_mbps: 48.2,
+                blake3_verified: true,
+                is_completed: false,
+            }],
 
-            active_ssh_sessions: vec![
-                OxideSshSessionInfo {
-                    session_id: "ssh-session-01".to_string(),
-                    target_peer: "gateway-frankfurt.mesh.oxide".to_string(),
-                    cipher_suite: "ChaCha20-Poly1305 / Ed25519".to_string(),
-                    active_duration_secs: 840,
-                    is_recording: false,
-                }
-            ],
+            active_ssh_sessions: vec![OxideSshSessionInfo {
+                session_id: "ssh-session-01".to_string(),
+                target_peer: "gateway-frankfurt.mesh.oxide".to_string(),
+                cipher_suite: "ChaCha20-Poly1305 / Ed25519".to_string(),
+                active_duration_secs: 840,
+                is_recording: false,
+            }],
 
-            ingress_services: vec![
-                IngressService {
-                    service_id: "srv-1".to_string(),
-                    local_bind_addr: "127.0.0.1:8080".to_string(),
-                    magic_dns_alias: "http://dev-api.mesh.oxide".to_string(),
-                    is_public_funnel: true,
-                    public_url: Some("https://dev-api.funnel.oxide.net".to_string()),
-                    acme_tls_provisioned: true,
-                    requests_handled: 18_420,
-                }
-            ],
+            ingress_services: vec![IngressService {
+                service_id: "srv-1".to_string(),
+                local_bind_addr: "127.0.0.1:8080".to_string(),
+                magic_dns_alias: "http://dev-api.mesh.oxide".to_string(),
+                is_public_funnel: true,
+                public_url: Some("https://dev-api.funnel.oxide.net".to_string()),
+                acme_tls_provisioned: true,
+                requests_handled: 18_420,
+            }],
 
             merkle_logs: vec![
                 MerkleAuditLogEntry {
@@ -346,7 +339,9 @@ impl Default for AppState {
                     dst_port: 22,
                     payload_bytes: 64,
                     is_dropped: true,
-                    drop_reason: Some("ACL Drop: rule #acl-2 (tag:dev -> tag:prod DENIED)".to_string()),
+                    drop_reason: Some(
+                        "ACL Drop: rule #acl-2 (tag:dev -> tag:prod DENIED)".to_string(),
+                    ),
                 },
             ],
 

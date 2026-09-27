@@ -1,5 +1,13 @@
 //! QUIC transport engine for unreliable datagram transport
 
+use crate::{
+    config::{TransportConfig, make_client_config, make_server_config},
+    error::{Result, TransportError},
+};
+use bytes::Bytes;
+use oxide_core::NodeId;
+use oxide_protocol::WirePacket;
+use quinn::{Connection, Endpoint, RecvStream, SendStream};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -7,24 +15,19 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, RwLock},
+    sync::{RwLock, broadcast, mpsc, oneshot},
     task::JoinHandle,
 };
-use quinn::{Endpoint, Connection, RecvStream, SendStream};
-use bytes::Bytes;
 use tracing::{debug, info, warn};
-use crate::{
-    config::{TransportConfig, make_client_config, make_server_config},
-    error::{TransportError, Result},
-};
-use oxide_protocol::WirePacket;
-use oxide_core::NodeId;
 
 /// Transport event types
 #[derive(Debug, Clone)]
 pub enum TransportEvent {
     /// New peer connected
-    Connected { node_id: NodeId, endpoint: SocketAddr },
+    Connected {
+        node_id: NodeId,
+        endpoint: SocketAddr,
+    },
     /// Peer disconnected
     Disconnected { node_id: NodeId, reason: String },
     /// Datagram received
@@ -32,11 +35,19 @@ pub enum TransportEvent {
     /// Stream opened
     StreamOpened { node_id: NodeId, stream_id: u64 },
     /// Stream data received
-    StreamData { node_id: NodeId, stream_id: u64, data: Bytes, fin: bool },
+    StreamData {
+        node_id: NodeId,
+        stream_id: u64,
+        data: Bytes,
+        fin: bool,
+    },
     /// Stream closed
     StreamClosed { node_id: NodeId, stream_id: u64 },
     /// Connection migrated (IP change)
-    Migrated { node_id: NodeId, new_endpoint: SocketAddr },
+    Migrated {
+        node_id: NodeId,
+        new_endpoint: SocketAddr,
+    },
 }
 
 /// Transport handle for sending data
@@ -155,9 +166,10 @@ impl TransportEngine {
 
         self.endpoint = Some(endpoint.clone());
 
-        let command_rx = self.command_rx.take().ok_or_else(|| {
-            TransportError::Internal("TransportEngine already started".into())
-        })?;
+        let command_rx = self
+            .command_rx
+            .take()
+            .ok_or_else(|| TransportError::Internal("TransportEngine already started".into()))?;
 
         // Start command processor
         let connections = self.connections.clone();
@@ -176,7 +188,8 @@ impl TransportEngine {
                 endpoint_clone,
                 config,
                 command_rx,
-            ).await;
+            )
+            .await;
         });
 
         self._worker_handles.push(worker);
@@ -221,7 +234,12 @@ impl TransportEngine {
                             };
                             connections.write().await.insert(node_id, state);
                             endpoint_by_addr.write().await.insert(remote, node_id);
-                            event_tx.send(TransportEvent::Connected { node_id, endpoint: remote }).ok();
+                            event_tx
+                                .send(TransportEvent::Connected {
+                                    node_id,
+                                    endpoint: remote,
+                                })
+                                .ok();
 
                             let c1 = connections.clone();
                             let s1 = stats.clone();
@@ -264,7 +282,11 @@ impl TransportEngine {
     ) {
         while let Some(cmd) = command_rx.recv().await {
             match cmd {
-                TransportCommand::Connect { node_id, endpoint: addr, response } => {
+                TransportCommand::Connect {
+                    node_id,
+                    endpoint: addr,
+                    response,
+                } => {
                     let result = Self::connect_inner(
                         &connections,
                         &endpoint_by_addr,
@@ -273,15 +295,21 @@ impl TransportEngine {
                         &endpoint,
                         node_id,
                         addr,
-                    ).await;
+                    )
+                    .await;
                     let _ = response.send(result);
                 }
                 TransportCommand::Disconnect { node_id, response } => {
                     Self::disconnect_inner(&connections, &endpoint_by_addr, node_id).await;
                     let _ = response.send(());
                 }
-                TransportCommand::SendDatagram { node_id, packet, response } => {
-                    let result = Self::send_datagram_inner(&connections, &stats, node_id, packet).await;
+                TransportCommand::SendDatagram {
+                    node_id,
+                    packet,
+                    response,
+                } => {
+                    let result =
+                        Self::send_datagram_inner(&connections, &stats, node_id, packet).await;
                     let _ = response.send(result);
                 }
                 TransportCommand::OpenStream { node_id, response } => {
@@ -321,7 +349,9 @@ impl TransportEngine {
         debug!("Connecting to {} at {}", node_id, addr);
 
         let connect_fut = endpoint.connect(addr, "oxide-mesh")?;
-        let connection = connect_fut.await.map_err(|e| TransportError::ConnectionFailed(e.to_string()))?;
+        let connection = connect_fut
+            .await
+            .map_err(|e| TransportError::ConnectionFailed(e.to_string()))?;
 
         let state = ConnectionState {
             connection,
@@ -347,7 +377,12 @@ impl TransportEngine {
             s.total_connections += 1;
         }
 
-        event_tx.send(TransportEvent::Connected { node_id, endpoint: addr }).ok();
+        event_tx
+            .send(TransportEvent::Connected {
+                node_id,
+                endpoint: addr,
+            })
+            .ok();
 
         // Spawn datagram receiver
         let c1 = connections.clone();
@@ -393,7 +428,7 @@ impl TransportEngine {
     ) -> Result<()> {
         let conns = connections.read().await;
         let state = conns.get(&node_id).ok_or(TransportError::NotConnected)?;
-        
+
         let bytes = packet.to_bytes();
         state.connection.send_datagram(bytes.into())?;
 
@@ -422,10 +457,13 @@ impl TransportEngine {
     ) -> Result<SendStream> {
         let conns = connections.read().await;
         let state = conns.get(&node_id).ok_or(TransportError::NotConnected)?;
-        
-        let (send, _recv) = state.connection.open_bi().await
+
+        let (send, _recv) = state
+            .connection
+            .open_bi()
+            .await
             .map_err(|e| TransportError::StreamError(e.to_string()))?;
-        
+
         Ok(send)
     }
 
@@ -462,7 +500,12 @@ impl TransportEngine {
                             state.last_activity = Instant::now();
                         }
 
-                        event_tx.send(TransportEvent::DatagramReceived { from: node_id, packet }).ok();
+                        event_tx
+                            .send(TransportEvent::DatagramReceived {
+                                from: node_id,
+                                packet,
+                            })
+                            .ok();
                     }
                 }
                 Err(quinn::ConnectionError::ApplicationClosed { .. }) => {
@@ -500,11 +543,12 @@ impl TransportEngine {
             match connection.accept_bi().await {
                 Ok((send, recv)) => {
                     let stream_id = send.id().index();
-                    event_tx.send(TransportEvent::StreamOpened { node_id, stream_id }).ok();
+                    event_tx
+                        .send(TransportEvent::StreamOpened { node_id, stream_id })
+                        .ok();
 
                     let stats = stats.clone();
                     let event_tx = event_tx.clone();
-                    let node_id = node_id;
 
                     tokio::spawn(async move {
                         Self::handle_stream(send, recv, stats, event_tx, node_id, stream_id).await;
@@ -531,32 +575,38 @@ impl TransportEngine {
         stream_id: u64,
     ) {
         let mut buffer = vec![0u8; 65536];
-        
+
         loop {
             match recv.read(&mut buffer).await {
                 Ok(Some(n)) => {
                     let data = Bytes::copy_from_slice(&buffer[..n]);
-                    
+
                     {
                         let mut s = stats.write().await;
                         s.bytes_received += n as u64;
                     }
 
-                    event_tx.send(TransportEvent::StreamData {
-                        node_id,
-                        stream_id,
-                        data,
-                        fin: false,
-                    }).ok();
+                    event_tx
+                        .send(TransportEvent::StreamData {
+                            node_id,
+                            stream_id,
+                            data,
+                            fin: false,
+                        })
+                        .ok();
                 }
                 Ok(None) => {
-                    event_tx.send(TransportEvent::StreamData {
-                        node_id,
-                        stream_id,
-                        data: Bytes::new(),
-                        fin: true,
-                    }).ok();
-                    event_tx.send(TransportEvent::StreamClosed { node_id, stream_id }).ok();
+                    event_tx
+                        .send(TransportEvent::StreamData {
+                            node_id,
+                            stream_id,
+                            data: Bytes::new(),
+                            fin: true,
+                        })
+                        .ok();
+                    event_tx
+                        .send(TransportEvent::StreamClosed { node_id, stream_id })
+                        .ok();
                     break;
                 }
                 Err(e) => {
@@ -575,7 +625,7 @@ impl TransportEngine {
         idle_timeout: Duration,
     ) {
         let mut interval = tokio::time::interval(Duration::from_secs(5));
-        
+
         loop {
             interval.tick().await;
 
@@ -593,11 +643,13 @@ impl TransportEngine {
 
             for node_id in timed_out {
                 warn!("Connection timed out for {}", node_id);
-                event_tx.send(TransportEvent::Disconnected {
-                    node_id,
-                    reason: "Idle timeout".into(),
-                }).ok();
-                
+                event_tx
+                    .send(TransportEvent::Disconnected {
+                        node_id,
+                        reason: "Idle timeout".into(),
+                    })
+                    .ok();
+
                 let mut conns = connections.write().await;
                 if let Some(state) = conns.remove(&node_id) {
                     state.connection.close(0u32.into(), b"idle timeout");
@@ -618,35 +670,54 @@ impl TransportHandle {
     /// Connect to a peer
     pub async fn connect(&self, node_id: NodeId, endpoint: SocketAddr) -> Result<()> {
         let (tx, rx) = oneshot::channel();
-        self.command_tx.send(TransportCommand::Connect { node_id, endpoint, response: tx })?;
-        rx.await.map_err(|_| TransportError::Internal("Command channel closed".into()))?
+        self.command_tx.send(TransportCommand::Connect {
+            node_id,
+            endpoint,
+            response: tx,
+        })?;
+        rx.await
+            .map_err(|_| TransportError::Internal("Command channel closed".into()))?
     }
 
     /// Disconnect from a peer
     pub async fn disconnect(&self, node_id: NodeId) {
         let (tx, rx) = oneshot::channel();
-        let _ = self.command_tx.send(TransportCommand::Disconnect { node_id, response: tx });
+        let _ = self.command_tx.send(TransportCommand::Disconnect {
+            node_id,
+            response: tx,
+        });
         let _ = rx.await;
     }
 
     /// Send a datagram
     pub async fn send_datagram(&self, node_id: NodeId, packet: WirePacket) -> Result<()> {
         let (tx, rx) = oneshot::channel();
-        self.command_tx.send(TransportCommand::SendDatagram { node_id, packet, response: tx })?;
-        rx.await.map_err(|_| TransportError::Internal("Command channel closed".into()))?
+        self.command_tx.send(TransportCommand::SendDatagram {
+            node_id,
+            packet,
+            response: tx,
+        })?;
+        rx.await
+            .map_err(|_| TransportError::Internal("Command channel closed".into()))?
     }
 
     /// Open a bidirectional stream
     pub async fn open_stream(&self, node_id: NodeId) -> Result<SendStream> {
         let (tx, rx) = oneshot::channel();
-        self.command_tx.send(TransportCommand::OpenStream { node_id, response: tx })?;
-        rx.await.map_err(|_| TransportError::Internal("Command channel closed".into()))?
+        self.command_tx.send(TransportCommand::OpenStream {
+            node_id,
+            response: tx,
+        })?;
+        rx.await
+            .map_err(|_| TransportError::Internal("Command channel closed".into()))?
     }
 
     /// Get transport statistics
     pub async fn stats(&self) -> TransportStats {
         let (tx, rx) = oneshot::channel();
-        let _ = self.command_tx.send(TransportCommand::GetStats { response: tx });
+        let _ = self
+            .command_tx
+            .send(TransportCommand::GetStats { response: tx });
         rx.await.unwrap_or_default()
     }
 

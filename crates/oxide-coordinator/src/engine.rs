@@ -1,20 +1,20 @@
 //! Coordinator engine with embedded MQTT broker and Actix Web server
 
-use std::sync::Arc;
-use actix_web::{web, App, HttpServer, middleware};
-use actix_web::dev::ServerHandle;
-use actix_web_prometheus::PrometheusMetricsBuilder;
-use rumqttd::Broker;
-use tokio::sync::mpsc;
-use tracing::{info, error};
 use crate::{
+    auth::AuthService,
     config::CoordinatorConfig,
     error::{CoordinatorError, Result},
-    auth::AuthService,
-    storage::Storage,
     handlers,
+    storage::Storage,
 };
+use actix_web::dev::ServerHandle;
+use actix_web::{App, HttpServer, middleware, web};
+use actix_web_prometheus::PrometheusMetricsBuilder;
 use oxide_core::MeshName;
+use rumqttd::Broker;
+use std::sync::Arc;
+use tokio::sync::mpsc;
+use tracing::{error, info};
 
 /// Main coordinator instance
 pub struct Coordinator {
@@ -42,7 +42,10 @@ impl Coordinator {
 
     /// Start the coordinator
     pub async fn start(&mut self) -> Result<()> {
-        info!("Starting oxide-coordinator for mesh: {}", self.config.mesh_name);
+        info!(
+            "Starting oxide-coordinator for mesh: {}",
+            self.config.mesh_name
+        );
 
         // Start MQTT broker
         self.start_mqtt_broker().await?;
@@ -66,7 +69,10 @@ impl Coordinator {
             }
         });
 
-        info!("MQTT broker started on {} listeners", self.config.mqtt_listeners.len());
+        info!(
+            "MQTT broker started on {} listeners",
+            self.config.mqtt_listeners.len()
+        );
         Ok(())
     }
 
@@ -101,25 +107,28 @@ impl Coordinator {
                 .app_data(web::Data::new(auth_service.clone()))
                 .app_data(web::Data::new(storage.clone()))
                 .app_data(web::Data::new(mesh_name.clone()))
-                .service(
-                    web::scope("/api/v1")
-                        .configure(handlers::configure_routes)
-                )
+                .service(web::scope("/api/v1").configure(handlers::configure_routes))
                 .service(
                     web::scope("/health")
                         .route("", web::get().to(handlers::health::health_check))
                         .route("/ready", web::get().to(handlers::health::readiness_check))
-                        .route("/live", web::get().to(handlers::health::liveness_check))
+                        .route("/live", web::get().to(handlers::health::liveness_check)),
                 )
                 .service(
                     web::scope("/metrics")
-                        .route("", web::get().to(handlers::metrics::metrics_endpoint))
+                        .route("", web::get().to(handlers::metrics::metrics_endpoint)),
                 )
                 // Serve static files (Dioxus WASM)
                 .service(
-                    actix_files::Files::new("/", http_config.static_dir.clone().unwrap_or_else(|| "./static".into()))
-                        .index_file("index.html")
-                        .prefer_utf8(true)
+                    actix_files::Files::new(
+                        "/",
+                        http_config
+                            .static_dir
+                            .clone()
+                            .unwrap_or_else(|| "./static".into()),
+                    )
+                    .index_file("index.html")
+                    .prefer_utf8(true),
                 )
         })
         .bind(http_config.bind)?

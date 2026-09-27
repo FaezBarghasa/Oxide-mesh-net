@@ -1,14 +1,12 @@
 //! Tier F-5: Embedded Network Services Management Surfaces
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn ServicesView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn ServicesView(state: Signal<AppState>) -> Element {
     let app = state();
     let dns = &app.magic_dns;
 

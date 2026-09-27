@@ -47,10 +47,14 @@ pub enum CoordinatorError {
 impl actix_web::ResponseError for CoordinatorError {
     fn status_code(&self) -> actix_web::http::StatusCode {
         match self {
-            CoordinatorError::Auth(_) | CoordinatorError::Jwt(_) => actix_web::http::StatusCode::UNAUTHORIZED,
+            CoordinatorError::Auth(_) | CoordinatorError::Jwt(_) => {
+                actix_web::http::StatusCode::UNAUTHORIZED
+            }
             CoordinatorError::Authz(_) => actix_web::http::StatusCode::FORBIDDEN,
             CoordinatorError::NodeNotFound(_) => actix_web::http::StatusCode::NOT_FOUND,
-            CoordinatorError::Config(_) | CoordinatorError::Serialization(_) => actix_web::http::StatusCode::BAD_REQUEST,
+            CoordinatorError::Config(_) | CoordinatorError::Serialization(_) => {
+                actix_web::http::StatusCode::BAD_REQUEST
+            }
             _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

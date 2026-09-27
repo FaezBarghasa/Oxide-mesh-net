@@ -4,7 +4,6 @@
 //! computing concurrent active listening ports across [P_prev, P_current, P_next] to eliminate
 //! packet drop transitions under clock skew.
 
-
 /// Port Hopper Configuration
 #[derive(Debug, Clone)]
 pub struct PortHopperConfig {

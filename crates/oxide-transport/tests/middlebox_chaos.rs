@@ -3,10 +3,12 @@
 //! Simulates middleboxes injecting 30% synthetic loss, 120ms random jitter, and MTU clamping
 //! down to 1280 bytes, verifying that DPLPMTUD, MSS clamping, and circuit breaking prevent stalls.
 
-use std::time::{Duration, Instant};
-use oxide_transport::circuit_breaker::{CircuitBreakerConfig, CircuitStatus, TransportCircuitBreaker};
+use oxide_transport::circuit_breaker::{
+    CircuitBreakerConfig, CircuitStatus, TransportCircuitBreaker,
+};
 use oxide_transport::dplpmtud::{DplpmtudConfig, DplpmtudEngine, DplpmtudPhase};
 use oxide_transport::porthopper::{PortHopper, PortHopperConfig};
+use std::time::{Duration, Instant};
 
 #[test]
 fn test_middlebox_chaos_mtu_downstep_drill() {

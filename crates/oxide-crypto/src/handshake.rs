@@ -1,11 +1,9 @@
 //! Key agreement and session establishment (Noise-like handshake)
 
 use crate::{
-    keys::{
-        SessionKeyPair, SessionPublicKey, SharedSecret, AeadKey, AeadNonce,
-    },
-    aead::{encrypt, decrypt},
+    aead::{decrypt, encrypt},
     error::{CryptoError, Result},
+    keys::{AeadKey, AeadNonce, SessionKeyPair, SessionPublicKey, SharedSecret},
 };
 use blake3;
 use hkdf::Hkdf;
@@ -55,10 +53,7 @@ impl Drop for HandshakeState {
 
 impl HandshakeState {
     /// Initialize as initiator (NK pattern)
-    pub fn initiator(
-        our_static: SessionKeyPair,
-        peer_static_pub: SessionPublicKey,
-    ) -> Self {
+    pub fn initiator(our_static: SessionKeyPair, peer_static_pub: SessionPublicKey) -> Self {
         let mut h = *blake3::hash(HANDSHAKE_NAME).as_bytes();
         let ck = h;
 
@@ -106,9 +101,7 @@ impl HandshakeState {
     }
 
     /// Initialize as responder (NK pattern)
-    pub fn responder(
-        our_static: SessionKeyPair,
-    ) -> Self {
+    pub fn responder(our_static: SessionKeyPair) -> Self {
         let mut h = *blake3::hash(HANDSHAKE_NAME).as_bytes();
         let ck = h;
 
@@ -138,7 +131,10 @@ impl HandshakeState {
         mix_hash(&mut self.h, peer_e_pub.as_bytes());
 
         // DH(our_static, peer_ephemeral) -> ck, k
-        let our_static = self.s_priv.as_ref().ok_or_else(|| CryptoError::Internal("Missing static key".into()))?;
+        let our_static = self
+            .s_priv
+            .as_ref()
+            .ok_or_else(|| CryptoError::Internal("Missing static key".into()))?;
         let dh1 = our_static.diffie_hellman(&peer_e_pub);
         let (new_ck, k) = hkdf2(&self.ck, dh1.as_bytes());
         self.ck = new_ck;
@@ -163,11 +159,18 @@ impl HandshakeState {
 
     /// Complete handshake and derive transport keys
     pub fn split(self) -> Result<TransportKeys> {
-        let k = self.k.ok_or(CryptoError::KeyDerivation("Handshake not complete".into()))?;
+        let k = self
+            .k
+            .ok_or(CryptoError::KeyDerivation("Handshake not complete".into()))?;
         let (tx_key_bytes, rx_key_bytes) = hkdf2(&self.ck, &k);
         let tx_key = AeadKey::from_bytes(&tx_key_bytes);
         let rx_key = AeadKey::from_bytes(&rx_key_bytes);
-        Ok(TransportKeys { tx_key, rx_key, tx_nonce: 0, rx_nonce: 0 })
+        Ok(TransportKeys {
+            tx_key,
+            rx_key,
+            tx_nonce: 0,
+            rx_nonce: 0,
+        })
     }
 
     /// Get handshake hash for channel binding

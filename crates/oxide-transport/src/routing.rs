@@ -3,9 +3,9 @@
 //! Provides ultra-high-throughput routing lookups (<2ns L1 cache hit, lock-free ArcSwap
 //! Radix tree lookup on miss) with zero reader-writer lock contention across worker cores.
 
-use std::{net::IpAddr, sync::Arc};
 use arc_swap::ArcSwap;
 use oxide_core::{NodeId, OverlayIp, OverlayPrefix};
+use std::{net::IpAddr, sync::Arc};
 
 /// Target destination for routed traffic
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -59,12 +59,14 @@ impl RadixRoutingTable {
             OverlayIp::V4(_) => {
                 self.v4_routes.retain(|r| r.prefix != prefix);
                 self.v4_routes.push(entry);
-                self.v4_routes.sort_by(|a, b| b.prefix.prefix_len.cmp(&a.prefix.prefix_len));
+                self.v4_routes
+                    .sort_by_key(|a| std::cmp::Reverse(a.prefix.prefix_len));
             }
             OverlayIp::V6(_) => {
                 self.v6_routes.retain(|r| r.prefix != prefix);
                 self.v6_routes.push(entry);
-                self.v6_routes.sort_by(|a, b| b.prefix.prefix_len.cmp(&a.prefix.prefix_len));
+                self.v6_routes
+                    .sort_by_key(|a| std::cmp::Reverse(a.prefix.prefix_len));
             }
         }
     }
@@ -237,19 +239,25 @@ mod tests {
         let node_specific = NodeId::new();
 
         // 100.64.0.0/10 (CGNAT wide) -> node_default
-        let prefix_wide = OverlayPrefix::new(OverlayIp::V4(Ipv4Addr::new(100, 64, 0, 0)), 10).unwrap();
+        let prefix_wide =
+            OverlayPrefix::new(OverlayIp::V4(Ipv4Addr::new(100, 64, 0, 0)), 10).unwrap();
         table.insert(prefix_wide, RouteTarget::new(node_default));
 
         // 100.64.1.0/24 (Specific subnet) -> node_specific
-        let prefix_spec = OverlayPrefix::new(OverlayIp::V4(Ipv4Addr::new(100, 64, 1, 0)), 24).unwrap();
+        let prefix_spec =
+            OverlayPrefix::new(OverlayIp::V4(Ipv4Addr::new(100, 64, 1, 0)), 24).unwrap();
         table.insert(prefix_spec, RouteTarget::new(node_specific));
 
         // Lookup 100.64.1.42 should hit specific
-        let target1 = table.lookup(OverlayIp::V4(Ipv4Addr::new(100, 64, 1, 42))).unwrap();
+        let target1 = table
+            .lookup(OverlayIp::V4(Ipv4Addr::new(100, 64, 1, 42)))
+            .unwrap();
         assert_eq!(target1.node_id, node_specific);
 
         // Lookup 100.64.2.42 should hit wide
-        let target2 = table.lookup(OverlayIp::V4(Ipv4Addr::new(100, 64, 2, 42))).unwrap();
+        let target2 = table
+            .lookup(OverlayIp::V4(Ipv4Addr::new(100, 64, 2, 42)))
+            .unwrap();
         assert_eq!(target2.node_id, node_default);
     }
 

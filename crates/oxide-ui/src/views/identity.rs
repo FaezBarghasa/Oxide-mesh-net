@@ -1,14 +1,12 @@
 //! Tier F-4: Zero-Trust Identity, Ephemeral Enrollment & ACL Builder
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn IdentityView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn IdentityView(state: Signal<AppState>) -> Element {
     let app = state();
     let auth = &app.device_auth;
     let hsm = &app.hsm_status;
@@ -17,7 +15,13 @@ pub fn IdentityView(
     let mut sim_dst = use_signal(|| "tag:gateway".to_string());
     let mut sim_port = use_signal(|| "443".to_string());
 
-    let tags = vec!["tag:admin", "tag:gateway", "tag:prod", "tag:dev", "tag:monitoring"];
+    let tags = [
+        "tag:admin",
+        "tag:gateway",
+        "tag:prod",
+        "tag:dev",
+        "tag:monitoring",
+    ];
 
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 20px;",

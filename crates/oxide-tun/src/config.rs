@@ -1,7 +1,7 @@
 //! TUN interface configuration
 
-use ipnet::IpNet;
 use crate::error::Result;
+use ipnet::IpNet;
 
 /// TUN interface configuration
 #[derive(Debug, Clone)]
@@ -57,7 +57,9 @@ impl TunConfig {
     /// Set number of queues
     pub fn with_queues(mut self, num_queues: usize) -> Result<Self> {
         if num_queues == 0 {
-            return Err(crate::error::TunError::InvalidConfig("Number of queues must be > 0".into()));
+            return Err(crate::error::TunError::InvalidConfig(
+                "Number of queues must be > 0".into(),
+            ));
         }
         self.num_queues = num_queues;
         Ok(self)
@@ -66,7 +68,9 @@ impl TunConfig {
     /// Set MTU
     pub fn with_mtu(mut self, mtu: u16) -> Result<Self> {
         if mtu < 68 {
-            return Err(crate::error::TunError::InvalidConfig("MTU must be at least 68".into()));
+            return Err(crate::error::TunError::InvalidConfig(
+                "MTU must be at least 68".into(),
+            ));
         }
         self.mtu = mtu;
         Ok(self)
@@ -75,7 +79,9 @@ impl TunConfig {
     /// Set IPv4 address
     pub fn with_ipv4(mut self, ipv4: IpNet) -> Result<Self> {
         if !matches!(ipv4, IpNet::V4(_)) {
-            return Err(crate::error::TunError::InvalidConfig("IPv4 address required".into()));
+            return Err(crate::error::TunError::InvalidConfig(
+                "IPv4 address required".into(),
+            ));
         }
         self.ipv4 = Some(ipv4);
         Ok(self)
@@ -84,7 +90,9 @@ impl TunConfig {
     /// Set IPv6 address
     pub fn with_ipv6(mut self, ipv6: IpNet) -> Result<Self> {
         if !matches!(ipv6, IpNet::V6(_)) {
-            return Err(crate::error::TunError::InvalidConfig("IPv6 address required".into()));
+            return Err(crate::error::TunError::InvalidConfig(
+                "IPv6 address required".into(),
+            ));
         }
         self.ipv6 = Some(ipv6);
         Ok(self)

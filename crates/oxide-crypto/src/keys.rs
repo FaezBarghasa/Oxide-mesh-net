@@ -1,14 +1,14 @@
 //! Cryptographic key types and identity management
 
-use std::fmt;
-use serde::{Deserialize, Serialize};
-use zeroize::{Zeroize, ZeroizeOnDrop};
-use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret as X25519StaticSecret};
-use ed25519_dalek::{
-    SigningKey as Ed25519SigningKey, VerifyingKey as Ed25519VerifyingKey,
-    Signature as Ed25519Signature, Signer, Verifier,
-};
 use blake3;
+use ed25519_dalek::{
+    Signature as Ed25519Signature, Signer, SigningKey as Ed25519SigningKey, Verifier,
+    VerifyingKey as Ed25519VerifyingKey,
+};
+use serde::{Deserialize, Serialize};
+use std::fmt;
+use x25519_dalek::{PublicKey as X25519PublicKey, StaticSecret as X25519StaticSecret};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Long-term device identity key pair (Ed25519 for signing)
 #[derive(Clone)]
@@ -92,7 +92,11 @@ impl DeviceIdentityPublicKey {
         Ok(Self { verifying_key })
     }
 
-    pub fn verify(&self, msg: &[u8], sig: &DeviceSignature) -> Result<(), crate::error::CryptoError> {
+    pub fn verify(
+        &self,
+        msg: &[u8],
+        sig: &DeviceSignature,
+    ) -> Result<(), crate::error::CryptoError> {
         self.verifying_key
             .verify(msg, &sig.0)
             .map_err(|e| crate::error::CryptoError::Verification(e.to_string()))
@@ -114,7 +118,11 @@ impl DeviceIdentityPublicKey {
 
 impl fmt::Display for DeviceIdentityPublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", bs58::encode(self.verifying_key.as_bytes()).into_string())
+        write!(
+            f,
+            "{}",
+            bs58::encode(self.verifying_key.as_bytes()).into_string()
+        )
     }
 }
 
@@ -122,9 +130,13 @@ impl std::str::FromStr for DeviceIdentityPublicKey {
     type Err = crate::error::CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = bs58::decode(s).into_vec().map_err(|e| crate::error::CryptoError::InvalidKeyFormat(e.to_string()))?;
+        let bytes = bs58::decode(s)
+            .into_vec()
+            .map_err(|e| crate::error::CryptoError::InvalidKeyFormat(e.to_string()))?;
         if bytes.len() != 32 {
-            return Err(crate::error::CryptoError::InvalidKeyFormat("Invalid key length".into()));
+            return Err(crate::error::CryptoError::InvalidKeyFormat(
+                "Invalid key length".into(),
+            ));
         }
         let mut arr = [0u8; 32];
         arr.copy_from_slice(&bytes);
@@ -194,12 +206,18 @@ impl SessionKeyPair {
         rng.fill(&mut key_bytes).expect("SystemRandom failed");
         let static_secret = X25519StaticSecret::from(key_bytes);
         let public_key = X25519PublicKey::from(&static_secret);
-        Self { static_secret, public_key }
+        Self {
+            static_secret,
+            public_key,
+        }
     }
 
     pub fn from_secret(secret: X25519StaticSecret) -> Self {
         let public_key = X25519PublicKey::from(&secret);
-        Self { static_secret: secret, public_key }
+        Self {
+            static_secret: secret,
+            public_key,
+        }
     }
 
     pub fn public_key(&self) -> SessionPublicKey {
@@ -254,9 +272,13 @@ impl std::str::FromStr for SessionPublicKey {
     type Err = crate::error::CryptoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = bs58::decode(s).into_vec().map_err(|e| crate::error::CryptoError::InvalidKeyFormat(e.to_string()))?;
+        let bytes = bs58::decode(s)
+            .into_vec()
+            .map_err(|e| crate::error::CryptoError::InvalidKeyFormat(e.to_string()))?;
         if bytes.len() != 32 {
-            return Err(crate::error::CryptoError::InvalidKeyFormat("Invalid key length".into()));
+            return Err(crate::error::CryptoError::InvalidKeyFormat(
+                "Invalid key length".into(),
+            ));
         }
         let mut arr = [0u8; 32];
         arr.copy_from_slice(&bytes);
@@ -282,7 +304,8 @@ impl SharedSecret {
     pub fn derive_keys(&self, salt: &[u8], info: &[u8], output_len: usize) -> Vec<u8> {
         let hk = hkdf::Hkdf::<sha2::Sha256>::new(Some(salt), &self.0);
         let mut okm = vec![0u8; output_len];
-        hk.expand(info, &mut okm).expect("HKDF expand should not fail");
+        hk.expand(info, &mut okm)
+            .expect("HKDF expand should not fail");
         okm
     }
 
@@ -298,7 +321,9 @@ impl SharedSecret {
 
 impl fmt::Debug for SharedSecret {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SharedSecret").field("bytes", &"[REDACTED]").finish()
+        f.debug_struct("SharedSecret")
+            .field("bytes", &"[REDACTED]")
+            .finish()
     }
 }
 
@@ -320,7 +345,9 @@ impl AeadKey {
 
 impl fmt::Debug for AeadKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("AeadKey").field("bytes", &"[REDACTED]").finish()
+        f.debug_struct("AeadKey")
+            .field("bytes", &"[REDACTED]")
+            .finish()
     }
 }
 

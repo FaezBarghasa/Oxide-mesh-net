@@ -7,7 +7,6 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
@@ -300,7 +299,11 @@ pub mod surreal_storage {
             Ok(s)
         }
 
-        pub async fn new_surrealkv(path: &PathBuf, ns: &str, db_name: &str) -> Result<Self> {
+        pub async fn new_surrealkv(
+            path: &std::path::Path,
+            ns: &str,
+            db_name: &str,
+        ) -> Result<Self> {
             let path_str = path.to_string_lossy().to_string();
             let db = Surreal::new::<SurrealKv>(path_str).await.map_err(|e| {
                 CoordinatorError::Storage(format!("SurrealDB SurrealKV init failed: {}", e))
@@ -358,26 +361,37 @@ pub mod surreal_storage {
             let sql = "SELECT * FROM node WHERE node_id_str = $id";
             let mut records: Vec<SurrealNodeRecord> = match &self.engine {
                 SurrealEngine::Local(db) => {
-                    let mut resp = db.query(sql).bind(("id", node_id.to_string())).await
+                    let mut resp = db
+                        .query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
                 SurrealEngine::Remote(db) => {
-                    let mut resp = db.query(sql).bind(("id", node_id.to_string())).await
+                    let mut resp = db
+                        .query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
             };
 
             Ok(records.pop().and_then(|r| {
-                r.node_id_str.parse::<NodeId>().ok().map(|nid| NodeMetadata {
-                    node_id: nid,
-                    display_name: r.display_name,
-                    os: r.os,
-                    arch: r.arch,
-                    version: r.version,
-                    tags: r.tags,
-                })
+                r.node_id_str
+                    .parse::<NodeId>()
+                    .ok()
+                    .map(|nid| NodeMetadata {
+                        node_id: nid,
+                        display_name: r.display_name,
+                        os: r.os,
+                        arch: r.arch,
+                        version: r.version,
+                        tags: r.tags,
+                    })
             }))
         }
 
@@ -392,14 +406,21 @@ pub mod surreal_storage {
                 updated_at: chrono::Utc::now().timestamp(),
             };
             let sql = "UPSERT type::record('node', $id) MERGE $content";
-            let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+            let val = serde_json::to_value(&record)
+                .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             match &self.engine {
                 SurrealEngine::Local(db) => {
-                    db.query(sql).bind(("id", metadata.node_id.to_string())).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("id", metadata.node_id.to_string()))
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
                 SurrealEngine::Remote(db) => {
-                    db.query(sql).bind(("id", metadata.node_id.to_string())).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("id", metadata.node_id.to_string()))
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
             }
@@ -410,11 +431,15 @@ pub mod surreal_storage {
             let sql = "DELETE type::record('node', $id)";
             match &self.engine {
                 SurrealEngine::Local(db) => {
-                    db.query(sql).bind(("id", node_id.to_string())).await
+                    db.query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
                 SurrealEngine::Remote(db) => {
-                    db.query(sql).bind(("id", node_id.to_string())).await
+                    db.query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
             }
@@ -425,26 +450,38 @@ pub mod surreal_storage {
             let sql = "SELECT * FROM node";
             let records: Vec<SurrealNodeRecord> = match &self.engine {
                 SurrealEngine::Local(db) => {
-                    let mut resp = db.query(sql).await
+                    let mut resp = db
+                        .query(sql)
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
                 SurrealEngine::Remote(db) => {
-                    let mut resp = db.query(sql).await
+                    let mut resp = db
+                        .query(sql)
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
             };
-            Ok(records.into_iter().filter_map(|r| {
-                r.node_id_str.parse::<NodeId>().ok().map(|nid| NodeMetadata {
-                    node_id: nid,
-                    display_name: r.display_name,
-                    os: r.os,
-                    arch: r.arch,
-                    version: r.version,
-                    tags: r.tags,
+            Ok(records
+                .into_iter()
+                .filter_map(|r| {
+                    r.node_id_str
+                        .parse::<NodeId>()
+                        .ok()
+                        .map(|nid| NodeMetadata {
+                            node_id: nid,
+                            display_name: r.display_name,
+                            os: r.os,
+                            arch: r.arch,
+                            version: r.version,
+                            tags: r.tags,
+                        })
                 })
-            }).collect())
+                .collect())
         }
 
         async fn get_route(&self, prefix: &OverlayPrefix) -> Result<Option<RouteAdvertisement>> {
@@ -452,14 +489,22 @@ pub mod surreal_storage {
             let sql = "SELECT * FROM route WHERE prefix_str = $id";
             let mut records: Vec<SurrealRouteRecord> = match &self.engine {
                 SurrealEngine::Local(db) => {
-                    let mut resp = db.query(sql).bind(("id", p_str)).await
+                    let mut resp = db
+                        .query(sql)
+                        .bind(("id", p_str))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
                 SurrealEngine::Remote(db) => {
-                    let mut resp = db.query(sql).bind(("id", p_str)).await
+                    let mut resp = db
+                        .query(sql)
+                        .bind(("id", p_str))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
             };
             if let Some(r) = records.pop() {
@@ -473,21 +518,29 @@ pub mod surreal_storage {
 
         async fn set_route(&self, route: &RouteAdvertisement) -> Result<()> {
             let p_str = route.prefix.to_string();
-            let route_json = serde_json::to_string(route).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+            let route_json = serde_json::to_string(route)
+                .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             let record = SurrealRouteRecord {
                 prefix_str: p_str.clone(),
                 route_json,
                 updated_at: chrono::Utc::now().timestamp(),
             };
             let sql = "UPSERT type::record('route', $id) MERGE $content";
-            let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+            let val = serde_json::to_value(&record)
+                .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             match &self.engine {
                 SurrealEngine::Local(db) => {
-                    db.query(sql).bind(("id", p_str)).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("id", p_str))
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
                 SurrealEngine::Remote(db) => {
-                    db.query(sql).bind(("id", p_str)).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("id", p_str))
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
             }
@@ -499,11 +552,15 @@ pub mod surreal_storage {
             let p_str = prefix.to_string();
             match &self.engine {
                 SurrealEngine::Local(db) => {
-                    db.query(sql).bind(("id", p_str)).await
+                    db.query(sql)
+                        .bind(("id", p_str))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
                 SurrealEngine::Remote(db) => {
-                    db.query(sql).bind(("id", p_str)).await
+                    db.query(sql)
+                        .bind(("id", p_str))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
             }
@@ -514,14 +571,20 @@ pub mod surreal_storage {
             let sql = "SELECT * FROM route";
             let records: Vec<SurrealRouteRecord> = match &self.engine {
                 SurrealEngine::Local(db) => {
-                    let mut resp = db.query(sql).await
+                    let mut resp = db
+                        .query(sql)
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
                 SurrealEngine::Remote(db) => {
-                    let mut resp = db.query(sql).await
+                    let mut resp = db
+                        .query(sql)
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
             };
             let mut routes = Vec::new();
@@ -537,18 +600,25 @@ pub mod surreal_storage {
             let sql = "SELECT * FROM acl WHERE id = type::record('acl', 'current')";
             let mut records: Vec<SurrealAclRecord> = match &self.engine {
                 SurrealEngine::Local(db) => {
-                    let mut resp = db.query(sql).await
+                    let mut resp = db
+                        .query(sql)
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
                 SurrealEngine::Remote(db) => {
-                    let mut resp = db.query(sql).await
+                    let mut resp = db
+                        .query(sql)
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
             };
             if let Some(r) = records.pop() {
-                let policy: AclPolicy = serde_json::from_str(&r.policy_json).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+                let policy: AclPolicy = serde_json::from_str(&r.policy_json)
+                    .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 Ok(Some(policy))
             } else {
                 Ok(None)
@@ -556,21 +626,27 @@ pub mod surreal_storage {
         }
 
         async fn set_acl_policy(&self, policy: &AclPolicy) -> Result<()> {
-            let policy_json = serde_json::to_string(policy).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+            let policy_json = serde_json::to_string(policy)
+                .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             let record = SurrealAclRecord {
                 policy_json,
                 version: policy.version,
                 updated_at: chrono::Utc::now().timestamp(),
             };
             let sql = "UPSERT type::record('acl', 'current') MERGE $content";
-            let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+            let val = serde_json::to_value(&record)
+                .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             match &self.engine {
                 SurrealEngine::Local(db) => {
-                    db.query(sql).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
                 SurrealEngine::Remote(db) => {
-                    db.query(sql).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
             }
@@ -584,14 +660,21 @@ pub mod surreal_storage {
                 expires_at,
             };
             let sql = "UPSERT type::record('presence', $id) MERGE $content";
-            let val = serde_json::to_value(&record).map_err(|e| CoordinatorError::Storage(e.to_string()))?;
+            let val = serde_json::to_value(&record)
+                .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
             match &self.engine {
                 SurrealEngine::Local(db) => {
-                    db.query(sql).bind(("id", node_id.to_string())).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
                 SurrealEngine::Remote(db) => {
-                    db.query(sql).bind(("id", node_id.to_string())).bind(("content", val)).await
+                    db.query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .bind(("content", val))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
                 }
             }
@@ -603,14 +686,24 @@ pub mod surreal_storage {
             let sql = "SELECT * FROM presence WHERE node_id_str = $id AND expires_at > $now";
             let records: Vec<SurrealPresenceRecord> = match &self.engine {
                 SurrealEngine::Local(db) => {
-                    let mut resp = db.query(sql).bind(("id", node_id.to_string())).bind(("now", now)).await
+                    let mut resp = db
+                        .query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .bind(("now", now))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
                 SurrealEngine::Remote(db) => {
-                    let mut resp = db.query(sql).bind(("id", node_id.to_string())).bind(("now", now)).await
+                    let mut resp = db
+                        .query(sql)
+                        .bind(("id", node_id.to_string()))
+                        .bind(("now", now))
+                        .await
                         .map_err(|e| CoordinatorError::Storage(e.to_string()))?;
-                    resp.take(0).map_err(|e| CoordinatorError::Storage(e.to_string()))?
+                    resp.take(0)
+                        .map_err(|e| CoordinatorError::Storage(e.to_string()))?
                 }
             };
             Ok(!records.is_empty())

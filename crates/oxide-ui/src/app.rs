@@ -1,12 +1,12 @@
 //! Main Dioxus application shell and route coordinator for oxide-ui
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::models::NodeState;
 use crate::state::{ActiveView, AppState};
 use crate::theme::EMBEDDED_CSS;
 use crate::views::*;
+use dioxus::prelude::*;
 
 #[component]
 pub fn App() -> Element {

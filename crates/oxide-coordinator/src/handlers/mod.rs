@@ -1,10 +1,10 @@
 //! HTTP route handlers
 
+pub mod acl;
+pub mod enrollment;
 pub mod health;
 pub mod metrics;
-pub mod enrollment;
 pub mod nodes;
-pub mod acl;
 pub mod routes;
 
 use actix_web::web;

@@ -3,10 +3,13 @@
 //! Enforces active `.oxide` MagicDNS resolution and loopback resolver (100.100.100.100)
 //! ownership across OS restarts, NetworkManager resets, and VPN interface toggles.
 
-use std::{net::SocketAddr, time::{Duration, Instant}};
+use crate::error::Result;
+use std::{
+    net::SocketAddr,
+    time::{Duration, Instant},
+};
 use tokio::time::sleep;
 use tracing::{debug, info, warn};
-use crate::error::Result;
 
 /// OS DNS interceptor target platform mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -106,13 +109,22 @@ impl DnsWatchdog {
 
         match self.platform {
             OsDnsPlatform::LinuxResolved => {
-                info!("Enforcing systemd-resolved Link domain ~{} to {}", self.config.domain_suffix, self.config.magic_dns_ip);
+                info!(
+                    "Enforcing systemd-resolved Link domain ~{} to {}",
+                    self.config.domain_suffix, self.config.magic_dns_ip
+                );
             }
             OsDnsPlatform::MacOsScutil => {
-                info!("Enforcing scutil resolver dictionary for domain {}", self.config.domain_suffix);
+                info!(
+                    "Enforcing scutil resolver dictionary for domain {}",
+                    self.config.domain_suffix
+                );
             }
             OsDnsPlatform::WindowsNrpt => {
-                info!("Enforcing Windows NRPT policy rule for suffix .{}", self.config.domain_suffix);
+                info!(
+                    "Enforcing Windows NRPT policy rule for suffix .{}",
+                    self.config.domain_suffix
+                );
             }
             _ => {}
         }
@@ -124,7 +136,10 @@ impl DnsWatchdog {
 
     /// Run background watchdog loop
     pub async fn run_loop(&mut self) {
-        info!("Starting OS DNS Watchdog loop for '.{}'...", self.config.domain_suffix);
+        info!(
+            "Starting OS DNS Watchdog loop for '.{}'...",
+            self.config.domain_suffix
+        );
         loop {
             if !self.verify_active().await && self.config.auto_remediate {
                 warn!("OS DNS resolver divergence detected! Triggering auto-remediation...");

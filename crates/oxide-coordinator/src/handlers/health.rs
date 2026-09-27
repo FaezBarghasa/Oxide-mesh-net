@@ -1,8 +1,8 @@
 //! Health check handlers
 
-use actix_web::{web, HttpResponse, Responder};
-use serde::Serialize;
 use crate::AppState;
+use actix_web::{HttpResponse, Responder, web};
+use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct HealthResponse {
@@ -35,19 +35,27 @@ pub async fn health_check(data: web::Data<AppState>) -> impl Responder {
 pub async fn readiness_check(data: web::Data<AppState>) -> impl Responder {
     // Check storage connectivity
     let storage_ok = data.storage.list_nodes().await.is_ok();
-    
+
     // Check broker connectivity
     let broker_ok = true;
 
     let checks = vec![
         CheckResult {
             name: "storage".into(),
-            status: if storage_ok { "ok".into() } else { "failed".into() },
+            status: if storage_ok {
+                "ok".into()
+            } else {
+                "failed".into()
+            },
             message: None,
         },
         CheckResult {
             name: "broker".into(),
-            status: if broker_ok { "ok".into() } else { "failed".into() },
+            status: if broker_ok {
+                "ok".into()
+            } else {
+                "failed".into()
+            },
             message: None,
         },
     ];

@@ -1,8 +1,11 @@
-use std::str::FromStr;
-use actix_web::{web, HttpResponse, Responder, get, delete};
-use serde::Serialize;
-use crate::{AppState, error::{CoordinatorError, Result}};
+use crate::{
+    AppState,
+    error::{CoordinatorError, Result},
+};
+use actix_web::{HttpResponse, Responder, delete, get, web};
 use oxide_core::NodeId;
+use serde::Serialize;
+use std::str::FromStr;
 
 #[derive(Serialize)]
 pub struct NodeListResponse {
@@ -26,17 +29,20 @@ pub struct NodeInfo {
 #[get("/nodes")]
 pub async fn list_nodes(data: web::Data<AppState>) -> Result<impl Responder> {
     let nodes = data.storage.list_nodes().await?;
-    let node_infos: Vec<NodeInfo> = nodes.into_iter().map(|n| NodeInfo {
-        node_id: n.node_id,
-        display_name: n.display_name,
-        os: n.os,
-        arch: n.arch,
-        version: n.version,
-        last_seen: None, // Would come from presence tracking
-        rx_bytes: 0,
-        tx_bytes: 0,
-        tags: n.tags,
-    }).collect();
+    let node_infos: Vec<NodeInfo> = nodes
+        .into_iter()
+        .map(|n| NodeInfo {
+            node_id: n.node_id,
+            display_name: n.display_name,
+            os: n.os,
+            arch: n.arch,
+            version: n.version,
+            last_seen: None, // Would come from presence tracking
+            rx_bytes: 0,
+            tx_bytes: 0,
+            tags: n.tags,
+        })
+        .collect();
 
     Ok(HttpResponse::Ok().json(NodeListResponse {
         total: node_infos.len(),
@@ -49,10 +55,13 @@ pub async fn get_node(
     data: web::Data<AppState>,
     path: web::Path<String>,
 ) -> Result<impl Responder> {
-    let node_id = NodeId::from_str(&path)
-        .map_err(|_| CoordinatorError::Auth("Invalid node ID".into()))?;
+    let node_id =
+        NodeId::from_str(&path).map_err(|_| CoordinatorError::Auth("Invalid node ID".into()))?;
 
-    let metadata = data.storage.get_node_metadata(&node_id).await?
+    let metadata = data
+        .storage
+        .get_node_metadata(&node_id)
+        .await?
         .ok_or(CoordinatorError::Auth("Node not found".into()))?;
 
     Ok(HttpResponse::Ok().json(NodeInfo {
@@ -73,8 +82,8 @@ pub async fn delete_node(
     data: web::Data<AppState>,
     path: web::Path<String>,
 ) -> Result<impl Responder> {
-    let node_id = NodeId::from_str(&path)
-        .map_err(|_| CoordinatorError::Auth("Invalid node ID".into()))?;
+    let node_id =
+        NodeId::from_str(&path).map_err(|_| CoordinatorError::Auth("Invalid node ID".into()))?;
 
     data.storage.delete_node_metadata(&node_id).await?;
 
@@ -83,6 +92,6 @@ pub async fn delete_node(
 
 pub fn configure_nodes_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(list_nodes)
-       .service(get_node)
-       .service(delete_node);
+        .service(get_node)
+        .service(delete_node);
 }

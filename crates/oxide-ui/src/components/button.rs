@@ -39,10 +39,8 @@ pub fn Button(props: ButtonProps) -> Element {
             class: "{variant_class}",
             disabled: is_disabled,
             onclick: move |evt| {
-                if !is_disabled {
-                    if let Some(ref handler) = props.on_click {
-                        handler.call(evt);
-                    }
+                if !is_disabled && let Some(ref handler) = props.on_click {
+                    handler.call(evt);
                 }
             },
             if props.loading {

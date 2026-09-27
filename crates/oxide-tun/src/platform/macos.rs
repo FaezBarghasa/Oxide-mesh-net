@@ -1,9 +1,13 @@
 //! macOS utun implementation
 
+use crate::{
+    RawFd, TunConfig,
+    error::{Result, TunError},
+    platform::{AsyncFd, QueueStats, TunDevice, TunQueue},
+};
+use libc::{IFNAMSIZ, c_int, c_short, c_ulong, c_void};
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, IntoRawFd, OwnedFd};
-use libc::{c_int, c_short, c_ulong, c_void, IFNAMSIZ};
-use crate::{TunConfig, RawFd, error::{TunError, Result}, platform::{TunDevice, TunQueue, QueueStats, AsyncFd}};
 
 const TUN_DEV: &str = "/dev/utun";
 const TUNSETIFF: c_ulong = 0x400454ca;
@@ -33,11 +37,15 @@ impl MacosTunDevice {
 
         for i in 0..16 {
             let path = format!("{}{}", TUN_DEV, i);
-            match std::fs::OpenOptions::new().read(true).write(true).open(&path) {
+            match std::fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(&path)
+            {
                 Ok(file) => {
                     let mut ifr: IfReq = unsafe { std::mem::zeroed() };
                     ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-                    
+
                     let ret = unsafe { libc::ioctl(file.as_raw_fd(), TUNSETIFF, &ifr) };
                     if ret >= 0 {
                         let actual_name = std::str::from_utf8(&ifr.ifr_name)
@@ -55,11 +63,7 @@ impl MacosTunDevice {
         let fd = fd.ok_or_else(|| TunError::Internal("No available utun device".into()))?;
         let queue = MacosTunQueue::new(fd.try_clone().map_err(|e| TunError::Io(e))?)?;
 
-        let device = Self {
-            name,
-            fd,
-            queue,
-        };
+        let device = Self { name, fd, queue };
 
         device.configure(config)?;
         Ok(device)

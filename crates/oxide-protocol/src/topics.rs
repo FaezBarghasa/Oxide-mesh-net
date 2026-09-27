@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use oxide_core::{NodeId, MeshName, OverlayPrefix, OverlayIp, Endpoint, NodeCapabilities};
-use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey, KeyFingerprint};
 pub use crate::wire::{AclAction, AclDirection};
+use oxide_core::{Endpoint, MeshName, NodeCapabilities, NodeId, OverlayIp, OverlayPrefix};
+use oxide_crypto::keys::{DeviceIdentityPublicKey, KeyFingerprint, SessionPublicKey};
+use serde::{Deserialize, Serialize};
 
 /// Topic namespace prefix
 pub const TOPIC_ROOT: &str = "oxide";
@@ -10,9 +10,9 @@ pub const TOPIC_ROOT: &str = "oxide";
 pub const TOPIC_SEP: &str = "/";
 
 /// QoS levels
-pub const QOS_AT_MOST_ONCE: u8 = 0;    // Fire and forget
-pub const QOS_AT_LEAST_ONCE: u8 = 1;   // Acknowledged
-pub const QOS_EXACTLY_ONCE: u8 = 2;    // Assured
+pub const QOS_AT_MOST_ONCE: u8 = 0; // Fire and forget
+pub const QOS_AT_LEAST_ONCE: u8 = 1; // Acknowledged
+pub const QOS_EXACTLY_ONCE: u8 = 2; // Assured
 
 /// Retained message flag
 pub const RETAINED: bool = true;
@@ -234,7 +234,11 @@ impl ProxyTopics {
 
     /// Proxy response (transient)
     pub fn response(mesh: &MeshName, from: &NodeId, to: &NodeId, request_id: &str) -> String {
-        node_topic(mesh, from, &["proxy", "response", &to.to_string(), request_id])
+        node_topic(
+            mesh,
+            from,
+            &["proxy", "response", &to.to_string(), request_id],
+        )
     }
 }
 
@@ -258,7 +262,7 @@ impl CoordinatorTopics {
     }
 }
 
-/// Payload schemas for each topic type
+// Payload schemas for each topic type
 
 /// Node presence announcement payload
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -441,8 +445,6 @@ pub struct AclRule {
     pub log: bool,
     pub priority: u32, // Higher = more specific
 }
-
-
 
 /// DNS record payload
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -3,17 +3,17 @@
 //! Replicates node registration, routing matrices, ACL policies, and RFC 8628 device grants
 //! across coordinator nodes to eliminate Single Points of Failure (SPOF) and provide <150ms leader failover.
 
+use crate::error::Result;
+use oxide_core::{NodeId, OverlayPrefix};
+use oxide_protocol::topics::{AclPolicy, NodeMetadata, RouteAdvertisement};
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
 use tokio::sync::RwLock;
-use serde::{Deserialize, Serialize};
 use tracing::info;
-use oxide_core::{NodeId, OverlayPrefix};
-use oxide_protocol::topics::{AclPolicy, NodeMetadata, RouteAdvertisement};
-use crate::error::Result;
 
 /// Cluster node role in the consensus topology
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -118,8 +118,13 @@ impl ClusterEngine {
             ClusterLogEntry::UpdateAclPolicy(policy) => {
                 st.acl_policy = Some(policy);
             }
-            ClusterLogEntry::DeviceGrantAuthorized { user_code, node_id, approved_at } => {
-                st.authorized_device_grants.insert(user_code, (node_id, approved_at));
+            ClusterLogEntry::DeviceGrantAuthorized {
+                user_code,
+                node_id,
+                approved_at,
+            } => {
+                st.authorized_device_grants
+                    .insert(user_code, (node_id, approved_at));
             }
         }
         Ok(())
@@ -135,7 +140,11 @@ impl ClusterEngine {
     pub async fn promote_to_leader(&self) {
         let mut r = self.role.write().await;
         *r = ClusterRole::Leader;
-        info!("Node '{}' successfully elected Leader for term {}", self.config.node_id, *self.current_term.read().await);
+        info!(
+            "Node '{}' successfully elected Leader for term {}",
+            self.config.node_id,
+            *self.current_term.read().await
+        );
     }
 
     /// Step down to follower
@@ -166,11 +175,14 @@ mod tests {
         let node_id = NodeId::new();
         let user_code = "OXID-4242".to_string();
 
-        engine.apply_entry(ClusterLogEntry::DeviceGrantAuthorized {
-            user_code: user_code.clone(),
-            node_id,
-            approved_at: 1700000000,
-        }).await.unwrap();
+        engine
+            .apply_entry(ClusterLogEntry::DeviceGrantAuthorized {
+                user_code: user_code.clone(),
+                node_id,
+                approved_at: 1700000000,
+            })
+            .await
+            .unwrap();
 
         let grant = engine.is_device_grant_authorized(&user_code).await;
         assert_eq!(grant, Some((node_id, 1700000000)));

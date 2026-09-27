@@ -5,7 +5,7 @@ pub mod error;
 pub mod mss;
 pub mod platform;
 
-pub use config::{TunConfig, QueueConfig, RawFd};
-pub use error::{TunError, Result};
+pub use config::{QueueConfig, RawFd, TunConfig};
+pub use error::{Result, TunError};
 pub use mss::{clamp_tcp_mss, update_checksum_16};
-pub use platform::{create_tun, TunDevice, TunQueue, QueueStats};
+pub use platform::{QueueStats, TunDevice, TunQueue, create_tun};

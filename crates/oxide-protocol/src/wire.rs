@@ -1,9 +1,9 @@
 //! Wire protocol framing for data plane packets
 
 use bytes::{BufMut, BytesMut};
-use oxide_core::{PacketType, OverlayIp, ProtocolVersion};
 use oxide_core::error::{OxideError, Result};
-use zerocopy::{FromBytes, IntoBytes, Immutable, KnownLayout};
+use oxide_core::{OverlayIp, PacketType, ProtocolVersion};
+use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
 /// Maximum packet size (64KB for GRO/GSO)
 pub const MAX_PACKET_SIZE: usize = 65536;
@@ -44,8 +44,13 @@ impl PacketHeader {
         if self.magic != PROTOCOL_MAGIC {
             return Err(OxideError::Protocol("Invalid magic bytes".into()));
         }
-        if self.version < ProtocolVersion::MIN_COMPATIBLE.0 || self.version > ProtocolVersion::CURRENT.0 {
-            return Err(OxideError::Protocol(format!("Unsupported protocol version: {}", self.version)));
+        if self.version < ProtocolVersion::MIN_COMPATIBLE.0
+            || self.version > ProtocolVersion::CURRENT.0
+        {
+            return Err(OxideError::Protocol(format!(
+                "Unsupported protocol version: {}",
+                self.version
+            )));
         }
         if self.payload_len as usize > MAX_PACKET_SIZE - Self::SIZE {
             return Err(OxideError::Protocol("Payload too large".into()));
@@ -54,7 +59,8 @@ impl PacketHeader {
     }
 
     pub fn packet_type(&self) -> Result<PacketType> {
-        PacketType::try_from(self.packet_type).map_err(|_| OxideError::Protocol("Invalid packet type".into()))
+        PacketType::try_from(self.packet_type)
+            .map_err(|_| OxideError::Protocol("Invalid packet type".into()))
     }
 }
 
@@ -118,7 +124,7 @@ impl WirePacket {
     pub fn is_control(&self) -> bool {
         matches!(
             self.header.packet_type,
-            0x10 | 0x11 | 0x12 | 0x13 // Control types
+            0x10..=0x13 // Control types
         )
     }
 }
@@ -282,9 +288,15 @@ pub fn pre_parse_packet(buffer: &[u8]) -> PreParseVerdict {
     }
 
     if (0x10..=0x13).contains(&ptype) {
-        PreParseVerdict::ValidControl { packet_id, payload_len }
+        PreParseVerdict::ValidControl {
+            packet_id,
+            payload_len,
+        }
     } else {
-        PreParseVerdict::ValidData { packet_id, payload_len }
+        PreParseVerdict::ValidData {
+            packet_id,
+            payload_len,
+        }
     }
 }
 
@@ -418,7 +430,10 @@ mod tests {
         let bytes = packet.to_bytes();
         assert_eq!(
             pre_parse_packet(&bytes),
-            PreParseVerdict::ValidData { packet_id: 42, payload_len: 2 }
+            PreParseVerdict::ValidData {
+                packet_id: 42,
+                payload_len: 2
+            }
         );
     }
 }

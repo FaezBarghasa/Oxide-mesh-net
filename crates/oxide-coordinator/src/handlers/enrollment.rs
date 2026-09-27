@@ -1,15 +1,18 @@
-use std::str::FromStr;
-use actix_web::{web, HttpResponse, Responder, post, get};
-use serde::{Deserialize, Serialize};
-use crate::{AppState, error::{CoordinatorError, Result}};
-use oxide_core::{NodeId, MeshName, NodeCapabilities, Endpoint};
+use crate::{
+    AppState,
+    error::{CoordinatorError, Result},
+};
+use actix_web::{HttpResponse, Responder, get, post, web};
+use oxide_core::{Endpoint, MeshName, NodeCapabilities, NodeId};
 use oxide_crypto::keys::{DeviceIdentityPublicKey, SessionPublicKey};
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Deserialize)]
 pub struct EnrollRequest {
     pub token: String,
-    pub identity_pub: String,      // Base58 encoded DeviceIdentityPublicKey
-    pub session_pub: String,       // Base58 encoded SessionPublicKey
+    pub identity_pub: String, // Base58 encoded DeviceIdentityPublicKey
+    pub session_pub: String,  // Base58 encoded SessionPublicKey
     pub endpoints: Vec<Endpoint>,
     pub capabilities: NodeCapabilities,
     pub display_name: Option<String>,
@@ -20,7 +23,7 @@ pub struct EnrollResponse {
     pub node_id: NodeId,
     pub mesh_name: MeshName,
     pub overlay_ips: Vec<String>,
-    pub token: String,             // JWT token for subsequent auth
+    pub token: String, // JWT token for subsequent auth
     pub config: EnrollConfig,
 }
 
@@ -54,7 +57,9 @@ pub async fn enroll(
     let overlay_ips = vec!["100.64.0.1".to_string()]; // Placeholder
 
     // Generate JWT token
-    let jwt_token = data.auth.generate_token(node_id, &mesh_name.parse().unwrap(), capabilities)?;
+    let jwt_token = data
+        .auth
+        .generate_token(node_id, &mesh_name.parse().unwrap(), capabilities)?;
 
     // Store node metadata
     let metadata = oxide_protocol::topics::NodeMetadata {
@@ -96,7 +101,10 @@ pub async fn reenroll(
     req: web::Json<ReenrollRequest>,
 ) -> Result<impl Responder> {
     // Validate node exists
-    let _metadata = data.storage.get_node_metadata(&req.node_id).await?
+    let _metadata = data
+        .storage
+        .get_node_metadata(&req.node_id)
+        .await?
         .ok_or(CoordinatorError::Auth("Node not found".into()))?;
 
     // Parse new session key
@@ -104,11 +112,9 @@ pub async fn reenroll(
         .map_err(|_| CoordinatorError::Auth("Invalid session public key".into()))?;
 
     // Generate new JWT token
-    let jwt_token = data.auth.generate_token(
-        req.node_id,
-        &data.mesh_name,
-        vec!["node".into()],
-    )?;
+    let jwt_token = data
+        .auth
+        .generate_token(req.node_id, &data.mesh_name, vec!["node".into()])?;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "token": jwt_token,
@@ -120,11 +126,14 @@ pub async fn create_enrollment_token(
     data: web::Data<AppState>,
     query: web::Query<CreateTokenQuery>,
 ) -> Result<impl Responder> {
-    let token = data.auth.create_enrollment_token(
-        data.mesh_name.to_string(),
-        query.capabilities.clone().unwrap_or_default(),
-        query.ttl.map(std::time::Duration::from_secs),
-    ).await;
+    let token = data
+        .auth
+        .create_enrollment_token(
+            data.mesh_name.to_string(),
+            query.capabilities.clone().unwrap_or_default(),
+            query.ttl.map(std::time::Duration::from_secs),
+        )
+        .await;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({ "token": token })))
 }
@@ -137,6 +146,6 @@ pub struct CreateTokenQuery {
 
 pub fn configure_enrollment_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(enroll)
-       .service(reenroll)
-       .service(create_enrollment_token);
+        .service(reenroll)
+        .service(create_enrollment_token);
 }

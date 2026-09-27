@@ -87,20 +87,20 @@ impl DplpmtudEngine {
     pub fn poll_probe(&mut self, now: Instant) -> Option<u16> {
         match self.phase {
             DplpmtudPhase::BaseSearch => {
-                if let Some(sent) = self.last_probe_sent {
-                    if now.duration_since(sent) < self.config.probe_timeout {
-                        return None;
-                    }
+                if let Some(sent) = self.last_probe_sent
+                    && now.duration_since(sent) < self.config.probe_timeout
+                {
+                    return None;
                 }
                 self.probed_size = self.config.min_pmtu;
                 self.last_probe_sent = Some(now);
                 Some(self.probed_size)
             }
             DplpmtudPhase::Searching => {
-                if let Some(sent) = self.last_probe_sent {
-                    if now.duration_since(sent) < self.config.probe_timeout {
-                        return None;
-                    }
+                if let Some(sent) = self.last_probe_sent
+                    && now.duration_since(sent) < self.config.probe_timeout
+                {
+                    return None;
                 }
                 if self.step_index < DEFAULT_PROBE_STEPS.len() {
                     let target = DEFAULT_PROBE_STEPS[self.step_index].min(self.config.max_pmtu);

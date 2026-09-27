@@ -26,11 +26,7 @@ pub fn update_checksum_16(old_checksum: u16, old_val: u16, new_val: u16) -> u16 
 
     let res = !(sum as u16);
     // In one's complement TCP checksum, 0x0000 is represented as 0xFFFF
-    if res == 0 {
-        0xFFFF
-    } else {
-        res
-    }
+    if res == 0 { 0xFFFF } else { res }
 }
 
 /// Dynamic TCP MSS Clamper
@@ -168,7 +164,10 @@ fn clamp_tcp_segment(tcp: &mut [u8], max_mss: u16) -> Result<bool> {
                 }
                 let len = tcp[opt_idx + 1] as usize;
                 if len != 4 {
-                    return Err(TunError::Internal(format!("Invalid TCP MSS option len: {}", len)));
+                    return Err(TunError::Internal(format!(
+                        "Invalid TCP MSS option len: {}",
+                        len
+                    )));
                 }
 
                 let current_mss = u16::from_be_bytes([tcp[opt_idx + 2], tcp[opt_idx + 3]]);
@@ -234,7 +233,7 @@ mod tests {
         // Test RFC 1624 algebra correctness
         let mut data = vec![
             0x12, 0x34, 0x56, 0x78, // Arbitrary data
-            0x05, 0xB4,             // MSS = 1460 (0x05B4)
+            0x05, 0xB4, // MSS = 1460 (0x05B4)
             0xAB, 0xCD,
         ];
         let original_checksum = compute_inet_checksum(&data);
@@ -259,8 +258,8 @@ mod tests {
             0x45, 0x00, 0x00, 0x2C, // IPv4, IHL=5, Total Length=44
             0x00, 0x01, 0x00, 0x00, // ID, Flags/Frag
             0x40, 0x06, 0x00, 0x00, // TTL=64, Protocol=6 (TCP), Header Checksum=0
-            10, 0, 0, 1,            // Src IP: 10.0.0.1
-            10, 0, 0, 2,            // Dst IP: 10.0.0.2
+            10, 0, 0, 1, // Src IP: 10.0.0.1
+            10, 0, 0, 2, // Dst IP: 10.0.0.2
             // TCP Header (24 bytes: 20 base + 4 option)
             0x04, 0xD2, 0x00, 0x50, // Src Port: 1234, Dst Port: 80
             0x00, 0x00, 0x00, 0x01, // Seq: 1
@@ -284,18 +283,10 @@ mod tests {
     fn test_clamp_unnecessary_mss() {
         let mut packet = vec![
             // IPv4 Header (20 bytes)
-            0x45, 0x00, 0x00, 0x2C,
-            0x00, 0x01, 0x00, 0x00,
-            0x40, 0x06, 0x00, 0x00,
-            10, 0, 0, 1,
-            10, 0, 0, 2,
-            // TCP Header (24 bytes)
-            0x04, 0xD2, 0x00, 0x50,
-            0x00, 0x00, 0x00, 0x01,
-            0x00, 0x00, 0x00, 0x00,
-            0x60, 0x02, 0x72, 0x10,
-            0x1A, 0x2B, 0x00, 0x00,
-            0x02, 0x04, 0x05, 0x00, // MSS = 1280 (0x0500)
+            0x45, 0x00, 0x00, 0x2C, 0x00, 0x01, 0x00, 0x00, 0x40, 0x06, 0x00, 0x00, 10, 0, 0, 1, 10,
+            0, 0, 2, // TCP Header (24 bytes)
+            0x04, 0xD2, 0x00, 0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x60, 0x02,
+            0x72, 0x10, 0x1A, 0x2B, 0x00, 0x00, 0x02, 0x04, 0x05, 0x00, // MSS = 1280 (0x0500)
         ];
 
         // Max MSS is 1300, packet MSS is 1280, so clamp should return false

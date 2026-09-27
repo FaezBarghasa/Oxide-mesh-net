@@ -1,15 +1,13 @@
 //! Tier F-1: Node State Machine, Dynamic Peer Topology & Telemetry Engine
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::models::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn DashboardView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn DashboardView(state: Signal<AppState>) -> Element {
     let app = state();
     let tel = &app.telemetry;
 
@@ -25,14 +23,15 @@ pub fn DashboardView(
         }
     };
 
-    let format_rate = |b: u64| -> String {
-        format!("{}/s", format_bytes(b))
-    };
+    let format_rate = |b: u64| -> String { format!("{}/s", format_bytes(b)) };
 
     let is_connected = app.node_state == NodeState::Connected;
     let in_rate_str = format_rate(tel.ingress_bytes_sec);
     let out_rate_str = format_rate(tel.egress_bytes_sec);
-    let peer_roster_title = format!("Dynamic Peer Roster ({} Nodes Active)", app.active_peers.len());
+    let peer_roster_title = format!(
+        "Dynamic Peer Roster ({} Nodes Active)",
+        app.active_peers.len()
+    );
 
     let nat_str = match tel.nat_type {
         NatType::FullCone => "Full-Cone NAT",

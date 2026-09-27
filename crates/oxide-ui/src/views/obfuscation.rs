@@ -1,14 +1,12 @@
 //! Tier F-3: DPI Circumvention, Anti-Censorship & Obfuscation Panel
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn ObfuscationView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn ObfuscationView(state: Signal<AppState>) -> Element {
     let app = state();
     let dpi = &app.dpi_config;
     let reality = &app.reality_config;

@@ -1,11 +1,11 @@
 //! Core types for oxide-mesh-net
 
+use serde::{Deserialize, Serialize};
 use std::{
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
 };
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Unique identifier for a node in the mesh
@@ -72,7 +72,10 @@ impl MeshName {
         if name.is_empty() || name.len() > 63 {
             return Err("Mesh name must be 1-63 characters".into());
         }
-        if !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        if !name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+        {
             return Err("Mesh name must contain only alphanumeric, hyphen, or underscore".into());
         }
         Ok(Self(name))
@@ -185,7 +188,10 @@ impl OverlayPrefix {
             OverlayIp::V6(_) => 128,
         };
         if prefix_len > max_len {
-            return Err(format!("Prefix length {} exceeds maximum {}", prefix_len, max_len));
+            return Err(format!(
+                "Prefix length {} exceeds maximum {}",
+                prefix_len, max_len
+            ));
         }
         Ok(Self { addr, prefix_len })
     }
@@ -208,7 +214,8 @@ impl OverlayPrefix {
 
                 if rem_bits > 0 {
                     let mask = 0xFFu8 << (8 - rem_bits);
-                    base_bytes[full_bytes as usize] & mask == target_bytes[full_bytes as usize] & mask
+                    base_bytes[full_bytes as usize] & mask
+                        == target_bytes[full_bytes as usize] & mask
                 } else {
                     true
                 }
@@ -232,8 +239,12 @@ impl FromStr for OverlayPrefix {
         if parts.len() != 2 {
             return Err("Invalid CIDR format".into());
         }
-        let addr = parts[0].parse().map_err(|e: std::net::AddrParseError| e.to_string())?;
-        let prefix_len = parts[1].parse().map_err(|e: std::num::ParseIntError| e.to_string())?;
+        let addr = parts[0]
+            .parse()
+            .map_err(|e: std::net::AddrParseError| e.to_string())?;
+        let prefix_len = parts[1]
+            .parse()
+            .map_err(|e: std::num::ParseIntError| e.to_string())?;
         Self::new(addr, prefix_len)
     }
 }

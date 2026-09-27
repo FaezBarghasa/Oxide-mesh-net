@@ -3,7 +3,10 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn IconShield(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconShield(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -20,7 +23,10 @@ pub fn IconShield(#[props(default = 16)] size: u32, #[props(default = "currentCo
 }
 
 #[component]
-pub fn IconActivity(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconActivity(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -37,7 +43,10 @@ pub fn IconActivity(#[props(default = 16)] size: u32, #[props(default = "current
 }
 
 #[component]
-pub fn IconServer(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconServer(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -57,7 +66,10 @@ pub fn IconServer(#[props(default = 16)] size: u32, #[props(default = "currentCo
 }
 
 #[component]
-pub fn IconTerminal(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconTerminal(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -75,7 +87,10 @@ pub fn IconTerminal(#[props(default = 16)] size: u32, #[props(default = "current
 }
 
 #[component]
-pub fn IconLock(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconLock(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -93,7 +108,10 @@ pub fn IconLock(#[props(default = 16)] size: u32, #[props(default = "currentColo
 }
 
 #[component]
-pub fn IconGlobe(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconGlobe(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -112,7 +130,10 @@ pub fn IconGlobe(#[props(default = 16)] size: u32, #[props(default = "currentCol
 }
 
 #[component]
-pub fn IconCpu(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconCpu(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -138,7 +159,10 @@ pub fn IconCpu(#[props(default = 16)] size: u32, #[props(default = "currentColor
 }
 
 #[component]
-pub fn IconSliders(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconSliders(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -163,7 +187,10 @@ pub fn IconSliders(#[props(default = 16)] size: u32, #[props(default = "currentC
 }
 
 #[component]
-pub fn IconWifi(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconWifi(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -183,7 +210,10 @@ pub fn IconWifi(#[props(default = 16)] size: u32, #[props(default = "currentColo
 }
 
 #[component]
-pub fn IconRefresh(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconRefresh(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -202,7 +232,10 @@ pub fn IconRefresh(#[props(default = 16)] size: u32, #[props(default = "currentC
 }
 
 #[component]
-pub fn IconCheck(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconCheck(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -219,7 +252,10 @@ pub fn IconCheck(#[props(default = 16)] size: u32, #[props(default = "currentCol
 }
 
 #[component]
-pub fn IconAlert(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconAlert(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -238,7 +274,10 @@ pub fn IconAlert(#[props(default = 16)] size: u32, #[props(default = "currentCol
 }
 
 #[component]
-pub fn IconCopy(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconCopy(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -256,7 +295,10 @@ pub fn IconCopy(#[props(default = 16)] size: u32, #[props(default = "currentColo
 }
 
 #[component]
-pub fn IconSend(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconSend(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -274,7 +316,10 @@ pub fn IconSend(#[props(default = 16)] size: u32, #[props(default = "currentColo
 }
 
 #[component]
-pub fn IconDownload(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconDownload(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -293,7 +338,10 @@ pub fn IconDownload(#[props(default = 16)] size: u32, #[props(default = "current
 }
 
 #[component]
-pub fn IconUpload(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconUpload(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -312,7 +360,10 @@ pub fn IconUpload(#[props(default = 16)] size: u32, #[props(default = "currentCo
 }
 
 #[component]
-pub fn IconChevronRight(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconChevronRight(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -329,7 +380,10 @@ pub fn IconChevronRight(#[props(default = 16)] size: u32, #[props(default = "cur
 }
 
 #[component]
-pub fn IconClose(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconClose(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -347,7 +401,10 @@ pub fn IconClose(#[props(default = 16)] size: u32, #[props(default = "currentCol
 }
 
 #[component]
-pub fn IconDatabase(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconDatabase(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",
@@ -366,7 +423,10 @@ pub fn IconDatabase(#[props(default = 16)] size: u32, #[props(default = "current
 }
 
 #[component]
-pub fn IconRadio(#[props(default = 16)] size: u32, #[props(default = "currentColor")] color: &'static str) -> Element {
+pub fn IconRadio(
+    #[props(default = 16)] size: u32,
+    #[props(default = "currentColor")] color: &'static str,
+) -> Element {
     rsx! {
         svg {
             width: "{size}",

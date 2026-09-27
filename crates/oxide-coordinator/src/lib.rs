@@ -9,6 +9,9 @@ pub mod handlers;
 pub mod storage;
 
 pub use cluster::{ClusterConfig, ClusterEngine, ClusterLogEntry, ClusterRole, ReplicatedState};
-pub use config::{CoordinatorConfig, MqttListenerConfig, HttpConfig, StorageConfig, StorageBackendType, AuthConfig, OidcConfig};
-pub use engine::{Coordinator, AppState};
+pub use config::{
+    AuthConfig, CoordinatorConfig, HttpConfig, MqttListenerConfig, OidcConfig, StorageBackendType,
+    StorageConfig,
+};
+pub use engine::{AppState, Coordinator};
 pub use error::{CoordinatorError, Result};

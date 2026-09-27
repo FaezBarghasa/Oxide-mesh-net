@@ -1,9 +1,9 @@
 //! Coordinator configuration
 
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::time::Duration;
-use serde::{Deserialize, Serialize};
 
 /// Coordinator configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -98,7 +98,9 @@ impl Default for HttpConfig {
     fn default() -> Self {
         Self {
             bind: "0.0.0.0:8080".parse().unwrap(),
-            workers: std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4),
+            workers: std::thread::available_parallelism()
+                .map(|n| n.get())
+                .unwrap_or(4),
             tls: false,
             cert_path: None,
             key_path: None,

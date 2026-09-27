@@ -1,7 +1,7 @@
 //! Non-intrusive peripheral notification toasts
 
-use dioxus::prelude::*;
 use crate::components::icons::{IconAlert, IconCheck, IconShield};
+use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum ToastType {

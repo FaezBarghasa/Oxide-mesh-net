@@ -1,14 +1,12 @@
 //! Tier F-7: Cryptographic Auditing, Diagnostics & Forensic Tools
 
-use dioxus::prelude::*;
-use crate::components::*;
 use crate::components::icons::*;
+use crate::components::*;
 use crate::state::AppState;
+use dioxus::prelude::*;
 
 #[component]
-pub fn AuditView(
-    state: Signal<AppState>,
-) -> Element {
+pub fn AuditView(state: Signal<AppState>) -> Element {
     let app = state();
     let mut verified_row = use_signal(|| None::<u64>);
 

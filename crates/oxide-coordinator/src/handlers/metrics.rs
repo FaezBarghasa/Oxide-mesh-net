@@ -1,6 +1,6 @@
 //! Metrics handlers
 
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, web};
 use actix_web_prometheus::PrometheusMetrics;
 use prometheus::{Encoder, TextEncoder};
 

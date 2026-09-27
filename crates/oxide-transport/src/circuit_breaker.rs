@@ -20,10 +20,10 @@ pub enum CircuitStatus {
 /// Circuit Breaker Configuration
 #[derive(Debug, Clone)]
 pub struct CircuitBreakerConfig {
-    pub loss_threshold_percent: f32, // e.g. 85.0%
-    pub trigger_duration: Duration,  // e.g. 5 seconds
+    pub loss_threshold_percent: f32,       // e.g. 85.0%
+    pub trigger_duration: Duration,        // e.g. 5 seconds
     pub recovery_success_threshold: usize, // e.g. 5 successful pings
-    pub probe_interval: Duration,    // e.g. 2 seconds
+    pub probe_interval: Duration,          // e.g. 2 seconds
 }
 
 impl Default for CircuitBreakerConfig {
@@ -79,10 +79,10 @@ impl TransportCircuitBreaker {
             if loss_rate >= self.config.loss_threshold_percent {
                 if self.high_loss_since.is_none() {
                     self.high_loss_since = Some(now);
-                } else if let Some(since) = self.high_loss_since {
-                    if now.duration_since(since) >= self.config.trigger_duration {
-                        self.status = CircuitStatus::FallbackWss;
-                    }
+                } else if let Some(since) = self.high_loss_since
+                    && now.duration_since(since) >= self.config.trigger_duration
+                {
+                    self.status = CircuitStatus::FallbackWss;
                 }
             } else {
                 self.high_loss_since = None;

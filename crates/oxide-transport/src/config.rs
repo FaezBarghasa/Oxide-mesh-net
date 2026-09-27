@@ -1,11 +1,11 @@
 //! QUIC transport configuration
 
-use std::sync::Arc;
-use std::time::Duration;
+use crate::error::TransportError;
+use quinn::crypto::rustls::{QuicClientConfig, QuicServerConfig};
 use quinn::{ClientConfig, ServerConfig, TransportConfig as QuinnTransportConfig, VarInt};
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
-use quinn::crypto::rustls::{QuicClientConfig, QuicServerConfig};
-use crate::error::TransportError;
+use std::sync::Arc;
+use std::time::Duration;
 
 /// Transport configuration
 #[derive(Debug)]
@@ -92,7 +92,9 @@ impl CongestionControl {
 pub fn make_client_config(config: &TransportConfig) -> Result<ClientConfig, TransportError> {
     let mut root_store = rustls::RootCertStore::empty();
     for cert in &config.root_certs {
-        root_store.add(cert.clone()).map_err(|e| TransportError::Config(e.to_string()))?;
+        root_store
+            .add(cert.clone())
+            .map_err(|e| TransportError::Config(e.to_string()))?;
     }
 
     let mut client_crypto = rustls::ClientConfig::builder()
@@ -119,8 +121,14 @@ pub fn make_client_config(config: &TransportConfig) -> Result<ClientConfig, Tran
 
 /// Build server configuration
 pub fn make_server_config(config: &TransportConfig) -> Result<ServerConfig, TransportError> {
-    let cert = config.server_cert.as_ref().ok_or_else(|| TransportError::Config("Missing server certificate".into()))?;
-    let key = config.server_key.as_ref().ok_or_else(|| TransportError::Config("Missing server key".into()))?;
+    let cert = config
+        .server_cert
+        .as_ref()
+        .ok_or_else(|| TransportError::Config("Missing server certificate".into()))?;
+    let key = config
+        .server_key
+        .as_ref()
+        .ok_or_else(|| TransportError::Config("Missing server key".into()))?;
 
     let mut server_crypto = rustls::ServerConfig::builder()
         .with_no_client_auth()

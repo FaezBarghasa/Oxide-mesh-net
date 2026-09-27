@@ -1,8 +1,12 @@
 //! Windows Wintun implementation
 
+use crate::{
+    RawFd, TunConfig,
+    error::{Result, TunError},
+    platform::{QueueStats, TunDevice, TunQueue},
+};
 use std::io;
 use std::os::windows::io::{AsRawHandle, FromRawHandle, IntoRawHandle, OwnedHandle};
-use crate::{TunConfig, RawFd, error::{TunError, Result}, platform::{TunDevice, TunQueue, QueueStats}};
 
 /// Windows TUN device using Wintun
 pub struct WindowsTunDevice {
@@ -19,7 +23,8 @@ impl WindowsTunDevice {
         let adapter = wintun::Adapter::create(&config.name, &config.name, None)
             .map_err(|e| TunError::Internal(format!("Failed to create Wintun adapter: {}", e)))?;
 
-        let session = adapter.start_session(65536)
+        let session = adapter
+            .start_session(65536)
             .map_err(|e| TunError::Internal(format!("Failed to start Wintun session: {}", e)))?;
 
         let queue = WindowsTunQueue::new(session.clone())?;
@@ -44,14 +49,19 @@ impl TunDevice for WindowsTunDevice {
 
     fn queue(&self, index: usize) -> Option<Box<dyn TunQueue>> {
         if index == 0 {
-            self.queue.as_ref().map(|q| Box::new(q.clone()) as Box<dyn TunQueue>)
+            self.queue
+                .as_ref()
+                .map(|q| Box::new(q.clone()) as Box<dyn TunQueue>)
         } else {
             None
         }
     }
 
     fn queues(&self) -> Vec<Box<dyn TunQueue>> {
-        self.queue.as_ref().map(|q| vec![Box::new(q.clone()) as Box<dyn TunQueue>]).unwrap_or_default()
+        self.queue
+            .as_ref()
+            .map(|q| vec![Box::new(q.clone()) as Box<dyn TunQueue>])
+            .unwrap_or_default()
     }
 
     fn set_mtu(&self, mtu: u16) -> Result<()> {
@@ -119,8 +129,11 @@ impl TunQueue for WindowsTunQueue {
 
 impl std::future::Future for WindowsTunQueue {
     type Output = io::Result<usize>;
-    
-    fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {
+
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
         // Wintun uses async/await via ring buffers
         std::task::Poll::Pending
     }

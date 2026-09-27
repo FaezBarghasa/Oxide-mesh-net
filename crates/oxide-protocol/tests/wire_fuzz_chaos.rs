@@ -3,11 +3,9 @@
 //! Validates that malformed envelopes, truncated frames, random junk, and invalid sequence
 //! mutations never panic or compromise cryptographic state.
 
-use proptest::prelude::*;
 use oxide_core::PacketType;
-use oxide_protocol::wire::{
-    pre_parse_packet, PreParseVerdict, ReplayWindow128, WirePacket,
-};
+use oxide_protocol::wire::{PreParseVerdict, ReplayWindow128, WirePacket, pre_parse_packet};
+use proptest::prelude::*;
 
 proptest! {
     #[test]

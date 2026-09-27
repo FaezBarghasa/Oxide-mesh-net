@@ -1,11 +1,11 @@
 //! ACL rule definitions and SIMD-accelerated evaluation
 
-use std::collections::HashMap;
-use smallvec::SmallVec;
-use oxide_core::{OverlayIp, OverlayPrefix};
-use oxide_crypto::keys::KeyFingerprint;
 use crate::error::{AclError, Result};
 use crate::simd::SimdEvaluator;
+use oxide_core::{OverlayIp, OverlayPrefix};
+use oxide_crypto::keys::KeyFingerprint;
+use smallvec::SmallVec;
+use std::collections::HashMap;
 
 /// ACL action
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -43,17 +43,25 @@ pub struct PortRange {
 impl PortRange {
     pub fn new(start: u16, end: u16) -> Result<Self> {
         if start > end {
-            return Err(AclError::InvalidRule("Port range start must be <= end".into()));
+            return Err(AclError::InvalidRule(
+                "Port range start must be <= end".into(),
+            ));
         }
         Ok(Self { start, end })
     }
 
     pub fn single(port: u16) -> Self {
-        Self { start: port, end: port }
+        Self {
+            start: port,
+            end: port,
+        }
     }
 
     pub fn any() -> Self {
-        Self { start: 0, end: 65535 }
+        Self {
+            start: 0,
+            end: 65535,
+        }
     }
 
     pub fn contains(&self, port: u16) -> bool {
@@ -116,7 +124,9 @@ struct PrefixNode {
 
 impl PrefixTrie {
     fn new() -> Self {
-        Self { root: PrefixNode::new() }
+        Self {
+            root: PrefixNode::new(),
+        }
     }
 
     fn insert(&mut self, prefix: OverlayPrefix) {
@@ -124,16 +134,20 @@ impl PrefixTrie {
             OverlayIp::V4(addr) => {
                 let addr_bits = u32::from(addr);
                 let len = prefix.prefix_len as usize;
-                (0..len).map(|i| (addr_bits >> (31 - i)) & 1).collect::<Vec<_>>()
+                (0..len)
+                    .map(|i| (addr_bits >> (31 - i)) & 1)
+                    .collect::<Vec<_>>()
             }
             OverlayIp::V6(addr) => {
                 let addr_bytes = addr.octets();
                 let len = prefix.prefix_len as usize;
-                (0..len).map(|i| {
-                    let byte_idx = i / 8;
-                    let bit_idx = 7 - (i % 8);
-                    ((addr_bytes[byte_idx] >> bit_idx) & 1) as u32
-                }).collect::<Vec<_>>()
+                (0..len)
+                    .map(|i| {
+                        let byte_idx = i / 8;
+                        let bit_idx = 7 - (i % 8);
+                        ((addr_bytes[byte_idx] >> bit_idx) & 1) as u32
+                    })
+                    .collect::<Vec<_>>()
             }
         };
 
@@ -148,15 +162,19 @@ impl PrefixTrie {
         let bits = match ip {
             OverlayIp::V4(addr) => {
                 let addr_bits = u32::from(addr);
-                (0..32).map(|i| (addr_bits >> (31 - i)) & 1).collect::<Vec<_>>()
+                (0..32)
+                    .map(|i| (addr_bits >> (31 - i)) & 1)
+                    .collect::<Vec<_>>()
             }
             OverlayIp::V6(addr) => {
                 let addr_bytes = addr.octets();
-                (0..128).map(|i| {
-                    let byte_idx = i / 8;
-                    let bit_idx = 7 - (i % 8);
-                    ((addr_bytes[byte_idx] >> bit_idx) & 1) as u32
-                }).collect::<Vec<_>>()
+                (0..128)
+                    .map(|i| {
+                        let byte_idx = i / 8;
+                        let bit_idx = 7 - (i % 8);
+                        ((addr_bytes[byte_idx] >> bit_idx) & 1) as u32
+                    })
+                    .collect::<Vec<_>>()
             }
         };
 
@@ -352,7 +370,7 @@ impl AclEngine {
         // Check source identity
         if !rule.src_identities.is_empty() {
             if let Some(identity) = meta.src_identity {
-                if !rule.src_identities.iter().any(|id| *id == identity) {
+                if !rule.src_identities.contains(&identity) {
                     return false;
                 }
             } else {
@@ -361,46 +379,50 @@ impl AclEngine {
         }
 
         // Check source prefix
-        if !rule.src_prefixes.is_empty() {
-            if let Some(compiled) = &rule.compiled {
-                if let Some(trie) = &compiled.src_prefix_trie {
-                    let matches = trie.match_ip(meta.src_ip);
-                    if matches.is_empty() {
-                        return false;
-                    }
-                }
+        if !rule.src_prefixes.is_empty()
+            && let Some(compiled) = &rule.compiled
+            && let Some(trie) = &compiled.src_prefix_trie
+        {
+            let matches = trie.match_ip(meta.src_ip);
+            if matches.is_empty() {
+                return false;
             }
         }
 
         // Check destination prefix
-        if !rule.dst_prefixes.is_empty() {
-            if let Some(compiled) = &rule.compiled {
-                if let Some(trie) = &compiled.dst_prefix_trie {
-                    let matches = trie.match_ip(meta.dst_ip);
-                    if matches.is_empty() {
-                        return false;
-                    }
-                }
+        if !rule.dst_prefixes.is_empty()
+            && let Some(compiled) = &rule.compiled
+            && let Some(trie) = &compiled.dst_prefix_trie
+        {
+            let matches = trie.match_ip(meta.dst_ip);
+            if matches.is_empty() {
+                return false;
             }
         }
 
         // Check protocol
-        if !rule.protocols.is_empty() && !rule.protocols.iter().any(|p| *p == meta.protocol) {
+        if !rule.protocols.is_empty() && !rule.protocols.contains(&meta.protocol) {
             return false;
         }
 
         // Check source port
-        if !rule.src_ports.is_empty() {
-            if !rule.src_ports.iter().any(|range| range.contains(meta.src_port)) {
-                return false;
-            }
+        if !rule.src_ports.is_empty()
+            && !rule
+                .src_ports
+                .iter()
+                .any(|range| range.contains(meta.src_port))
+        {
+            return false;
         }
 
         // Check destination port
-        if !rule.dst_ports.is_empty() {
-            if !rule.dst_ports.iter().any(|range| range.contains(meta.dst_port)) {
-                return false;
-            }
+        if !rule.dst_ports.is_empty()
+            && !rule
+                .dst_ports
+                .iter()
+                .any(|range| range.contains(meta.dst_port))
+        {
+            return false;
         }
 
         true
@@ -411,9 +433,12 @@ impl AclEngine {
         let compiled = Self::compile_rule(&rule)?;
         let mut rule = rule;
         rule.compiled = Some(compiled);
-        
+
         // Insert maintaining priority order
-        let insert_idx = self.rules.iter().position(|r| r.priority < rule.priority)
+        let insert_idx = self
+            .rules
+            .iter()
+            .position(|r| r.priority < rule.priority)
             .unwrap_or(self.rules.len());
         self.rules.insert(insert_idx, rule);
         self.rebuild_rule_map();
