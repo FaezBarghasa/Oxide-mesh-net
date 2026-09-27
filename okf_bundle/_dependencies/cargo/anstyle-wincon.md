@@ -10,9 +10,9 @@ tags:
   - "module:Cargo.lock"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "version:3.0.11"
   - "ecosystem:cargo"
   - "manifest:Cargo.lock"
+  - "version:3.0.11"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/anstyle-wincon
 language: manifest

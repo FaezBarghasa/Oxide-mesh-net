@@ -11,8 +11,8 @@ tags:
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
   - "ecosystem:cargo"
-  - "version:2.1.0+zstd.1.5.7"
   - "manifest:Cargo.lock"
+  - "version:2.1.0+zstd.1.5.7"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/zstd-sys
 language: manifest

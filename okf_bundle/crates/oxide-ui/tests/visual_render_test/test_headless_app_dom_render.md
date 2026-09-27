@@ -11,6 +11,7 @@ tags:
   - "domain:oxide-ui"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
+timestamp: "2026-09-27T12:16:06Z"
 concept_id: crates/oxide-ui/tests/visual_render_test/test_headless_app_dom_render
 language: rust
 ---
@@ -25,9 +26,19 @@ language: rust
 fn test_headless_app_dom_render()
 ```
 
+## Decorators
+
+- `test`
+
 ## Docstring
 
 [test]
 
 ## Source
 Lines 48–60 in `crates/oxide-ui/tests/visual_render_test.rs`
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [visual_render_test](/crates/oxide-ui/tests/visual_render_test.md) |

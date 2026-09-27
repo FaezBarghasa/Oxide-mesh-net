@@ -11,9 +11,9 @@ tags:
   - "domain:oxide-daemon"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
-  - "ecosystem:cargo"
   - "version:0.7"
+  - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T06:30:11Z"
 concept_id: _dependencies/cargo/actix-cors_1
 language: manifest

@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-acl"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
   - "version:0.8"
 timestamp: "2026-09-25T21:42:58Z"
 concept_id: _dependencies/cargo/ahash_1

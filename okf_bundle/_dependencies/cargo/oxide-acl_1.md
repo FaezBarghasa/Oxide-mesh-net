@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-cli"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T06:46:11Z"
 concept_id: _dependencies/cargo/oxide-acl_1
 language: manifest

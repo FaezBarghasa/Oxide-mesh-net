@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-daemon"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
   - "version:4.9"
 timestamp: "2026-09-27T06:30:11Z"
 concept_id: _dependencies/cargo/actix-web_1

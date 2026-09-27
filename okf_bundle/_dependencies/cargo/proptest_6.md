@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-tun"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-26T03:50:37Z"
 concept_id: _dependencies/cargo/proptest_6
 language: manifest

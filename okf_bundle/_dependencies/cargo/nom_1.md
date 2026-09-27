@@ -10,9 +10,9 @@ tags:
   - "module:Cargo.lock"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
+  - "version:8.0.0"
   - "ecosystem:cargo"
   - "manifest:Cargo.lock"
-  - "version:8.0.0"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/nom_1
 language: manifest

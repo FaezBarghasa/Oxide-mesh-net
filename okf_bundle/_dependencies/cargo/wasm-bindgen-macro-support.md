@@ -11,8 +11,8 @@ tags:
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
   - "ecosystem:cargo"
-  - "version:0.2.129"
   - "manifest:Cargo.lock"
+  - "version:0.2.129"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/wasm-bindgen-macro-support
 language: manifest

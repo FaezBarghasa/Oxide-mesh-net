@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-coordinator"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
   - "version:4.9"
 timestamp: "2026-09-27T11:56:23Z"
 concept_id: _dependencies/cargo/actix-web_2

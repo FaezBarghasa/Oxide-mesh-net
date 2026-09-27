@@ -1,29 +1,27 @@
 ---
-description: 'Top-level OKF summary: 2795 concepts across 1 domains and 102 modules'
-git_branch: master
-git_repo: Oxide-mesh-net
+description: 'Top-level OKF summary: 2794 concepts across 1 domains and 102 modules'
 okf_version: '0.2'
-timestamp: '2026-09-27T20:27:49Z'
-title: Oxide-mesh-net — Knowledge Summary
+timestamp: '2026-09-27T20:30:08Z'
+title: okf_bundle — Knowledge Summary
 type: Index
 ---
 
-# Oxide-mesh-net — Knowledge Summary
+# okf_bundle — Knowledge Summary
 
-> OKF v0.2 bundle | 2,795 concepts | 1 domains | 102 modules
+> OKF v0.2 bundle | 2,794 concepts | 1 domains | 102 modules
 
 ## Stats
 
 | Type | Count |
 |------|-------|
-| Dependency | 1,402 |
+| Dependency | 1,401 |
 | Function | 1,047 |
 | Class | 244 |
 | Module | 102 |
 
 | Language | Concepts |
 |----------|----------|
-| manifest | 1,402 |
+| manifest | 1,401 |
 | rust | 1,393 |
 
 ## Domain Map
@@ -48,7 +46,7 @@ Use these links to navigate the bundle or prime an AI agent with focused context
 
 | Ecosystem | Packages |
 |----------|----------|
-| cargo | 1,402 |
+| ? | 1,401 |
 
 ## Key Concepts
 
@@ -69,9 +67,9 @@ Highest-value concepts across all domains (Classes and Functions with rich descr
 | [run_loop](/crates/oxide-daemon/src/ipc/socket/run_loop.md) | Function | `crates/oxide-daemon/src` | Run the server loop, accepting incoming connections and disp… |
 | [run_loop](/crates/oxide-daemon/src/ipc/socket/run_loop_1.md) | Function | `crates/oxide-daemon/src` | Run the server loop, accepting incoming connections and disp… |
 | [OverlayIp](/crates/oxide-core/src/types/OverlayIp.md) | Class | `crates/oxide-core/src` | Overlay IP address assignment (IPv4 in 100.64.0.0/10 CGNAT r… |
+| [MemoryStorage](/crates/oxide-coordinator/src/storage/MemoryStorage.md) | Class | `crates/oxide-coordinator/src` | ============================================================… |
 | [insert](/crates/oxide-transport/src/routing/insert.md) | Function | `crates/oxide-transport/src` | Insert or replace a route entry and sort by longest prefix l… |
 | [insert](/crates/oxide-transport/src/routing/insert_1.md) | Function | `crates/oxide-transport/src` | Insert or replace a route entry and sort by longest prefix l… |
-| [MemoryStorage](/crates/oxide-coordinator/src/storage/MemoryStorage.md) | Class | `crates/oxide-coordinator/src` | ============================================================… |
 | [lwt](/crates/oxide-protocol/src/topics/lwt.md) | Function | `crates/oxide-protocol/src` | Last Will Testament (set on connect, published on ungraceful… |
 | [lwt](/crates/oxide-protocol/src/topics/lwt_1.md) | Function | `crates/oxide-protocol/src` | Last Will Testament (set on connect, published on ungraceful… |
 | [create_tun_windows](/crates/oxide-tun/src/platform/windows/create_tun_windows.md) | Function | `crates/oxide-tun/src` | AsyncRead/AsyncWrite would be implemented using Wintun's rin… |

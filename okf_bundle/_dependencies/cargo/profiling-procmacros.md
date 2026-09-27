@@ -11,8 +11,8 @@ tags:
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
   - "ecosystem:cargo"
-  - "version:1.0.18"
   - "manifest:Cargo.lock"
+  - "version:1.0.18"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/profiling-procmacros
 language: manifest

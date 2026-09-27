@@ -11,9 +11,9 @@ tags:
   - "domain:oxide-coordinator"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
   - "version:0.3"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T11:56:23Z"
 concept_id: _dependencies/cargo/oidc_1
 language: manifest

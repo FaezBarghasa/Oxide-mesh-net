@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-transport"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T06:08:04Z"
 concept_id: _dependencies/cargo/thiserror_11
 language: manifest

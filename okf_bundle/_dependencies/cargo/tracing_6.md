@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-core"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-25T21:26:38Z"
 concept_id: _dependencies/cargo/tracing_6
 language: manifest

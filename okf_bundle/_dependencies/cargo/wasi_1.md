@@ -11,8 +11,8 @@ tags:
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
   - "ecosystem:cargo"
-  - "version:0.10.2+wasi-snapshot-preview1"
   - "manifest:Cargo.lock"
+  - "version:0.10.2+wasi-snapshot-preview1"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/wasi_1
 language: manifest

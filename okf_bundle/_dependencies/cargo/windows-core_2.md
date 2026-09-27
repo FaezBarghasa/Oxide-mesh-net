@@ -11,8 +11,8 @@ tags:
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
   - "ecosystem:cargo"
-  - "version:0.62.2"
   - "manifest:Cargo.lock"
+  - "version:0.62.2"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/windows-core_2
 language: manifest

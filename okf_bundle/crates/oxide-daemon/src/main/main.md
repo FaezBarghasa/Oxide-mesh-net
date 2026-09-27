@@ -11,6 +11,7 @@ tags:
   - "domain:oxide-daemon"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
+timestamp: "2026-09-27T06:33:11Z"
 concept_id: crates/oxide-daemon/src/main/main
 language: rust
 ---
@@ -25,9 +26,19 @@ language: rust
 fn main() -> Result<(), Box<dyn std::error::Error>>
 ```
 
+## Decorators
+
+- `tokio::main`
+
 ## Docstring
 
 [tokio::main]
 
 ## Source
 Lines 49–122 in `crates/oxide-daemon/src/main.rs`
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [src](/crates/oxide-daemon/src/main.md) |

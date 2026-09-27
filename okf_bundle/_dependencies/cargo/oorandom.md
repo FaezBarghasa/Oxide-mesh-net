@@ -10,9 +10,9 @@ tags:
   - "module:Cargo.lock"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
+  - "version:11.1.5"
   - "ecosystem:cargo"
   - "manifest:Cargo.lock"
-  - "version:11.1.5"
 timestamp: "2026-09-27T12:17:15Z"
 concept_id: _dependencies/cargo/oorandom
 language: manifest

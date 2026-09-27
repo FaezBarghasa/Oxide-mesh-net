@@ -11,9 +11,9 @@ tags:
   - "domain:oxide-coordinator"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
   - "version:0.13.4"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T11:56:23Z"
 concept_id: _dependencies/cargo/prometheus_1
 language: manifest

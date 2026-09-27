@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-dns"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-25T20:52:48Z"
 concept_id: _dependencies/cargo/serde_6
 language: manifest

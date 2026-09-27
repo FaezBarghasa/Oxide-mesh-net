@@ -11,8 +11,8 @@ tags:
   - "domain:oxide-crypto"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T05:46:34Z"
 concept_id: _dependencies/cargo/subtle_1
 language: manifest

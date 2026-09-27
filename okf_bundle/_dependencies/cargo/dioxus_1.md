@@ -11,9 +11,9 @@ tags:
   - "domain:oxide-ui"
   - "git:branch:master"
   - "git:repo:Oxide-mesh-net"
-  - "manifest:Cargo.toml"
   - "ecosystem:cargo"
   - "version:0.7.10"
+  - "manifest:Cargo.toml"
 timestamp: "2026-09-27T12:17:22Z"
 concept_id: _dependencies/cargo/dioxus_1
 language: manifest

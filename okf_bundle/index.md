@@ -2,7 +2,7 @@
 description: OKF v0.2 bundle generated from the Oxide-mesh-net codebase
 okf_version: '0.2'
 source_root: /home/jrad/RustroverProjects/Oxide-mesh-net
-timestamp: '2026-09-27T20:27:48Z'
+timestamp: '2026-09-27T20:30:06Z'
 title: Oxide-mesh-net
 type: Index
 ---
