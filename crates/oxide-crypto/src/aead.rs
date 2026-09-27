@@ -42,7 +42,9 @@ pub fn decrypt_in_place(key: &AeadKey, nonce: &AeadNonce, buffer: &mut [u8], tag
 
 /// Generate a random nonce
 pub fn random_nonce() -> AeadNonce {
+    use ring::rand::SecureRandom;
+    let rng = ring::rand::SystemRandom::new();
     let mut bytes = [0u8; 12];
-    rand::RngCore::fill_bytes(&mut rand::rngs::OsRng, &mut bytes);
+    rng.fill(&mut bytes).expect("SystemRandom failed to generate nonce");
     AeadNonce(bytes)
 }

@@ -117,9 +117,7 @@ pub struct StorageConfig {
     pub backend: StorageBackendType,
     /// Data directory
     pub data_dir: PathBuf,
-    /// Redis URL (for ephemeral caching and distributed synchronization)
-    pub redis_url: Option<String>,
-    /// SurrealDB endpoint URL (e.g. ws://127.0.0.1:8000 or surrealkv://...)
+    /// SurrealDB endpoint URL (e.g. ws://127.0.0.1:8000, surrealkv://..., or mem://)
     pub surreal_url: Option<String>,
     /// SurrealDB namespace
     pub surreal_ns: String,
@@ -136,9 +134,8 @@ pub struct StorageConfig {
 impl Default for StorageConfig {
     fn default() -> Self {
         Self {
-            backend: StorageBackendType::Hybrid,
+            backend: StorageBackendType::SurrealMem,
             data_dir: PathBuf::from("/var/lib/oxide-coordinator"),
-            redis_url: Some("redis://127.0.0.1:6379".into()),
             surreal_url: None,
             surreal_ns: "oxide".into(),
             surreal_db: "mesh".into(),
@@ -153,11 +150,9 @@ impl Default for StorageConfig {
 pub enum StorageBackendType {
     Memory,
     Sled,
-    Redis,
     SurrealMem,
     SurrealKv,
     SurrealWs,
-    Hybrid,
     Raft,
 }
 

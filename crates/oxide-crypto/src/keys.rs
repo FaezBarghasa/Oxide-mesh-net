@@ -30,8 +30,11 @@ impl Drop for DeviceIdentityKey {
 
 impl DeviceIdentityKey {
     pub fn generate() -> Self {
-        let mut csprng = rand::rngs::OsRng;
-        let signing_key = Ed25519SigningKey::generate(&mut csprng);
+        use ring::rand::SecureRandom;
+        let rng = ring::rand::SystemRandom::new();
+        let mut key_bytes = [0u8; 32];
+        rng.fill(&mut key_bytes).expect("SystemRandom failed");
+        let signing_key = Ed25519SigningKey::from_bytes(&key_bytes);
         Self { signing_key }
     }
 
@@ -169,18 +172,27 @@ impl fmt::Display for KeyFingerprint {
 }
 
 /// Ephemeral session key pair (X25519 for key agreement)
-#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone)]
 pub struct SessionKeyPair {
     static_secret: X25519StaticSecret,
     public_key: X25519PublicKey,
+}
+
+impl Zeroize for SessionKeyPair {
+    fn zeroize(&mut self) {
+        self.static_secret = X25519StaticSecret::from([0u8; 32]);
+    }
 }
 
 pub type SessionKey = SessionKeyPair;
 
 impl SessionKeyPair {
     pub fn generate() -> Self {
-        let mut csprng = rand::rngs::OsRng;
-        let static_secret = X25519StaticSecret::random_from_rng(&mut csprng);
+        use ring::rand::SecureRandom;
+        let rng = ring::rand::SystemRandom::new();
+        let mut key_bytes = [0u8; 32];
+        rng.fill(&mut key_bytes).expect("SystemRandom failed");
+        let static_secret = X25519StaticSecret::from(key_bytes);
         let public_key = X25519PublicKey::from(&static_secret);
         Self { static_secret, public_key }
     }
