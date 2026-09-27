@@ -99,11 +99,19 @@ impl Coordinator {
                 actix_cors::Cors::default()
             };
 
+            let app_state = AppState {
+                auth: auth_service.clone(),
+                storage: storage.clone(),
+                mesh_name: mesh_name.clone(),
+            };
+
             App::new()
                 .wrap(middleware::Logger::default())
                 .wrap(middleware::Compress::default())
                 .wrap(prometheus.clone())
                 .wrap(cors)
+                .app_data(web::Data::new(app_state))
+                .app_data(web::Data::new(prometheus.clone()))
                 .app_data(web::Data::new(auth_service.clone()))
                 .app_data(web::Data::new(storage.clone()))
                 .app_data(web::Data::new(mesh_name.clone()))
