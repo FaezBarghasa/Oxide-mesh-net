@@ -7075,6 +7075,7 @@ dependencies = [
  "oxide-crypto",
  "postcard",
  "proptest",
+ "rkyv",
  "serde",
  "serde_json",
  "thiserror 2.0.21",

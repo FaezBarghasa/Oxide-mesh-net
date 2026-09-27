@@ -12,6 +12,7 @@ oxide-core = { path = "../oxide-core" }
 oxide-crypto = { path = "../oxide-crypto" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+rkyv = { workspace = true }
 postcard = { workspace = true }
 bytes = { workspace = true }
 zerocopy = { workspace = true, features = ["derive"] }
