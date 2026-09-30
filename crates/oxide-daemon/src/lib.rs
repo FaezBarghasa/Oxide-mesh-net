@@ -3,6 +3,7 @@
 pub mod config;
 pub mod engine;
 pub mod ipc;
+pub mod platform;
 pub mod services;
 
 pub use config::{DaemonConfig, StaticRouteConfig};
@@ -12,3 +13,4 @@ pub use ipc::{
     protocol::{DaemonStatusDto, IpcRequest, IpcResponse, PeerStatusDto, RouteEntryDto},
     socket::{IpcHandler, PeerCredentials, SecureIpcServer},
 };
+pub use platform::{PolicyRoutingConfig, PolicyRoutingManager};

@@ -1,5 +1,6 @@
 //! Embedded MQTT broker and Actix Web coordinator for oxide-mesh-net
 
+pub mod acme;
 pub mod auth;
 pub mod cluster;
 pub mod config;
@@ -8,6 +9,7 @@ pub mod error;
 pub mod handlers;
 pub mod storage;
 
+pub use acme::{AcmeManager, CertStatus, ManagedCertificate};
 pub use cluster::{ClusterConfig, ClusterEngine, ClusterLogEntry, ClusterRole, ReplicatedState};
 pub use config::{
     AuthConfig, CoordinatorConfig, HttpConfig, MqttListenerConfig, OidcConfig, StorageBackendType,

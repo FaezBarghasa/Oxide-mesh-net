@@ -5,6 +5,7 @@ pub mod config;
 pub mod dplpmtud;
 pub mod engine;
 pub mod error;
+pub mod nat;
 pub mod porthopper;
 pub mod routing;
 
@@ -13,5 +14,6 @@ pub use config::{CongestionControl, TransportConfig, make_client_config, make_se
 pub use dplpmtud::{DplpmtudConfig, DplpmtudEngine, DplpmtudPhase};
 pub use engine::{TransportEngine, TransportEvent, TransportHandle, TransportStats};
 pub use error::{Result, TransportError};
+pub use nat::{EndpointCandidate, MagicsockEngine, NatType, PathType, StunClient, UpnpClient};
 pub use porthopper::{PortHopper, PortHopperConfig};
 pub use routing::{L1DirectMappedCache, RadixRoutingTable, RcuRouter, RouteEntry, RouteTarget};
