@@ -3,7 +3,9 @@
 //! Embedded MQTT broker, SurrealDB 3 multi-model persistence, and Actix Web REST/WS coordinator.
 
 use clap::Parser;
-use oxide_coordinator::{Coordinator, CoordinatorConfig, HttpConfig, StorageBackendType, StorageConfig};
+use oxide_coordinator::{
+    Coordinator, CoordinatorConfig, HttpConfig, StorageBackendType, StorageConfig,
+};
 use std::net::SocketAddr;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -38,7 +40,9 @@ struct Cli {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()))
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+        )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
@@ -52,34 +56,39 @@ async fn main() -> anyhow::Result<()> {
         _ => StorageBackendType::SurrealMem,
     };
 
-    let mut config = CoordinatorConfig::default();
-    config.mesh_name = cli.mesh;
-    config.http = HttpConfig {
-        bind: cli.bind,
-        workers: 4,
-        tls: false,
-        cert_path: None,
-        key_path: None,
-        request_timeout: std::time::Duration::from_secs(30),
-        body_limit: 1024 * 1024,
-        cors: true,
-        static_dir: None,
-    };
-    config.storage = StorageConfig {
-        backend: storage_backend,
-        data_dir: std::path::PathBuf::from("/var/lib/oxide-coordinator"),
-        surreal_url: None,
-        surreal_ns: cli.namespace,
-        surreal_db: cli.database,
-        surreal_user: None,
-        surreal_pass: None,
-        raft: None,
+    let config = CoordinatorConfig {
+        mesh_name: cli.mesh,
+        http: HttpConfig {
+            bind: cli.bind,
+            workers: 4,
+            tls: false,
+            cert_path: None,
+            key_path: None,
+            request_timeout: std::time::Duration::from_secs(30),
+            body_limit: 1024 * 1024,
+            cors: true,
+            static_dir: None,
+        },
+        storage: StorageConfig {
+            backend: storage_backend,
+            data_dir: std::path::PathBuf::from("/var/lib/oxide-coordinator"),
+            surreal_url: None,
+            surreal_ns: cli.namespace,
+            surreal_db: cli.database,
+            surreal_user: None,
+            surreal_pass: None,
+            raft: None,
+        },
+        ..Default::default()
     };
 
     let mut coordinator = Coordinator::new(config).await?;
     coordinator.start().await?;
 
-    info!("Oxide coordinator running on http://{}. Press Ctrl+C to terminate.", cli.bind);
+    info!(
+        "Oxide coordinator running on http://{}. Press Ctrl+C to terminate.",
+        cli.bind
+    );
     tokio::signal::ctrl_c().await?;
 
     info!("Shutting down coordinator...");

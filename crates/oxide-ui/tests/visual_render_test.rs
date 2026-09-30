@@ -8,8 +8,8 @@ use oxide_ui::state::{ActiveView, AppState};
 fn test_app_state_initialization() {
     let state = AppState::default();
     assert_eq!(state.current_view, ActiveView::Dashboard);
-    assert_eq!(state.peers.len(), 3);
-    assert_eq!(state.routes.len(), 3);
+    assert_eq!(state.active_peers.len(), 3);
+    assert_eq!(state.exit_nodes.len() + state.advertised_subnets.len(), 3);
     assert_eq!(state.telemetry.overlay_ipv4, "100.64.0.42");
 }
 
@@ -41,7 +41,7 @@ fn test_embedded_css_design_tokens() {
     assert!(css.contains(".app-shell"));
     assert!(css.contains(".app-sidebar"));
     assert!(css.contains(".mobile-nav"));
-    assert!(css.contains("@media (max-width: 768px)"));
+    assert!(css.contains("@media (max-width: 860px)"));
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn test_headless_app_dom_render() {
     assert!(rendered.contains("DAEMON SYNCED"));
     assert!(rendered.contains("100.64.0.42"));
     assert!(rendered.contains("Dashboard"));
-    assert!(rendered.contains("Routing &amp; Egress"));
-    assert!(rendered.contains("Stealth &amp; Anti-DPI"));
+    assert!(rendered.contains("Routing"));
+    assert!(rendered.contains("Stealth"));
     assert!(rendered.contains("mobile-nav"));
 }

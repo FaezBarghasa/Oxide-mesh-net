@@ -26,7 +26,11 @@ async fn setup_test_app_state() -> AppState {
         surreal_pass: None,
         raft: None,
     };
-    let storage = Arc::new(Storage::new_async(&storage_config).await.expect("storage init"));
+    let storage = Arc::new(
+        Storage::new_async(&storage_config)
+            .await
+            .expect("storage init"),
+    );
     let mesh_name = MeshName::new("oxide-test-mesh").expect("valid mesh name");
 
     AppState {
@@ -41,14 +45,12 @@ async fn test_health_endpoints() {
     let app_state = setup_test_app_state().await;
 
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(app_state))
-            .service(
-                web::scope("/health")
-                    .route("", web::get().to(handlers::health::health_check))
-                    .route("/ready", web::get().to(handlers::health::readiness_check))
-                    .route("/live", web::get().to(handlers::health::liveness_check)),
-            ),
+        App::new().app_data(web::Data::new(app_state)).service(
+            web::scope("/health")
+                .route("", web::get().to(handlers::health::health_check))
+                .route("/ready", web::get().to(handlers::health::readiness_check))
+                .route("/live", web::get().to(handlers::health::liveness_check)),
+        ),
     )
     .await;
 
@@ -82,7 +84,11 @@ async fn test_nodes_and_routes_api() {
         version: "0.1.0".into(),
         tags: vec!["gateway".into(), "edge".into()],
     };
-    app_state.storage.set_node_metadata(&metadata).await.expect("set node");
+    app_state
+        .storage
+        .set_node_metadata(&metadata)
+        .await
+        .expect("set node");
 
     let prefix: OverlayPrefix = "100.64.0.0/24".parse().expect("valid prefix");
     let route = RouteAdvertisement {
@@ -93,7 +99,11 @@ async fn test_nodes_and_routes_api() {
         communities: vec!["us-east".into()],
         timestamp: chrono::Utc::now().timestamp(),
     };
-    app_state.storage.set_route(&route).await.expect("set route");
+    app_state
+        .storage
+        .set_route(&route)
+        .await
+        .expect("set route");
 
     let app = test::init_service(
         App::new()
@@ -148,10 +158,12 @@ async fn test_acl_policy_api() {
     assert!(resp.status().is_success());
 
     // 2. PUT /api/v1/acl with new policy
-    let mut policy = AclPolicy::default();
-    policy.version = 1;
-    policy.default_action = oxide_protocol::topics::AclAction::Deny;
-    policy.timestamp = chrono::Utc::now().timestamp();
+    let policy = AclPolicy {
+        version: 1,
+        default_action: oxide_protocol::topics::AclAction::Deny,
+        timestamp: chrono::Utc::now().timestamp(),
+        ..Default::default()
+    };
 
     let req = test::TestRequest::put()
         .uri("/api/v1/acl")
