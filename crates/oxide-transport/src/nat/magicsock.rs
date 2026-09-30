@@ -5,11 +5,10 @@ use super::upnp::{UpnpClient, UpnpConfig};
 use dashmap::DashMap;
 use oxide_core::types::NodeId;
 use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
 };
-use tracing::{debug, error, info, warn};
 
 /// Connection path type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

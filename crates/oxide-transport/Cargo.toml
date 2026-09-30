@@ -26,6 +26,7 @@ time = { workspace = true }
 cfg-if = { workspace = true }
 rand = { workspace = true }
 blake3 = { workspace = true }
+dashmap = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

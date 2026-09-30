@@ -1,0 +1,20 @@
+[Unit]
+Description=Oxide Mesh Net Node Daemon
+Documentation=https://github.com/FaezBarghasa/Oxide-mesh-net
+After=network-online.target systemd-resolved.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/oxide-daemon --config /etc/oxide/daemon.toml
+Restart=always
+RestartSec=3s
+KillMode=process
+LimitNOFILE=65536
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
+ProtectSystem=full
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

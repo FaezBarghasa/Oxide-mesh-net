@@ -1,10 +1,7 @@
 //! Atomic /etc/resolv.conf backup, rewrite, and restoration manager
 
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-use tracing::{debug, error, info, warn};
+use std::{fs, path::PathBuf};
+use tracing::{debug, error, info};
 
 /// ResolvConf manager configuration
 #[derive(Debug, Clone, PartialEq, Eq)]

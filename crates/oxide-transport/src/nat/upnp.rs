@@ -1,8 +1,6 @@
 //! UPnP-IGD and NAT-PMP port mapping client
 
-use std::net::SocketAddr;
 use std::time::Duration;
-use tracing::{debug, error, info, warn};
 
 /// UPnP Port Mapping Protocol Configuration
 #[derive(Debug, Clone)]

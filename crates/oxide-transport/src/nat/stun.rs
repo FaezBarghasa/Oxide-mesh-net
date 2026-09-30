@@ -3,7 +3,6 @@
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::time::Duration;
 use tokio::net::UdpSocket;
-use tracing::{debug, error, info, warn};
 
 /// STUN Magic Cookie (RFC 5389)
 pub const STUN_MAGIC_COOKIE: u32 = 0x2112A442;

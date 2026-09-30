@@ -280,8 +280,7 @@ impl Drop for PolicyRoutingManager {
     fn drop(&mut self) {
         if !self.applied_rules.is_empty() || !self.active_masqueraded_subnets.is_empty() {
             debug!("PolicyRoutingManager dropping: cleaning up rules and routes...");
-            let subnets = self.active_masqueraded_subnets.clone();
-            for (subnet, iface) in subnets {
+            while let Some((subnet, iface)) = self.active_masqueraded_subnets.pop() {
                 let _ = self.teardown_subnet_masquerade(subnet, &iface);
             }
             let _ = self.teardown_policy_rules();

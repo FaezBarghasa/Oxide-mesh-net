@@ -7081,6 +7081,7 @@ dependencies = [
  "blake3",
  "bytes 1.12.1",
  "clap",
+ "ipnet",
  "oxide-acl",
  "oxide-core",
  "oxide-crypto",
@@ -7101,6 +7102,7 @@ dependencies = [
 name = "oxide-dns"
 version = "0.1.0"
 dependencies = [
+ "dashmap",
  "oxide-core",
  "serde",
  "thiserror 2.0.21",
@@ -7138,6 +7140,7 @@ dependencies = [
  "cfg-if 1.0.5",
  "criterion",
  "crossbeam",
+ "dashmap",
  "oxide-core",
  "oxide-crypto",
  "oxide-protocol",

@@ -2,11 +2,9 @@
 
 use dashmap::DashMap;
 use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::Arc,
 };
-use tokio::net::UdpSocket;
-use tracing::{debug, error, info, warn};
 
 /// MagicDNS server configuration
 #[derive(Debug, Clone)]
