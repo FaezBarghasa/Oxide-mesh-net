@@ -4,8 +4,7 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
-use tracing::{debug, error, info, warn};
+use tokio::net::TcpStream;
 
 /// SOCKS5 protocol constants (RFC 1928)
 pub const SOCKS5_VERSION: u8 = 0x05;
@@ -233,6 +232,10 @@ impl UserspaceNetstackServer {
         };
 
         stats.active_connections.fetch_sub(1, Ordering::Relaxed);
+    }
+
+    pub fn config(&self) -> &NetstackConfig {
+        &self.config
     }
 
     pub fn stats(&self) -> &Arc<NetstackStats> {

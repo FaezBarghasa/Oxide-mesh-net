@@ -4,10 +4,10 @@ use ipnet::Ipv4Net;
 use oxide_daemon::platform::{PolicyRoutingConfig, PolicyRoutingManager};
 use oxide_daemon::services::funnel::{FunnelService, ServeRule, ServiceProtocol};
 use oxide_daemon::services::netstack::{
-    NetstackConfig, TargetAddress, UserspaceNetstackServer, SOCKS5_ATYP_DOMAIN, SOCKS5_ATYP_IPV4,
-    SOCKS5_AUTH_NONE, SOCKS5_CMD_CONNECT, SOCKS5_VERSION,
+    TargetAddress, UserspaceNetstackServer, SOCKS5_ATYP_DOMAIN, SOCKS5_AUTH_NONE,
+    SOCKS5_CMD_CONNECT, SOCKS5_VERSION,
 };
-use std::net::{Ipv4Addr, SocketAddr};
+use std::net::Ipv4Addr;
 use std::str::FromStr;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};

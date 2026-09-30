@@ -30,6 +30,10 @@ impl UpnpClient {
         Self { config }
     }
 
+    pub fn config(&self) -> &UpnpConfig {
+        &self.config
+    }
+
     /// Build SSDP M-SEARCH discovery packet for IGD
     pub fn build_ssdp_discover_payload() -> &'static str {
         "M-SEARCH * HTTP/1.1\r\n\

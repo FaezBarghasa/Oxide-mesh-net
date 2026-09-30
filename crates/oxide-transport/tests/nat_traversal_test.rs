@@ -1,9 +1,7 @@
 //! Integration tests for STUN, UPnP, and Magicsock NAT traversal in oxide-transport
 
 use oxide_core::types::NodeId;
-use oxide_transport::nat::{
-    EndpointCandidate, MagicsockEngine, NatType, PathType, StunClient, UpnpClient,
-};
+use oxide_transport::nat::{MagicsockEngine, PathType, StunClient};
 use std::net::{Ipv4Addr, SocketAddr};
 use std::time::Duration;
 

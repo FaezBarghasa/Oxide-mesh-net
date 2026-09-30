@@ -120,6 +120,18 @@ impl MagicsockEngine {
     pub fn set_detected_nat_type(&mut self, nat_type: NatType) {
         self.detected_nat_type = nat_type;
     }
+
+    pub fn stun_client(&self) -> &StunClient {
+        &self.stun_client
+    }
+
+    pub fn upnp_client(&self) -> &UpnpClient {
+        &self.upnp_client
+    }
+
+    pub fn local_candidates(&self) -> &[SocketAddr] {
+        &self.local_candidates
+    }
 }
 
 #[cfg(test)]

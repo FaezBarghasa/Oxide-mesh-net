@@ -4,7 +4,7 @@ use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
-use tracing::{debug, error, info, warn};
+use tracing::info;
 
 /// ACME Certificate Status
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -37,6 +37,10 @@ impl AcmeManager {
             certificates: Arc::new(DashMap::new()),
             acme_directory_url,
         }
+    }
+
+    pub fn acme_directory_url(&self) -> &str {
+        &self.acme_directory_url
     }
 
     /// Issue or renew certificate for domain

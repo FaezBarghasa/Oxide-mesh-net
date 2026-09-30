@@ -282,7 +282,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("  * Fallback Relays:      3 DERP Nodes / 1 WSS Edge Online");
         }
         Commands::Ip { ipv4_only, ipv6_only } => {
-            let status = client.status().await?;
+            let _status = client.status().await?;
             if ipv4_only {
                 println!("100.64.0.42");
             } else if ipv6_only {
