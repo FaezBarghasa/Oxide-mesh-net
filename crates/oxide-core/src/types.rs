@@ -199,10 +199,16 @@ impl OverlayPrefix {
     pub fn contains(&self, ip: OverlayIp) -> bool {
         match (self.addr, ip) {
             (OverlayIp::V4(base), OverlayIp::V4(target)) => {
+                if self.prefix_len == 0 {
+                    return true;
+                }
                 let mask = !0u32 << (32 - self.prefix_len);
                 u32::from(base) & mask == u32::from(target) & mask
             }
             (OverlayIp::V6(base), OverlayIp::V6(target)) => {
+                if self.prefix_len == 0 {
+                    return true;
+                }
                 let base_bytes = base.octets();
                 let target_bytes = target.octets();
                 let full_bytes = self.prefix_len / 8;
@@ -359,5 +365,21 @@ impl TryFrom<u8> for PacketType {
             0x32 => Ok(Self::HttpProxy),
             _ => Err(()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_overlay_prefix_contains_default_route_no_panic() {
+        let v4_default = OverlayPrefix::new(OverlayIp::default_v4(), 0).unwrap();
+        let target_v4 = OverlayIp::V4(std::net::Ipv4Addr::new(192, 168, 1, 100));
+        assert!(v4_default.contains(target_v4));
+
+        let v6_default = OverlayPrefix::new(OverlayIp::default_v6(), 0).unwrap();
+        let target_v6 = OverlayIp::V6(std::net::Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 1));
+        assert!(v6_default.contains(target_v6));
     }
 }

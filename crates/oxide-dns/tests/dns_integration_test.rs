@@ -60,10 +60,7 @@ fn test_magic_dns_query_and_reverse_ptr_resolution() {
         Some(node_ip)
     );
     // Forward AAAA query
-    assert_eq!(
-        server.lookup_aaaa("frankfurt-gateway.mesh.oxide"),
-        node_v6
-    );
+    assert_eq!(server.lookup_aaaa("frankfurt-gateway.mesh.oxide"), node_v6);
 
     // Reverse PTR query
     assert_eq!(

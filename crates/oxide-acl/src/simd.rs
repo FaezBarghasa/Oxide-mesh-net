@@ -47,9 +47,9 @@ impl SimdBitmask256 {
 pub struct SimdCompiledMatrix {
     pub allow_mask: SimdBitmask256,
     pub deny_mask: SimdBitmask256,
+    pub requires_identity: bool,
     pub protocol_filter: u64,
-    pub dst_port_min: u16,
-    pub dst_port_max: u16,
+    pub dst_ports: Vec<(u16, u16)>,
 }
 
 /// SIMD ACL Evaluator
@@ -79,11 +79,15 @@ impl SimdEvaluator {
                 AclAction::Log => &mut allow_mask,
             };
 
-            // Set corresponding identity/tag bits (first 64-bits mapped from fingerprints)
-            if !rule.src_identities.is_empty() {
+            let requires_identity = !rule.src_identities.is_empty();
+            if requires_identity {
                 for id in &rule.src_identities {
                     let bytes = id.as_bytes();
-                    let bit_idx = (bytes[0] as usize) % 256;
+                    let hash_val = u64::from_le_bytes(bytes[0..8].try_into().unwrap_or_default())
+                        ^ u64::from_le_bytes(bytes[8..16].try_into().unwrap_or_default())
+                        ^ u64::from_le_bytes(bytes[16..24].try_into().unwrap_or_default())
+                        ^ u64::from_le_bytes(bytes[24..32].try_into().unwrap_or_default());
+                    let bit_idx = (hash_val % 256) as usize;
                     let word_idx = bit_idx / 64;
                     let bit_pos = bit_idx % 64;
                     target_mask.words[word_idx] |= 1u64 << bit_pos;
@@ -104,18 +108,18 @@ impl SimdEvaluator {
                 proto_filter = u64::MAX;
             }
 
-            let (dst_port_min, dst_port_max) = if let Some(first_range) = rule.dst_ports.first() {
-                (first_range.start, first_range.end)
+            let dst_ports = if !rule.dst_ports.is_empty() {
+                rule.dst_ports.iter().map(|r| (r.start, r.end)).collect()
             } else {
-                (0, 65535)
+                vec![(0, 65535)]
             };
 
             self.matrices.push(SimdCompiledMatrix {
                 allow_mask,
                 deny_mask,
+                requires_identity,
                 protocol_filter: proto_filter,
-                dst_port_min,
-                dst_port_max,
+                dst_ports,
             });
         }
     }
@@ -127,16 +131,21 @@ impl SimdEvaluator {
             return None;
         }
 
-        let mut pkt_mask = SimdBitmask256::default();
-        if let Some(id) = meta.src_identity {
+        let pkt_identity_mask = if let Some(id) = meta.src_identity {
             let bytes = id.as_bytes();
-            let bit_idx = (bytes[0] as usize) % 256;
+            let hash_val = u64::from_le_bytes(bytes[0..8].try_into().unwrap_or_default())
+                ^ u64::from_le_bytes(bytes[8..16].try_into().unwrap_or_default())
+                ^ u64::from_le_bytes(bytes[16..24].try_into().unwrap_or_default())
+                ^ u64::from_le_bytes(bytes[24..32].try_into().unwrap_or_default());
+            let bit_idx = (hash_val % 256) as usize;
             let word_idx = bit_idx / 64;
             let bit_pos = bit_idx % 64;
-            pkt_mask.words[word_idx] |= 1u64 << bit_pos;
+            let mut mask = SimdBitmask256::default();
+            mask.words[word_idx] |= 1u64 << bit_pos;
+            Some(mask)
         } else {
-            pkt_mask.words = [u64::MAX; 4];
-        }
+            None
+        };
 
         let proto_bit = match meta.protocol {
             Protocol::Tcp => 1u64 << 6,
@@ -150,14 +159,25 @@ impl SimdEvaluator {
             if (matrix.protocol_filter & proto_bit) == 0 {
                 continue;
             }
-            if meta.dst_port < matrix.dst_port_min || meta.dst_port > matrix.dst_port_max {
+            if !matrix
+                .dst_ports
+                .iter()
+                .any(|&(min, max)| meta.dst_port >= min && meta.dst_port <= max)
+            {
+                continue;
+            }
+            if matrix.requires_identity && pkt_identity_mask.is_none() {
                 continue;
             }
 
-            if matrix.deny_mask.intersects(&pkt_mask) {
+            let test_mask = pkt_identity_mask.unwrap_or(SimdBitmask256 {
+                words: [u64::MAX; 4],
+            });
+
+            if matrix.deny_mask.intersects(&test_mask) {
                 return Some(AclResult::Deny);
             }
-            if matrix.allow_mask.intersects(&pkt_mask) {
+            if matrix.allow_mask.intersects(&test_mask) {
                 return Some(AclResult::Allow);
             }
         }
@@ -178,5 +198,53 @@ mod tests {
 
         assert!(mask1.intersects(&mask2));
         assert!(!mask1.intersects(&mask3));
+    }
+
+    #[test]
+    fn test_unauthenticated_packet_cannot_bypass_identity_rule() {
+        use smallvec::smallvec;
+        let mut evaluator = SimdEvaluator::new().unwrap();
+        let allowed_key = oxide_crypto::DeviceIdentityKey::generate();
+        let rule = AclRule {
+            id: oxide_core::types::NodeId::new().to_string(),
+            action: AclAction::Allow,
+            direction: crate::rules::AclDirection::Both,
+            priority: 100,
+            log: false,
+            src_prefixes: smallvec![],
+            dst_prefixes: smallvec![],
+            src_identities: smallvec![allowed_key.public_key().fingerprint()],
+            dst_ports: smallvec![crate::rules::PortRange::new(80, 80).unwrap()],
+            src_ports: smallvec![],
+            protocols: smallvec![Protocol::Tcp],
+            compiled: None,
+        };
+        evaluator.compile_rules(std::slice::from_ref(&rule));
+
+        // Unauthenticated packet -> must NOT be allowed
+        let unauth_meta = PacketMeta {
+            src_ip: oxide_core::OverlayIp::default_v4(),
+            dst_ip: oxide_core::OverlayIp::default_v4(),
+            src_identity: None,
+            protocol: Protocol::Tcp,
+            src_port: 12345,
+            dst_port: 80,
+            direction: crate::rules::AclDirection::Ingress,
+        };
+        let result = evaluator.evaluate_batch(std::slice::from_ref(&rule), &unauth_meta);
+        assert_eq!(result, None);
+
+        // Authenticated packet with matching key -> allowed
+        let auth_meta = PacketMeta {
+            src_ip: oxide_core::OverlayIp::default_v4(),
+            dst_ip: oxide_core::OverlayIp::default_v4(),
+            src_identity: Some(allowed_key.public_key().fingerprint()),
+            protocol: Protocol::Tcp,
+            src_port: 12345,
+            dst_port: 80,
+            direction: crate::rules::AclDirection::Ingress,
+        };
+        let result = evaluator.evaluate_batch(&[rule], &auth_meta);
+        assert_eq!(result, Some(AclResult::Allow));
     }
 }

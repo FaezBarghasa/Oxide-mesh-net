@@ -3,5 +3,5 @@
 pub mod linux_routing;
 
 pub use linux_routing::{
-    PolicyRoutingConfig, PolicyRoutingManager, DEFAULT_FWMARK, DEFAULT_ROUTING_TABLE,
+    DEFAULT_FWMARK, DEFAULT_ROUTING_TABLE, PolicyRoutingConfig, PolicyRoutingManager,
 };

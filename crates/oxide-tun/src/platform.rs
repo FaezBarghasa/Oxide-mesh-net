@@ -92,6 +92,9 @@ pub fn create_tun(config: &TunConfig) -> Result<Box<dyn TunDevice>> {
 
 /// Async wrapper for raw file descriptor
 pub struct AsyncFd {
+    #[cfg(unix)]
+    inner: tokio::io::unix::AsyncFd<OwnedFd>,
+    #[cfg(not(unix))]
     fd: OwnedFd,
     queue_id: usize,
     stats: QueueStats,
@@ -101,10 +104,30 @@ unsafe impl Sync for AsyncFd {}
 
 impl AsyncFd {
     pub fn new(fd: RawFd, queue_id: usize) -> Self {
-        Self {
-            fd: unsafe { OwnedFd::from_raw_fd(fd) },
-            queue_id,
-            stats: QueueStats::default(),
+        let owned = unsafe { OwnedFd::from_raw_fd(fd) };
+        #[cfg(unix)]
+        {
+            let flags = unsafe { libc::fcntl(owned.as_raw_fd(), libc::F_GETFL) };
+            if flags >= 0 {
+                let _ = unsafe {
+                    libc::fcntl(owned.as_raw_fd(), libc::F_SETFL, flags | libc::O_NONBLOCK)
+                };
+            }
+            let inner = tokio::io::unix::AsyncFd::new(owned)
+                .expect("failed to register fd with tokio reactor");
+            Self {
+                inner,
+                queue_id,
+                stats: QueueStats::default(),
+            }
+        }
+        #[cfg(not(unix))]
+        {
+            Self {
+                fd: owned,
+                queue_id,
+                stats: QueueStats::default(),
+            }
         }
     }
 }
@@ -112,28 +135,56 @@ impl AsyncFd {
 impl AsyncRead for AsyncFd {
     fn poll_read(
         mut self: std::pin::Pin<&mut Self>,
-        _cx: &mut Context<'_>,
+        cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        let fd = self.fd.as_raw_fd();
-        let buf_slice = buf.initialize_unfilled();
+        #[cfg(unix)]
+        {
+            let mut guard = match self.inner.poll_read_ready(cx) {
+                Poll::Ready(Ok(guard)) => guard,
+                Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+                Poll::Pending => return Poll::Pending,
+            };
 
-        let ret = unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) };
-        if ret > 0 {
-            buf.advance(ret as usize);
-            self.stats.packets_rx += 1;
-            self.stats.bytes_rx += ret as u64;
-            Poll::Ready(Ok(()))
-        } else if ret == 0 {
-            Poll::Ready(Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF")))
-        } else {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::WouldBlock {
-                Poll::Pending
-            } else {
-                self.stats.errors_rx += 1;
-                Poll::Ready(Err(err))
+            let buf_slice = buf.initialize_unfilled();
+            let res = guard.try_io(|inner| {
+                let ret = unsafe {
+                    libc::read(
+                        inner.as_raw_fd(),
+                        buf_slice.as_mut_ptr() as *mut _,
+                        buf_slice.len(),
+                    )
+                };
+                if ret > 0 {
+                    Ok(ret as usize)
+                } else if ret == 0 {
+                    Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF"))
+                } else {
+                    Err(io::Error::last_os_error())
+                }
+            });
+
+            match res {
+                Ok(Ok(n)) => {
+                    buf.advance(n);
+                    self.stats.packets_rx += 1;
+                    self.stats.bytes_rx += n as u64;
+                    Poll::Ready(Ok(()))
+                }
+                Ok(Err(e)) => {
+                    self.stats.errors_rx += 1;
+                    Poll::Ready(Err(e))
+                }
+                Err(_would_block) => Poll::Pending,
             }
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = (cx, buf);
+            Poll::Ready(Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "unsupported",
+            )))
         }
     }
 }
@@ -141,25 +192,49 @@ impl AsyncRead for AsyncFd {
 impl AsyncWrite for AsyncFd {
     fn poll_write(
         mut self: std::pin::Pin<&mut Self>,
-        _cx: &mut Context<'_>,
+        cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<io::Result<usize>> {
-        let fd = self.fd.as_raw_fd();
-        let ret = unsafe { libc::write(fd, buf.as_ptr() as *const _, buf.len()) };
-        if ret > 0 {
-            self.stats.packets_tx += 1;
-            self.stats.bytes_tx += ret as u64;
-            Poll::Ready(Ok(ret as usize))
-        } else if ret == 0 {
-            Poll::Ready(Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero")))
-        } else {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::WouldBlock {
-                Poll::Pending
-            } else {
-                self.stats.errors_tx += 1;
-                Poll::Ready(Err(err))
+        #[cfg(unix)]
+        {
+            let mut guard = match self.inner.poll_write_ready(cx) {
+                Poll::Ready(Ok(guard)) => guard,
+                Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+                Poll::Pending => return Poll::Pending,
+            };
+
+            let res = guard.try_io(|inner| {
+                let ret =
+                    unsafe { libc::write(inner.as_raw_fd(), buf.as_ptr() as *const _, buf.len()) };
+                if ret > 0 {
+                    Ok(ret as usize)
+                } else if ret == 0 {
+                    Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero"))
+                } else {
+                    Err(io::Error::last_os_error())
+                }
+            });
+
+            match res {
+                Ok(Ok(n)) => {
+                    self.stats.packets_tx += 1;
+                    self.stats.bytes_tx += n as u64;
+                    Poll::Ready(Ok(n))
+                }
+                Ok(Err(e)) => {
+                    self.stats.errors_tx += 1;
+                    Poll::Ready(Err(e))
+                }
+                Err(_would_block) => Poll::Pending,
             }
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = (cx, buf);
+            Poll::Ready(Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "unsupported",
+            )))
         }
     }
 
@@ -181,14 +256,21 @@ impl TunQueue for AsyncFd {
     }
 
     fn as_raw_fd(&self) -> RawFd {
-        self.fd.as_raw_fd()
+        #[cfg(unix)]
+        {
+            self.inner.as_raw_fd()
+        }
+        #[cfg(not(unix))]
+        {
+            self.fd.as_raw_fd()
+        }
     }
 
     fn set_nonblocking(&self, nonblocking: bool) -> Result<()> {
         #[cfg(target_os = "linux")]
         {
-            use std::os::fd::AsRawFd;
-            let flags = unsafe { libc::fcntl(self.fd.as_raw_fd(), libc::F_GETFL) };
+            let raw_fd = self.as_raw_fd();
+            let flags = unsafe { libc::fcntl(raw_fd, libc::F_GETFL) };
             if flags < 0 {
                 return Err(TunError::Io(io::Error::last_os_error()));
             }
@@ -197,7 +279,7 @@ impl TunQueue for AsyncFd {
             } else {
                 flags & !libc::O_NONBLOCK
             };
-            let ret = unsafe { libc::fcntl(self.fd.as_raw_fd(), libc::F_SETFL, flags) };
+            let ret = unsafe { libc::fcntl(raw_fd, libc::F_SETFL, flags) };
             if ret < 0 {
                 return Err(TunError::Io(io::Error::last_os_error()));
             }

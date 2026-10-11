@@ -17,6 +17,7 @@ pub enum IpcRequest {
     Peers,
     AclReload { rules_json: Option<String> },
     Ping,
+    Netcheck,
 }
 
 /// Response messages returned from Daemon to CLI
@@ -28,6 +29,7 @@ pub enum IpcResponse {
     Success { message: String },
     Error { error: String },
     Pong,
+    Netcheck(NetcheckDto),
 }
 
 /// High-level daemon status DTO
@@ -44,6 +46,20 @@ pub struct DaemonStatusDto {
     pub dns_active: bool,
     pub mss_clamping_active: bool,
     pub uptime_secs: u64,
+    pub overlay_ipv4: String,
+    pub overlay_ipv6: String,
+}
+
+/// NAT traversal & netcheck diagnostic DTO
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct NetcheckDto {
+    pub udp_working: bool,
+    pub stun_reflexive_addr: Option<String>,
+    pub nat_type: String,
+    pub upnp_active: bool,
+    pub ipv6_available: bool,
+    pub optimal_latency_ms: Option<f64>,
+    pub relay_count: usize,
 }
 
 /// Routing entry DTO

@@ -58,8 +58,14 @@ impl SystemdResolvedController {
         );
 
         if self.config.dry_run {
-            debug!("[DRY-RUN] resolvectl dns {} {:?}", self.config.interface, self.config.dns_servers);
-            debug!("[DRY-RUN] resolvectl domain {} {:?}", self.config.interface, self.config.routing_domains);
+            debug!(
+                "[DRY-RUN] resolvectl dns {} {:?}",
+                self.config.interface, self.config.dns_servers
+            );
+            debug!(
+                "[DRY-RUN] resolvectl domain {} {:?}",
+                self.config.interface, self.config.routing_domains
+            );
             self.is_applied = true;
             return Ok(());
         }
@@ -113,7 +119,10 @@ impl SystemdResolvedController {
             return Ok(());
         }
 
-        info!("Reverting systemd-resolved DNS settings for interface {}...", self.config.interface);
+        info!(
+            "Reverting systemd-resolved DNS settings for interface {}...",
+            self.config.interface
+        );
         if self.config.dry_run {
             debug!("[DRY-RUN] resolvectl revert {}", self.config.interface);
             self.is_applied = false;

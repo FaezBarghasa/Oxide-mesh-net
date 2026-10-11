@@ -100,4 +100,13 @@ impl IpcClient {
             _ => Ok(false),
         }
     }
+
+    /// Perform network diagnostic and NAT check
+    pub async fn netcheck(&mut self) -> Result<super::protocol::NetcheckDto, std::io::Error> {
+        match self.send(&IpcRequest::Netcheck).await? {
+            IpcResponse::Netcheck(dto) => Ok(dto),
+            IpcResponse::Error { error } => Err(Error::other(error)),
+            _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
+        }
+    }
 }

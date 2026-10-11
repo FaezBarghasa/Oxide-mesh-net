@@ -7111,6 +7111,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "oxide-ffi"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "oxide-acl",
+ "oxide-core",
+ "oxide-daemon",
+ "oxide-protocol",
+ "oxide-transport",
+ "serde",
+ "serde_json",
+ "tokio 1.53.1",
+ "tracing",
+]
+
+[[package]]
 name = "oxide-protocol"
 version = "0.1.0"
 dependencies = [

@@ -1,8 +1,8 @@
 //! Rootless userspace SOCKS5 & HTTP CONNECT network proxy engine
 
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
@@ -99,9 +99,7 @@ impl UserspaceNetstackServer {
     }
 
     /// Parse SOCKS5 connection request and extract target destination
-    pub async fn handle_socks5_request(
-        stream: &mut TcpStream,
-    ) -> Result<TargetAddress, String> {
+    pub async fn handle_socks5_request(stream: &mut TcpStream) -> Result<TargetAddress, String> {
         let mut req_header = [0u8; 4];
         stream
             .read_exact(&mut req_header)

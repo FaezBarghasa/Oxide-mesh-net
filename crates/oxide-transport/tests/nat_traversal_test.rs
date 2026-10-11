@@ -7,7 +7,9 @@ use std::time::Duration;
 
 #[test]
 fn test_stun_packet_roundtrip_and_xor_mapping() {
-    let tx_id = [0xAA, 0xBB, 0xCC, 0xDD, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88];
+    let tx_id = [
+        0xAA, 0xBB, 0xCC, 0xDD, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+    ];
     let req = StunClient::build_binding_request(&tx_id);
     assert_eq!(req.len(), 20);
 
@@ -48,22 +50,42 @@ fn test_magicsock_multi_path_candidate_migration() {
     let lan_ep: SocketAddr = "192.168.1.150:51820".parse().unwrap();
 
     // 1. Initial connection via Relay
-    engine.add_peer_candidate(peer_id, relay_ep, PathType::RelayedDerp, Some(Duration::from_millis(60)));
+    engine.add_peer_candidate(
+        peer_id,
+        relay_ep,
+        PathType::RelayedDerp,
+        Some(Duration::from_millis(60)),
+    );
     let p = engine.get_active_path(&peer_id).unwrap();
     assert_eq!(p.path_type, PathType::RelayedDerp);
 
     // 2. STUN endpoint discovered -> should migrate to STUN P2P
-    engine.add_peer_candidate(peer_id, stun_ep, PathType::DirectStunP2P, Some(Duration::from_millis(35)));
+    engine.add_peer_candidate(
+        peer_id,
+        stun_ep,
+        PathType::DirectStunP2P,
+        Some(Duration::from_millis(35)),
+    );
     let p = engine.get_active_path(&peer_id).unwrap();
     assert_eq!(p.path_type, PathType::DirectStunP2P);
 
     // 3. UPnP port forward active -> should migrate to UPnP P2P
-    engine.add_peer_candidate(peer_id, upnp_ep, PathType::DirectUpnpP2P, Some(Duration::from_millis(30)));
+    engine.add_peer_candidate(
+        peer_id,
+        upnp_ep,
+        PathType::DirectUpnpP2P,
+        Some(Duration::from_millis(30)),
+    );
     let p = engine.get_active_path(&peer_id).unwrap();
     assert_eq!(p.path_type, PathType::DirectUpnpP2P);
 
     // 4. Same LAN detected -> should migrate to Local LAN (highest priority)
-    engine.add_peer_candidate(peer_id, lan_ep, PathType::DirectLocalLan, Some(Duration::from_millis(1)));
+    engine.add_peer_candidate(
+        peer_id,
+        lan_ep,
+        PathType::DirectLocalLan,
+        Some(Duration::from_millis(1)),
+    );
     let p = engine.get_active_path(&peer_id).unwrap();
     assert_eq!(p.path_type, PathType::DirectLocalLan);
     assert_eq!(p.addr, lan_ep);

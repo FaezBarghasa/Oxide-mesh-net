@@ -4,8 +4,8 @@ use ipnet::Ipv4Net;
 use oxide_daemon::platform::{PolicyRoutingConfig, PolicyRoutingManager};
 use oxide_daemon::services::funnel::{FunnelService, ServeRule, ServiceProtocol};
 use oxide_daemon::services::netstack::{
-    TargetAddress, UserspaceNetstackServer, SOCKS5_ATYP_DOMAIN, SOCKS5_AUTH_NONE,
-    SOCKS5_CMD_CONNECT, SOCKS5_VERSION,
+    SOCKS5_ATYP_DOMAIN, SOCKS5_AUTH_NONE, SOCKS5_CMD_CONNECT, SOCKS5_VERSION, TargetAddress,
+    UserspaceNetstackServer,
 };
 use std::net::Ipv4Addr;
 use std::str::FromStr;
@@ -73,7 +73,10 @@ async fn test_userspace_socks5_greeting_and_request_parsing() {
     let mut client = TcpStream::connect(server_addr).await.unwrap();
 
     // 1. Send SOCKS5 Greeting (Version 5, 1 Method, Method 0 = No Auth)
-    client.write_all(&[SOCKS5_VERSION, 1, SOCKS5_AUTH_NONE]).await.unwrap();
+    client
+        .write_all(&[SOCKS5_VERSION, 1, SOCKS5_AUTH_NONE])
+        .await
+        .unwrap();
     let mut greeting_resp = [0u8; 2];
     client.read_exact(&mut greeting_resp).await.unwrap();
     assert_eq!(greeting_resp, [SOCKS5_VERSION, SOCKS5_AUTH_NONE]);

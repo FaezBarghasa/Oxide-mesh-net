@@ -19,10 +19,7 @@ impl Default for MagicDnsConfig {
         Self {
             bind_addr: "127.0.0.1:5353".parse().unwrap(),
             mesh_domain: "mesh.oxide".to_string(),
-            upstream_dns: vec![
-                "1.1.1.1:53".parse().unwrap(),
-                "8.8.8.8:53".parse().unwrap(),
-            ],
+            upstream_dns: vec!["1.1.1.1:53".parse().unwrap(), "8.8.8.8:53".parse().unwrap()],
         }
     }
 }

@@ -308,7 +308,7 @@ impl TunDevice for LinuxTunDevice {
 
 /// Linux TUN queue
 pub struct LinuxTunQueue {
-    fd: OwnedFd,
+    async_fd: tokio::io::unix::AsyncFd<OwnedFd>,
     queue_id: usize,
     stats: QueueStats,
 }
@@ -318,8 +318,15 @@ unsafe impl Send for LinuxTunQueue {}
 
 impl Clone for LinuxTunQueue {
     fn clone(&self) -> Self {
+        let cloned_fd = self
+            .async_fd
+            .get_ref()
+            .try_clone()
+            .expect("failed to clone Linux TUN fd");
+        let async_fd = tokio::io::unix::AsyncFd::new(cloned_fd)
+            .expect("failed to register cloned fd with tokio reactor");
         Self {
-            fd: self.fd.try_clone().expect("failed to clone Linux TUN fd"),
+            async_fd,
             queue_id: self.queue_id,
             stats: self.stats.clone(),
         }
@@ -328,27 +335,23 @@ impl Clone for LinuxTunQueue {
 
 impl LinuxTunQueue {
     pub fn new(fd: OwnedFd, queue_id: usize) -> Result<Self> {
-        let queue = Self {
-            fd,
-            queue_id,
-            stats: QueueStats::default(),
-        };
         // Set non-blocking
-        let flags = unsafe { libc::fcntl(queue.fd.as_raw_fd(), libc::F_GETFL) };
+        let flags = unsafe { libc::fcntl(fd.as_raw_fd(), libc::F_GETFL) };
         if flags < 0 {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
-        let ret = unsafe {
-            libc::fcntl(
-                queue.fd.as_raw_fd(),
-                libc::F_SETFL,
-                flags | libc::O_NONBLOCK,
-            )
-        };
+        let ret = unsafe { libc::fcntl(fd.as_raw_fd(), libc::F_SETFL, flags | libc::O_NONBLOCK) };
         if ret < 0 {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
-        Ok(queue)
+
+        let async_fd = tokio::io::unix::AsyncFd::new(fd).map_err(TunError::Io)?;
+
+        Ok(Self {
+            async_fd,
+            queue_id,
+            stats: QueueStats::default(),
+        })
     }
 }
 
@@ -358,11 +361,11 @@ impl TunQueue for LinuxTunQueue {
     }
 
     fn as_raw_fd(&self) -> RawFd {
-        self.fd.as_raw_fd()
+        self.async_fd.as_raw_fd()
     }
 
     fn set_nonblocking(&self, nonblocking: bool) -> Result<()> {
-        let flags = unsafe { libc::fcntl(self.fd.as_raw_fd(), libc::F_GETFL) };
+        let flags = unsafe { libc::fcntl(self.async_fd.as_raw_fd(), libc::F_GETFL) };
         if flags < 0 {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
@@ -371,7 +374,7 @@ impl TunQueue for LinuxTunQueue {
         } else {
             flags & !libc::O_NONBLOCK
         };
-        let ret = unsafe { libc::fcntl(self.fd.as_raw_fd(), libc::F_SETFL, flags) };
+        let ret = unsafe { libc::fcntl(self.async_fd.as_raw_fd(), libc::F_SETFL, flags) };
         if ret < 0 {
             return Err(TunError::Io(std::io::Error::last_os_error()));
         }
@@ -386,28 +389,45 @@ impl TunQueue for LinuxTunQueue {
 impl AsyncRead for LinuxTunQueue {
     fn poll_read(
         mut self: std::pin::Pin<&mut Self>,
-        _cx: &mut Context<'_>,
+        cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        let fd = self.fd.as_raw_fd();
-        let buf_slice = buf.initialize_unfilled();
+        let mut guard = match self.async_fd.poll_read_ready(cx) {
+            Poll::Ready(Ok(guard)) => guard,
+            Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+            Poll::Pending => return Poll::Pending,
+        };
 
-        let ret = unsafe { libc::read(fd, buf_slice.as_mut_ptr() as *mut _, buf_slice.len()) };
-        if ret > 0 {
-            buf.advance(ret as usize);
-            self.stats.packets_rx += 1;
-            self.stats.bytes_rx += ret as u64;
-            Poll::Ready(Ok(()))
-        } else if ret == 0 {
-            Poll::Ready(Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF")))
-        } else {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::WouldBlock {
-                Poll::Pending
+        let buf_slice = buf.initialize_unfilled();
+        let res = guard.try_io(|inner| {
+            let ret = unsafe {
+                libc::read(
+                    inner.as_raw_fd(),
+                    buf_slice.as_mut_ptr() as *mut _,
+                    buf_slice.len(),
+                )
+            };
+            if ret > 0 {
+                Ok(ret as usize)
+            } else if ret == 0 {
+                Err(io::Error::new(io::ErrorKind::UnexpectedEof, "EOF"))
             } else {
-                self.stats.errors_rx += 1;
-                Poll::Ready(Err(err))
+                Err(io::Error::last_os_error())
             }
+        });
+
+        match res {
+            Ok(Ok(n)) => {
+                buf.advance(n);
+                self.stats.packets_rx += 1;
+                self.stats.bytes_rx += n as u64;
+                Poll::Ready(Ok(()))
+            }
+            Ok(Err(e)) => {
+                self.stats.errors_rx += 1;
+                Poll::Ready(Err(e))
+            }
+            Err(_would_block) => Poll::Pending,
         }
     }
 }
@@ -415,25 +435,38 @@ impl AsyncRead for LinuxTunQueue {
 impl AsyncWrite for LinuxTunQueue {
     fn poll_write(
         mut self: std::pin::Pin<&mut Self>,
-        _cx: &mut Context<'_>,
+        cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<io::Result<usize>> {
-        let fd = self.fd.as_raw_fd();
-        let ret = unsafe { libc::write(fd, buf.as_ptr() as *const _, buf.len()) };
-        if ret > 0 {
-            self.stats.packets_tx += 1;
-            self.stats.bytes_tx += ret as u64;
-            Poll::Ready(Ok(ret as usize))
-        } else if ret == 0 {
-            Poll::Ready(Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero")))
-        } else {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::WouldBlock {
-                Poll::Pending
+        let mut guard = match self.async_fd.poll_write_ready(cx) {
+            Poll::Ready(Ok(guard)) => guard,
+            Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+            Poll::Pending => return Poll::Pending,
+        };
+
+        let res = guard.try_io(|inner| {
+            let ret =
+                unsafe { libc::write(inner.as_raw_fd(), buf.as_ptr() as *const _, buf.len()) };
+            if ret > 0 {
+                Ok(ret as usize)
+            } else if ret == 0 {
+                Err(io::Error::new(io::ErrorKind::WriteZero, "Write zero"))
             } else {
-                self.stats.errors_tx += 1;
-                Poll::Ready(Err(err))
+                Err(io::Error::last_os_error())
             }
+        });
+
+        match res {
+            Ok(Ok(n)) => {
+                self.stats.packets_tx += 1;
+                self.stats.bytes_tx += n as u64;
+                Poll::Ready(Ok(n))
+            }
+            Ok(Err(e)) => {
+                self.stats.errors_tx += 1;
+                Poll::Ready(Err(e))
+            }
+            Err(_would_block) => Poll::Pending,
         }
     }
 

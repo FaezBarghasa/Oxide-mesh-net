@@ -2,8 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
-use std::sync::atomic::AtomicU64;
 use std::sync::Arc;
+use std::sync::atomic::AtomicU64;
 use tracing::info;
 
 /// Service protocol type
@@ -117,7 +117,10 @@ mod tests {
 
         let found = service.find_by_alias("api.mesh.oxide").unwrap();
         assert_eq!(found.service_name, "dev-api");
-        assert_eq!(found.local_target, "127.0.0.1:8080".parse::<SocketAddr>().unwrap());
+        assert_eq!(
+            found.local_target,
+            "127.0.0.1:8080".parse::<SocketAddr>().unwrap()
+        );
         assert!(found.allow_funnel);
 
         assert!(service.unregister_service("dev-api"));

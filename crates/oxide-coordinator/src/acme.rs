@@ -44,11 +44,7 @@ impl AcmeManager {
     }
 
     /// Issue or renew certificate for domain
-    pub fn issue_certificate(
-        &self,
-        domain: &str,
-        fingerprint_sha256: &str,
-    ) -> ManagedCertificate {
+    pub fn issue_certificate(&self, domain: &str, fingerprint_sha256: &str) -> ManagedCertificate {
         info!("Issuing ACME TLS certificate for domain '{}'...", domain);
         let now = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
@@ -66,13 +62,16 @@ impl AcmeManager {
             fingerprint_sha256: fingerprint_sha256.to_string(),
         };
 
-        self.certificates.insert(domain.to_lowercase(), cert.clone());
+        self.certificates
+            .insert(domain.to_lowercase(), cert.clone());
         cert
     }
 
     /// Get certificate by domain
     pub fn get_certificate(&self, domain: &str) -> Option<ManagedCertificate> {
-        self.certificates.get(&domain.to_lowercase()).map(|c| c.clone())
+        self.certificates
+            .get(&domain.to_lowercase())
+            .map(|c| c.clone())
     }
 
     /// Check if certificate needs renewal (e.g. less than 30 days remaining)

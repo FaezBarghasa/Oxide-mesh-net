@@ -1,0 +1,25 @@
+[package]
+name = "oxide-ffi"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+description = "C-ABI, JNI, and Mobile Foreign Function Interface bindings for oxide-mesh-net"
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+oxide-protocol = { path = "../oxide-protocol" }
+oxide-daemon = { path = "../oxide-daemon" }
+oxide-acl = { path = "../oxide-acl" }
+oxide-transport = { path = "../oxide-transport" }
+tokio = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+libc = "0.2"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

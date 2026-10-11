@@ -76,13 +76,15 @@ impl MagicsockEngine {
             },
         };
 
-        let mut list = self.peer_candidates.entry(node_id).or_default();
-        // Update existing or append
-        if let Some(existing) = list.iter_mut().find(|c| c.addr == addr) {
-            existing.latency = latency;
-            existing.last_seen = Instant::now();
-        } else {
-            list.push(candidate);
+        {
+            let mut list = self.peer_candidates.entry(node_id).or_default();
+            // Update existing or append
+            if let Some(existing) = list.iter_mut().find(|c| c.addr == addr) {
+                existing.latency = latency;
+                existing.last_seen = Instant::now();
+            } else {
+                list.push(candidate);
+            }
         }
 
         // Re-evaluate best path

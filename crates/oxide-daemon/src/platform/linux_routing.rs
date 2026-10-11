@@ -83,17 +83,23 @@ impl PolicyRoutingManager {
 
         // Rule 1: Not fwmark -> lookup table 51820
         let rule1_args = vec![
-            "rule", "add", "not", "fwmark", &fwmark_str, "table", &table_str,
+            "rule",
+            "add",
+            "not",
+            "fwmark",
+            &fwmark_str,
+            "table",
+            &table_str,
         ];
         self.exec_ip(&rule1_args)?;
-        self.applied_rules.push(format!("not fwmark {} table {}", fwmark_str, table_str));
+        self.applied_rules
+            .push(format!("not fwmark {} table {}", fwmark_str, table_str));
 
         // Rule 2: Suppress default prefix in main table to prevent routing blackholes
-        let rule2_args = vec![
-            "rule", "add", "table", "main", "suppress_prefixlength", "0",
-        ];
+        let rule2_args = vec!["rule", "add", "table", "main", "suppress_prefixlength", "0"];
         self.exec_ip(&rule2_args)?;
-        self.applied_rules.push("table main suppress_prefixlength 0".to_string());
+        self.applied_rules
+            .push("table main suppress_prefixlength 0".to_string());
 
         Ok(())
     }
@@ -106,13 +112,17 @@ impl PolicyRoutingManager {
 
         // Delete rule 1
         let _ = self.exec_ip(&[
-            "rule", "del", "not", "fwmark", &fwmark_str, "table", &table_str,
+            "rule",
+            "del",
+            "not",
+            "fwmark",
+            &fwmark_str,
+            "table",
+            &table_str,
         ]);
 
         // Delete rule 2
-        let _ = self.exec_ip(&[
-            "rule", "del", "table", "main", "suppress_prefixlength", "0",
-        ]);
+        let _ = self.exec_ip(&["rule", "del", "table", "main", "suppress_prefixlength", "0"]);
 
         // Flush routing table
         let _ = self.exec_ip(&["route", "flush", "table", &table_str]);
