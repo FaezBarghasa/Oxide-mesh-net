@@ -60,13 +60,16 @@ async fn test_userspace_socks5_greeting_and_request_parsing() {
             .await
             .expect("greeting handling");
         // 2. Handle request
-        let target = UserspaceNetstackServer::handle_socks5_request(&mut stream)
+        let cmd = UserspaceNetstackServer::handle_socks5_request(&mut stream)
             .await
             .expect("request handling");
 
         assert_eq!(
-            target,
-            TargetAddress::Domain("gateway.mesh.oxide".to_string(), 443)
+            cmd,
+            oxide_daemon::services::netstack::Socks5Command::Connect(TargetAddress::Domain(
+                "gateway.mesh.oxide".to_string(),
+                443
+            ))
         );
     });
 
@@ -92,6 +95,63 @@ async fn test_userspace_socks5_greeting_and_request_parsing() {
     ];
     req.extend_from_slice(domain.as_bytes());
     req.extend_from_slice(&443u16.to_be_bytes());
+
+    client.write_all(&req).await.unwrap();
+
+    let mut req_resp = [0u8; 10];
+    client.read_exact(&mut req_resp).await.unwrap();
+    assert_eq!(req_resp[0], SOCKS5_VERSION);
+    assert_eq!(req_resp[1], 0x00); // SUCCESS
+}
+
+#[tokio::test]
+async fn test_userspace_socks5_udp_associate_parsing() {
+    use oxide_daemon::services::netstack::SOCKS5_CMD_UDP_ASSOCIATE;
+
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let server_addr = listener.local_addr().unwrap();
+
+    tokio::spawn(async move {
+        let (mut stream, _) = listener.accept().await.unwrap();
+        UserspaceNetstackServer::handle_socks5_greeting(&mut stream)
+            .await
+            .expect("greeting handling");
+        let cmd = UserspaceNetstackServer::handle_socks5_request(&mut stream)
+            .await
+            .expect("request handling");
+
+        match cmd {
+            oxide_daemon::services::netstack::Socks5Command::UdpAssociate(target) => {
+                assert_eq!(target, TargetAddress::Ip("127.0.0.1:0".parse().unwrap()));
+            }
+            _ => panic!("Expected UdpAssociate command"),
+        }
+    });
+
+    let mut client = TcpStream::connect(server_addr).await.unwrap();
+
+    // 1. Send greeting
+    client
+        .write_all(&[SOCKS5_VERSION, 1, SOCKS5_AUTH_NONE])
+        .await
+        .unwrap();
+    let mut greeting_resp = [0u8; 2];
+    client.read_exact(&mut greeting_resp).await.unwrap();
+    assert_eq!(greeting_resp, [SOCKS5_VERSION, SOCKS5_AUTH_NONE]);
+
+    // 2. Send UDP ASSOCIATE Request for 127.0.0.1:0
+    let req = vec![
+        SOCKS5_VERSION,
+        SOCKS5_CMD_UDP_ASSOCIATE,
+        0x00,
+        oxide_daemon::services::netstack::SOCKS5_ATYP_IPV4,
+        127,
+        0,
+        0,
+        1,
+        0,
+        0,
+    ];
 
     client.write_all(&req).await.unwrap();
 

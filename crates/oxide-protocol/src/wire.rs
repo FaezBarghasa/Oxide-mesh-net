@@ -103,7 +103,9 @@ impl WireObfuscator {
     #[inline]
     pub fn deobfuscate_header(session_secret: &[u8; 32], buffer: &[u8]) -> Result<PacketHeader> {
         if buffer.len() < 20 {
-            return Err(OxideError::Protocol("Buffer too short for obfuscated header".into()));
+            return Err(OxideError::Protocol(
+                "Buffer too short for obfuscated header".into(),
+            ));
         }
         let salt = u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
         let obf = Self::new(session_secret, salt);
@@ -511,10 +513,7 @@ mod tests {
         let obfuscated_bytes = obf.obfuscate_header(&original_header);
 
         // Header must NOT contain cleartext "OXID" magic bytes
-        assert_ne!(
-            &obfuscated_bytes[4..8],
-            &PROTOCOL_MAGIC.to_le_bytes()
-        );
+        assert_ne!(&obfuscated_bytes[4..8], &PROTOCOL_MAGIC.to_le_bytes());
 
         // Deobfuscation must yield exact original header
         let recovered = WireObfuscator::deobfuscate_header(&secret, &obfuscated_bytes).unwrap();

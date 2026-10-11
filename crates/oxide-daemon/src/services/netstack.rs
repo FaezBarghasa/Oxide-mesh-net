@@ -293,7 +293,8 @@ impl UserspaceNetstackServer {
                                         // Keep client TCP connection alive while UDP association holds
                                         let mut dummy = [0u8; 1];
                                         while client.read_exact(&mut dummy).await.is_ok() {
-                                            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                                            tokio::time::sleep(tokio::time::Duration::from_secs(1))
+                                                .await;
                                         }
                                     }
                                 }

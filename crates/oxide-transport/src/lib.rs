@@ -1,5 +1,4 @@
-//! QUIC transport engine for oxide-mesh-net
-
+pub mod cdn_bridge;
 pub mod circuit_breaker;
 pub mod config;
 pub mod dplpmtud;
@@ -9,6 +8,7 @@ pub mod nat;
 pub mod porthopper;
 pub mod routing;
 
+pub use cdn_bridge::{CdnEdgeConfig, CdnEdgeTunnelClient, CdnTunnelStats};
 pub use circuit_breaker::{CircuitBreakerConfig, CircuitStatus, TransportCircuitBreaker};
 pub use config::{CongestionControl, TransportConfig, make_client_config, make_server_config};
 pub use dplpmtud::{DplpmtudConfig, DplpmtudEngine, DplpmtudPhase};

@@ -223,12 +223,13 @@ impl DaemonEngine {
                     "TUN interface '{}' provisioned successfully",
                     engine.config.tun_name
                 );
-                if let Some(mut queue) = tun_dev.queue(0) {
+                for mut queue in tun_dev.queues() {
                     let eng = engine.clone();
+                    let q_id = queue.queue_id();
                     tokio::spawn(async move {
                         let mut buf = vec![0u8; 65535];
                         let mut l1 = L1DirectMappedCache::new();
-                        let mut seq: u32 = 0;
+                        let mut seq: u32 = (q_id as u32).wrapping_mul(1_000_000);
                         loop {
                             use tokio::io::AsyncReadExt;
                             match queue.read(&mut buf).await {
@@ -258,7 +259,7 @@ impl DaemonEngine {
                                     }
                                 }
                                 Err(e) => {
-                                    tracing::error!("TUN read loop ended: {}", e);
+                                    tracing::error!("TUN queue {} read loop ended: {}", q_id, e);
                                     break;
                                 }
                             }
