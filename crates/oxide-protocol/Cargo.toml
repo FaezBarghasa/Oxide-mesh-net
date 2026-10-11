@@ -20,6 +20,7 @@ bytemuck = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 uuid = { workspace = true, features = ["v4", "v7", "serde", "fast-rng"] }
 time = { workspace = true }
+blake3 = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

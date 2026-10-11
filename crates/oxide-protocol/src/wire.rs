@@ -64,6 +64,60 @@ impl PacketHeader {
     }
 }
 
+/// 16-byte Wire Header Obfuscator for Anti-DPI & Anti-Censorship
+///
+/// Converts recognizable static protocol magic bytes into high-entropy pseudo-random noise
+/// using an ephemeral session salt and a keyed Blake3/PRNG keystream.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WireObfuscator {
+    salt: u32,
+    mask: [u8; 16],
+}
+
+impl WireObfuscator {
+    /// Create a new obfuscator seeded by a shared session secret and a dynamic salt (e.g. timestamp or sequence)
+    pub fn new(session_secret: &[u8; 32], salt: u32) -> Self {
+        let mut hasher = blake3::Hasher::new_keyed(session_secret);
+        hasher.update(&salt.to_le_bytes());
+        let hash = hasher.finalize();
+        let mut mask = [0u8; 16];
+        mask.copy_from_slice(&hash.as_bytes()[..16]);
+        Self { salt, mask }
+    }
+
+    /// Obfuscate an authentic PacketHeader into indistinguishable random bytes with salt prepended
+    #[inline]
+    pub fn obfuscate_header(&self, header: &PacketHeader) -> [u8; 20] {
+        let raw = header.as_bytes();
+        let mut out = [0u8; 20];
+        // First 4 bytes: Ephemeral salt
+        out[..4].copy_from_slice(&self.salt.to_le_bytes());
+        // Remaining 16 bytes: XOR masked header
+        for i in 0..16 {
+            out[4 + i] = raw[i] ^ self.mask[i];
+        }
+        out
+    }
+
+    /// Deobfuscate an obfuscated slice back into an authentic PacketHeader
+    #[inline]
+    pub fn deobfuscate_header(session_secret: &[u8; 32], buffer: &[u8]) -> Result<PacketHeader> {
+        if buffer.len() < 20 {
+            return Err(OxideError::Protocol("Buffer too short for obfuscated header".into()));
+        }
+        let salt = u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]);
+        let obf = Self::new(session_secret, salt);
+        let mut raw = [0u8; 16];
+        for i in 0..16 {
+            raw[i] = buffer[4 + i] ^ obf.mask[i];
+        }
+        let header = PacketHeader::ref_from_bytes(&raw)
+            .map_err(|e| OxideError::Protocol(format!("Deobfuscated header malformed: {e}")))?;
+        header.validate()?;
+        Ok(*header)
+    }
+}
+
 /// Complete wire packet with header and payload
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirePacket {
@@ -446,5 +500,28 @@ mod tests {
                 payload_len: 2
             }
         );
+    }
+
+    #[test]
+    fn test_wire_header_obfuscation_and_deobfuscation() {
+        let secret = [0x55u8; 32];
+        let original_header = PacketHeader::new(PacketType::Ipv4, 9999, 512);
+
+        let obf = WireObfuscator::new(&secret, 0x12345678);
+        let obfuscated_bytes = obf.obfuscate_header(&original_header);
+
+        // Header must NOT contain cleartext "OXID" magic bytes
+        assert_ne!(
+            &obfuscated_bytes[4..8],
+            &PROTOCOL_MAGIC.to_le_bytes()
+        );
+
+        // Deobfuscation must yield exact original header
+        let recovered = WireObfuscator::deobfuscate_header(&secret, &obfuscated_bytes).unwrap();
+        assert_eq!(recovered, original_header);
+
+        // Deobfuscation with wrong secret must fail
+        let wrong_secret = [0xAAu8; 32];
+        assert!(WireObfuscator::deobfuscate_header(&wrong_secret, &obfuscated_bytes).is_err());
     }
 }

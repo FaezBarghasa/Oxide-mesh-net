@@ -10,12 +10,20 @@ use tokio::net::TcpStream;
 pub const SOCKS5_VERSION: u8 = 0x05;
 pub const SOCKS5_AUTH_NONE: u8 = 0x00;
 pub const SOCKS5_CMD_CONNECT: u8 = 0x01;
+pub const SOCKS5_CMD_UDP_ASSOCIATE: u8 = 0x03;
 pub const SOCKS5_REPLY_SUCCESS: u8 = 0x00;
 pub const SOCKS5_REPLY_FAILURE: u8 = 0x01;
 pub const SOCKS5_REPLY_COMMAND_NOT_SUPPORTED: u8 = 0x07;
 pub const SOCKS5_ATYP_IPV4: u8 = 0x01;
 pub const SOCKS5_ATYP_DOMAIN: u8 = 0x03;
 pub const SOCKS5_ATYP_IPV6: u8 = 0x04;
+
+/// Client command requested in SOCKS5 header
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Socks5Command {
+    Connect(TargetAddress),
+    UdpAssociate(TargetAddress),
+}
 
 /// Target address requested by SOCKS5 client
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -99,7 +107,7 @@ impl UserspaceNetstackServer {
     }
 
     /// Parse SOCKS5 connection request and extract target destination
-    pub async fn handle_socks5_request(stream: &mut TcpStream) -> Result<TargetAddress, String> {
+    pub async fn handle_socks5_request(stream: &mut TcpStream) -> Result<Socks5Command, String> {
         let mut req_header = [0u8; 4];
         stream
             .read_exact(&mut req_header)
@@ -110,8 +118,8 @@ impl UserspaceNetstackServer {
             return Err("Invalid SOCKS version in request".into());
         }
 
-        if req_header[1] != SOCKS5_CMD_CONNECT {
-            // Only TCP CONNECT is supported in userspace proxy mode
+        let cmd = req_header[1];
+        if cmd != SOCKS5_CMD_CONNECT && cmd != SOCKS5_CMD_UDP_ASSOCIATE {
             let reply = [
                 SOCKS5_VERSION,
                 SOCKS5_REPLY_COMMAND_NOT_SUPPORTED,
@@ -125,7 +133,7 @@ impl UserspaceNetstackServer {
                 0,
             ];
             stream.write_all(&reply).await.ok();
-            return Err("Only CONNECT command supported".into());
+            return Err(format!("Unsupported command: 0x{:02X}", cmd));
         }
 
         let target = match req_header[3] {
@@ -204,7 +212,11 @@ impl UserspaceNetstackServer {
             .await
             .map_err(|e| format!("Failed to write request reply: {}", e))?;
 
-        Ok(target)
+        if cmd == SOCKS5_CMD_UDP_ASSOCIATE {
+            Ok(Socks5Command::UdpAssociate(target))
+        } else {
+            Ok(Socks5Command::Connect(target))
+        }
     }
 
     /// Proxy bidirectional traffic between two TCP streams
@@ -253,26 +265,37 @@ impl UserspaceNetstackServer {
                         let stats = server.stats.clone();
                         tokio::spawn(async move {
                             if let Ok(()) = Self::handle_socks5_greeting(&mut client).await
-                                && let Ok(target) = Self::handle_socks5_request(&mut client).await
+                                && let Ok(cmd) = Self::handle_socks5_request(&mut client).await
                             {
-                                let target_addr_res = match target {
-                                    TargetAddress::Ip(sa) => Ok(sa),
-                                    TargetAddress::Domain(dom, port) => {
-                                        tokio::net::lookup_host(format!("{}:{}", dom, port))
-                                            .await
-                                            .map_err(|e| e.to_string())
-                                            .and_then(|mut iter| {
-                                                iter.next().ok_or_else(|| {
-                                                    "DNS lookup yielded 0 addrs".to_string()
-                                                })
-                                            })
-                                    }
-                                };
+                                match cmd {
+                                    Socks5Command::Connect(target) => {
+                                        let target_addr_res = match target {
+                                            TargetAddress::Ip(sa) => Ok(sa),
+                                            TargetAddress::Domain(dom, port) => {
+                                                tokio::net::lookup_host(format!("{}:{}", dom, port))
+                                                    .await
+                                                    .map_err(|e| e.to_string())
+                                                    .and_then(|mut iter| {
+                                                        iter.next().ok_or_else(|| {
+                                                            "DNS lookup yielded 0 addrs".to_string()
+                                                        })
+                                                    })
+                                            }
+                                        };
 
-                                if let Ok(addr) = target_addr_res
-                                    && let Ok(remote) = TcpStream::connect(addr).await
-                                {
-                                    Self::proxy_bidirectional(client, remote, stats).await;
+                                        if let Ok(addr) = target_addr_res
+                                            && let Ok(remote) = TcpStream::connect(addr).await
+                                        {
+                                            Self::proxy_bidirectional(client, remote, stats).await;
+                                        }
+                                    }
+                                    Socks5Command::UdpAssociate(_client_assoc_addr) => {
+                                        // Keep client TCP connection alive while UDP association holds
+                                        let mut dummy = [0u8; 1];
+                                        while client.read_exact(&mut dummy).await.is_ok() {
+                                            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                                        }
+                                    }
                                 }
                             }
                         });
