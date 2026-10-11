@@ -83,6 +83,14 @@ enum Commands {
         alias: Option<String>,
     },
 
+    /// Route domain or subdomain to specific local port (e.g. sub.domain.com -> 8282)
+    Vhost {
+        /// Hostname or subdomain (e.g. sub.domain.com, sub3.domain.com, *.domain.com)
+        domain: String,
+        /// Target backend port (e.g. 8282, 6543)
+        port: u16,
+    },
+
     /// Expose local service to the public internet (Tailscale Funnel equivalent)
     Funnel {
         /// Local port to expose publicly
@@ -446,6 +454,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("{}", res);
             }
         },
+        Commands::Vhost { domain, port } => {
+            let res = client.set_vhost_route(domain.clone(), port).await?;
+            println!("{}", res);
+            println!(
+                "Virtual Host Routing configured: {} -> 127.0.0.1:{}",
+                domain, port
+            );
+        }
         Commands::Ping { target } => {
             let start = Instant::now();
             let pong = client.ping().await?;

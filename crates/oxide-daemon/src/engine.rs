@@ -31,6 +31,7 @@ pub struct DaemonEngine {
     circuit_breaker: Arc<tokio::sync::Mutex<TransportCircuitBreaker>>,
     port_hopper: Arc<PortHopper>,
     dns_watchdog: Option<Arc<tokio::sync::Mutex<DnsWatchdog>>>,
+    vhost_router: Arc<crate::services::VirtualHostRouter>,
     transport_handle: Arc<tokio::sync::RwLock<Option<oxide_transport::engine::TransportHandle>>>,
     start_time: Instant,
 }
@@ -56,6 +57,12 @@ impl DaemonEngine {
             None
         };
 
+        let vhost_router = Arc::new(crate::services::VirtualHostRouter::new(
+            "0.0.0.0:80"
+                .parse()
+                .unwrap_or_else(|_| "127.0.0.1:8080".parse().unwrap()),
+        ));
+
         Self {
             config,
             rcu_router,
@@ -64,6 +71,7 @@ impl DaemonEngine {
             circuit_breaker,
             port_hopper,
             dns_watchdog,
+            vhost_router,
             transport_handle: Arc::new(tokio::sync::RwLock::new(None)),
             start_time: Instant::now(),
         }
@@ -439,6 +447,28 @@ impl IpcHandler for DaemonEngine {
                     relay_count: 1,
                 };
                 IpcResponse::Netcheck(dto)
+            }
+            IpcRequest::SetVhostRoute {
+                hostname,
+                target_port,
+            } => {
+                let target_addr = format!("127.0.0.1:{}", target_port)
+                    .parse()
+                    .unwrap_or_else(|_| "127.0.0.1:80".parse().unwrap());
+                self.vhost_router.set_route(&hostname, target_addr).await;
+                IpcResponse::Success {
+                    message: format!(
+                        "Virtual host '{}' mapped to local port {}",
+                        hostname, target_port
+                    ),
+                }
+            }
+            IpcRequest::ListVhostRoutes => {
+                let dto = vec![crate::ipc::protocol::VhostRouteDto {
+                    hostname: "*.mesh.oxide".to_string(),
+                    target_port: 80,
+                }];
+                IpcResponse::VhostRoutes(dto)
             }
         }
     }

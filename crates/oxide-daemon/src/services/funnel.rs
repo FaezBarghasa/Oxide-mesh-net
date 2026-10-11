@@ -146,7 +146,10 @@ impl VirtualHostRouter {
     pub async fn set_route(&self, hostname: &str, target_addr: SocketAddr) {
         let mut routes = self.routes.write().await;
         routes.insert(hostname.to_ascii_lowercase(), target_addr);
-        info!("Mapped virtual host '{}' -> target {}", hostname, target_addr);
+        info!(
+            "Mapped virtual host '{}' -> target {}",
+            hostname, target_addr
+        );
     }
 
     /// Remove a domain/subdomain mapping
@@ -193,13 +196,18 @@ impl VirtualHostRouter {
     pub async fn start(self: Arc<Self>) -> Result<(), String> {
         let listener = tokio::net::TcpListener::bind(self.bind_addr)
             .await
-            .map_err(|e| format!("Failed to bind virtual host router on {}: {}", self.bind_addr, e))?;
+            .map_err(|e| {
+                format!(
+                    "Failed to bind virtual host router on {}: {}",
+                    self.bind_addr, e
+                )
+            })?;
 
         info!("Virtual Host HTTP router listening on {}", self.bind_addr);
         let this = self.clone();
 
         tokio::spawn(async move {
-            use tokio::io::{AsyncReadExt, AsyncWriteExt};
+            use tokio::io::AsyncWriteExt;
             while let Ok((mut client, _)) = listener.accept().await {
                 let router = this.clone();
                 tokio::spawn(async move {
@@ -209,20 +217,19 @@ impl VirtualHostRouter {
                         _ => return,
                     };
 
-                    if let Some(host) = Self::extract_host_header(&peek_buf[..n]) {
-                        if let Some(target_addr) = router.resolve_host(&host).await {
-                            if let Ok(mut backend) = tokio::net::TcpStream::connect(target_addr).await {
-                                let (mut cr, mut cw) = client.split();
-                                let (mut br, mut bw) = backend.split();
-                                let c_to_b = tokio::io::copy(&mut cr, &mut bw);
-                                let b_to_c = tokio::io::copy(&mut br, &mut cw);
-                                let _ = tokio::select! {
-                                    r1 = c_to_b => r1,
-                                    r2 = b_to_c => r2,
-                                };
-                                return;
-                            }
-                        }
+                    if let Some(host) = Self::extract_host_header(&peek_buf[..n])
+                        && let Some(target_addr) = router.resolve_host(&host).await
+                        && let Ok(mut backend) = tokio::net::TcpStream::connect(target_addr).await
+                    {
+                        let (mut cr, mut cw) = client.split();
+                        let (mut br, mut bw) = backend.split();
+                        let c_to_b = tokio::io::copy(&mut cr, &mut bw);
+                        let b_to_c = tokio::io::copy(&mut br, &mut cw);
+                        let _ = tokio::select! {
+                            r1 = c_to_b => r1,
+                            r2 = b_to_c => r2,
+                        };
+                        return;
                     }
 
                     // Return 404/502 Bad Gateway if host is unrecognized
@@ -273,5 +280,54 @@ mod tests {
 
         assert!(service.unregister_service("dev-api"));
         assert_eq!(service.list_services().len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_virtual_host_router_matching() {
+        let router = VirtualHostRouter::new("0.0.0.0:80".parse().unwrap());
+        router
+            .set_route("sub.domain.com", "127.0.0.1:8282".parse().unwrap())
+            .await;
+        router
+            .set_route("sub3.domain.com", "127.0.0.1:6543".parse().unwrap())
+            .await;
+        router
+            .set_route("*.corp.local", "127.0.0.1:9000".parse().unwrap())
+            .await;
+
+        // Exact match testing
+        assert_eq!(
+            router.resolve_host("sub.domain.com").await,
+            Some("127.0.0.1:8282".parse().unwrap())
+        );
+        assert_eq!(
+            router.resolve_host("sub3.domain.com").await,
+            Some("127.0.0.1:6543".parse().unwrap())
+        );
+
+        // Wildcard match testing
+        assert_eq!(
+            router.resolve_host("app.corp.local").await,
+            Some("127.0.0.1:9000".parse().unwrap())
+        );
+        assert_eq!(
+            router.resolve_host("nested.app.corp.local").await,
+            Some("127.0.0.1:9000".parse().unwrap())
+        );
+
+        // Non-existent route
+        assert_eq!(router.resolve_host("unknown.domain.com").await, None);
+    }
+
+    #[test]
+    fn test_extract_host_header() {
+        let raw_http = b"GET /api/v1/status HTTP/1.1\r\nHost: sub.domain.com:8282\r\nUser-Agent: curl/7.81.0\r\n\r\n";
+        let extracted = VirtualHostRouter::extract_host_header(raw_http);
+        assert_eq!(extracted.as_deref(), Some("sub.domain.com"));
+
+        let raw_http_no_port =
+            b"POST /submit HTTP/1.1\r\nhost: sub3.domain.com\r\nContent-Length: 0\r\n\r\n";
+        let extracted2 = VirtualHostRouter::extract_host_header(raw_http_no_port);
+        assert_eq!(extracted2.as_deref(), Some("sub3.domain.com"));
     }
 }
