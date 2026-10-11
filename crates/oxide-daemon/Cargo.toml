@@ -5,7 +5,7 @@ edition = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 categories = ["network-programming", "system-tools"]
-description = "High-performance background daemon and Actix Web administrative server for oxide-mesh-net"
+description = "High-performance background zero-trust mesh networking daemon for oxide-mesh-net"
 
 [dependencies]
 oxide-core = { path = "../oxide-core" }
@@ -23,8 +23,6 @@ thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 clap = { workspace = true }
-actix-web = "4.9"
-actix-cors = "0.7"
 blake3 = { workspace = true }
 bytes = { workspace = true }
 arc-swap = { workspace = true }

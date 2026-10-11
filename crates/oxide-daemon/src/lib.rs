@@ -1,4 +1,4 @@
-//! High-performance background daemon and Actix Web administrative server for oxide-mesh-net
+//! High-performance background zero-trust mesh networking daemon for oxide-mesh-net
 
 pub mod config;
 pub mod engine;

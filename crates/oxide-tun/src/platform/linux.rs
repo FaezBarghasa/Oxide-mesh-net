@@ -10,7 +10,7 @@ use libc::{IFNAMSIZ, c_short, c_ulong};
 use std::{
     fs::OpenOptions,
     io,
-    os::fd::{AsRawFd, OwnedFd},
+    os::fd::{AsRawFd, FromRawFd, OwnedFd},
     task::{Context, Poll},
 };
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
@@ -95,6 +95,19 @@ impl LinuxTunDevice {
         device.configure(config)?;
 
         Ok(device)
+    }
+
+    /// Create Linux TUN device adopting an already-open file descriptor (e.g. from Android VpnService or container)
+    pub fn from_raw_fd(name: String, raw_fd: std::os::fd::RawFd) -> Result<Self> {
+        let fd = unsafe { OwnedFd::from_raw_fd(raw_fd) };
+        let cloned_fd = fd.try_clone().map_err(TunError::Io)?;
+        let queue = LinuxTunQueue::new(cloned_fd, 0)?;
+        Ok(Self {
+            name,
+            main_fd: fd,
+            queues: vec![queue],
+            num_queues: 1,
+        })
     }
 
     fn configure(&self, config: &TunConfig) -> Result<()> {

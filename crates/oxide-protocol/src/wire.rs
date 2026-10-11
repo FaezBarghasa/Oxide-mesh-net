@@ -1,6 +1,6 @@
 //! Wire protocol framing for data plane packets
 
-use bytes::{BufMut, BytesMut};
+use bytes::{BufMut, Bytes, BytesMut};
 use oxide_core::error::{OxideError, Result};
 use oxide_core::{OverlayIp, PacketType, ProtocolVersion};
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
@@ -68,11 +68,12 @@ impl PacketHeader {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WirePacket {
     pub header: PacketHeader,
-    pub payload: Vec<u8>,
+    pub payload: Bytes,
 }
 
 impl WirePacket {
-    pub fn new(packet_type: PacketType, packet_id: u32, payload: Vec<u8>) -> Result<Self> {
+    pub fn new(packet_type: PacketType, packet_id: u32, payload: impl Into<Bytes>) -> Result<Self> {
+        let payload = payload.into();
         if payload.len() > MAX_PACKET_SIZE - PacketHeader::SIZE {
             return Err(OxideError::Protocol("Payload too large".into()));
         }
@@ -80,6 +81,16 @@ impl WirePacket {
             header: PacketHeader::new(packet_type, packet_id, payload.len() as u16),
             payload,
         })
+    }
+
+    pub fn from_bytes_slice(header: PacketHeader, payload: Bytes) -> Result<Self> {
+        header.validate()?;
+        if payload.len() != header.payload_len as usize {
+            return Err(OxideError::Protocol(
+                "Payload length does not match header".into(),
+            ));
+        }
+        Ok(Self { header, payload })
     }
 
     pub fn total_len(&self) -> usize {
@@ -111,7 +122,7 @@ impl WirePacket {
 
         Ok(Self {
             header: *header,
-            payload: bytes[PacketHeader::SIZE..].to_vec(),
+            payload: Bytes::copy_from_slice(&bytes[PacketHeader::SIZE..]),
         })
     }
 

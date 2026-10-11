@@ -248,7 +248,7 @@ impl DaemonEngine {
                                             if let Ok(wire_pkt) = oxide_protocol::WirePacket::new(
                                                 pkt_type,
                                                 seq,
-                                                buf[..n].to_vec(),
+                                                bytes::Bytes::copy_from_slice(&buf[..n]),
                                             ) {
                                                 let _ = handle
                                                     .send_datagram(route.node_id, wire_pkt)
