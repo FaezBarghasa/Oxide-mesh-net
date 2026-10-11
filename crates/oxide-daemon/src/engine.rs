@@ -250,7 +250,9 @@ impl DaemonEngine {
                                                 seq,
                                                 buf[..n].to_vec(),
                                             ) {
-                                                let _ = handle.send_datagram(route.node_id, wire_pkt).await;
+                                                let _ = handle
+                                                    .send_datagram(route.node_id, wire_pkt)
+                                                    .await;
                                             }
                                         }
                                     }

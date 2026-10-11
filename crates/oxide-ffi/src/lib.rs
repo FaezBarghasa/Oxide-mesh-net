@@ -29,7 +29,9 @@ pub struct OxideEngineContext {
 /// # Safety
 /// `config_json` must be a valid null-terminated C string or null for default configuration.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn oxide_engine_create(config_json: *const c_char) -> *mut OxideEngineContext {
+pub unsafe extern "C" fn oxide_engine_create(
+    config_json: *const c_char,
+) -> *mut OxideEngineContext {
     let config = if config_json.is_null() {
         DaemonConfig::default()
     } else {
@@ -214,7 +216,15 @@ mod tests {
     #[test]
     fn test_ffi_null_safety() {
         unsafe {
-            assert_eq!(oxide_process_packet(std::ptr::null_mut(), std::ptr::null_mut(), 0, std::ptr::null_mut()), OXIDE_ERR_NULL_PTR);
+            assert_eq!(
+                oxide_process_packet(
+                    std::ptr::null_mut(),
+                    std::ptr::null_mut(),
+                    0,
+                    std::ptr::null_mut()
+                ),
+                OXIDE_ERR_NULL_PTR
+            );
             assert!(oxide_get_status(std::ptr::null_mut()).is_null());
             oxide_free_string(std::ptr::null_mut());
             oxide_engine_destroy(std::ptr::null_mut());
