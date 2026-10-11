@@ -60,21 +60,50 @@ impl Default for DaemonConfig {
 }
 
 impl DaemonConfig {
-    /// Load configuration from JSON file
+    /// Load configuration from either TOML or JSON file based on extension/content
     pub fn load_from_file(path: impl AsRef<Path>) -> Result<Self, std::io::Error> {
-        let content = std::fs::read_to_string(path)?;
-        serde_json::from_str(&content)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+        let p = path.as_ref();
+        let content = std::fs::read_to_string(p)?;
+        let is_toml = p
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.eq_ignore_ascii_case("toml"))
+            .unwrap_or(false);
+
+        if is_toml {
+            toml::from_str(&content)
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+        } else {
+            // Attempt JSON first, fall back to TOML if JSON parse fails
+            match serde_json::from_str(&content) {
+                Ok(cfg) => Ok(cfg),
+                Err(_) => toml::from_str(&content)
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e)),
+            }
+        }
     }
 
-    /// Save configuration to JSON file
+    /// Save configuration to file (formats as TOML for .toml extension, otherwise JSON)
     pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), std::io::Error> {
-        if let Some(parent) = path.as_ref().parent() {
+        let p = path.as_ref();
+        if let Some(parent) = p.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let serialized = serde_json::to_string_pretty(self)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-        std::fs::write(path, serialized)
+        let is_toml = p
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.eq_ignore_ascii_case("toml"))
+            .unwrap_or(false);
+
+        let content = if is_toml {
+            toml::to_string_pretty(self)
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?
+        } else {
+            serde_json::to_string_pretty(self)
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?
+        };
+
+        std::fs::write(p, content)
     }
 }
 
@@ -90,5 +119,15 @@ mod tests {
         assert_eq!(config.node_id, deserialized.node_id);
         assert_eq!(config.tun_name, deserialized.tun_name);
         assert_eq!(config.mtu, deserialized.mtu);
+    }
+
+    #[test]
+    fn test_daemon_config_toml_roundtrip() {
+        let config = DaemonConfig::default();
+        let toml_str = toml::to_string_pretty(&config).unwrap();
+        let deserialized: DaemonConfig = toml::from_str(&toml_str).unwrap();
+        assert_eq!(config.node_id, deserialized.node_id);
+        assert_eq!(config.listen_port, deserialized.listen_port);
+        assert_eq!(config.mesh_name, deserialized.mesh_name);
     }
 }

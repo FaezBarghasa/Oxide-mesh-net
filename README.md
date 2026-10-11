@@ -80,6 +80,8 @@ cargo run -p oxide-cli -- up --coordinator https://coord.oxide.mesh:8443
 
 ## 📚 Documentation Index
 
+- [Quickstart & Setup Guide](file:///home/jrad/RustroverProjects/Oxide-mesh-net/docs/setup-guide.md)
+- [Configuration Reference Guide](file:///home/jrad/RustroverProjects/Oxide-mesh-net/docs/configuration-guide.md)
 - [Architecture Master Blueprint](file:///home/jrad/RustroverProjects/Oxide-mesh-net/docs/architecture.md)
 - [Product Requirements Document (PRD)](file:///home/jrad/RustroverProjects/Oxide-mesh-net/docs/prd.md)
 - [System Design Specification](file:///home/jrad/RustroverProjects/Oxide-mesh-net/docs/design.md)

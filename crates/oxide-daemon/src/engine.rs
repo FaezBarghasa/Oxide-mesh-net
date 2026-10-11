@@ -332,6 +332,14 @@ impl DaemonEngine {
             });
         }
 
+        // Spawn Virtual Host HTTP reverse proxy router
+        let vhost = engine.vhost_router.clone();
+        tokio::spawn(async move {
+            if let Err(e) = vhost.start().await {
+                warn!("Virtual Host HTTP router error: {}", e);
+            }
+        });
+
         info!("Oxide Daemon data plane initialized successfully");
         Ok(())
     }

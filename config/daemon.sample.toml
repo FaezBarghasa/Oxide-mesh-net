@@ -1,0 +1,35 @@
+# oxide-mesh-net: Production Node Configuration Profile
+# Location: /etc/oxide/daemon.toml or ./daemon.toml
+
+# Unique 32-byte cryptographic node identifier (auto-generated or static)
+node_id = "0000000000000000000000000000000000000000000000000000000000000001"
+
+# Mesh cluster or organization identifier
+mesh_name = "production-mesh"
+
+# Optional centralized / distributed coordinator endpoint (Actix Web + MQTT)
+# coordinator_url = "https://coord.oxide.mesh:8443"
+
+# Virtual TUN interface configuration
+tun_name = "oxide0"
+mtu = 1420
+
+# UDP transport listen port (hops pseudo-randomly when port_hopping is active)
+listen_port = 51820
+
+# Autonomous DNS & MTU management
+enable_dns = true
+enable_mss_clamp = true
+
+# Local Unix IPC socket path for CLI & management agent
+# socket_path = "/run/oxide/daemon.sock"
+
+# Overlay IPv4 and IPv6 addresses assigned to this node
+overlay_ipv4 = "100.64.0.42"
+overlay_ipv6 = "fd00:1d:e::42"
+
+# Static subnet routing entries (optional)
+# [[static_routes]]
+# prefix = "192.168.10.0/24"
+# target_node = "oxide-gateway-edge-01"
+# pmtu = 1380

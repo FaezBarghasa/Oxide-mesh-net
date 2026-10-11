@@ -42,6 +42,22 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    /// Initialize local node keys and configuration profile
+    Init {
+        /// Path to save configuration file (default: /etc/oxide/daemon.toml or ./daemon.toml)
+        #[arg(short, long)]
+        config: Option<PathBuf>,
+        /// Optional mesh name
+        #[arg(long, default_value = "default")]
+        mesh: String,
+        /// Optional coordinator URL
+        #[arg(long)]
+        coordinator: Option<String>,
+        /// Overwrite configuration if file already exists
+        #[arg(long, default_value_t = false)]
+        force: bool,
+    },
+
     /// Query daemon status, PMTU, and transport state
     Status {
         /// Show detailed connected peer list
@@ -205,6 +221,57 @@ enum AclSubcommands {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
+    // Handle offline administrative commands before IPC socket connection
+    if let Commands::Init {
+        config,
+        mesh,
+        coordinator,
+        force,
+    } = &cli.command
+    {
+        let target_path = config.clone().unwrap_or_else(|| {
+            let etc_path = PathBuf::from("/etc/oxide/daemon.toml");
+            if etc_path.parent().map(|p| p.exists()).unwrap_or(false) {
+                etc_path
+            } else {
+                PathBuf::from("daemon.toml")
+            }
+        });
+
+        if target_path.exists() && !force {
+            eprintln!(
+                "Configuration file already exists at {:?}. Use `--force` to overwrite.",
+                target_path
+            );
+            std::process::exit(1);
+        }
+
+        let daemon_cfg = oxide_daemon::config::DaemonConfig {
+            mesh_name: mesh.clone(),
+            coordinator_url: coordinator.clone(),
+            ..Default::default()
+        };
+
+        daemon_cfg.save_to_file(&target_path)?;
+
+        println!("=== Oxide Mesh Net Initialized ===");
+        println!("  Node Identity:     {}", daemon_cfg.node_id);
+        println!("  Mesh Group:        {}", daemon_cfg.mesh_name);
+        println!("  Overlay IPv4:      {}", daemon_cfg.overlay_ipv4);
+        println!("  Overlay IPv6:      {}", daemon_cfg.overlay_ipv6);
+        println!("  Listen Port:       UDP/{}", daemon_cfg.listen_port);
+        println!("  Configuration:     {:?}", target_path);
+        println!();
+        println!("Next steps:");
+        println!("  1. Review or customize {:?}", target_path);
+        println!(
+            "  2. Start daemon: `oxide-daemon --config {:?}`",
+            target_path
+        );
+        println!("  3. Connect:      `oxide up`");
+        return Ok(());
+    }
+
     let mut client = match IpcClient::connect(cli.socket.as_deref()).await {
         Ok(c) => c,
         Err(e) => {
@@ -215,6 +282,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     match cli.command {
+        Commands::Init { .. } => unreachable!(),
         Commands::Status { peers } => {
             let status = client.status().await?;
             if cli.json {
