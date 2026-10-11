@@ -232,6 +232,61 @@ impl UserspaceNetstackServer {
         stats.active_connections.fetch_sub(1, Ordering::Relaxed);
     }
 
+    /// Start listening on configured SOCKS5 proxy port and accept incoming connections
+    pub async fn start_listener(self: Arc<Self>) -> Result<(), String> {
+        let listener = tokio::net::TcpListener::bind(self.config.bind_addr)
+            .await
+            .map_err(|e| {
+                format!(
+                    "Failed to bind SOCKS5 listener to {}: {}",
+                    self.config.bind_addr, e
+                )
+            })?;
+
+        self.is_running.store(true, Ordering::Relaxed);
+        let server = self.clone();
+
+        tokio::spawn(async move {
+            while server.is_running.load(Ordering::Relaxed) {
+                match listener.accept().await {
+                    Ok((mut client, _peer_addr)) => {
+                        let stats = server.stats.clone();
+                        tokio::spawn(async move {
+                            if let Ok(()) = Self::handle_socks5_greeting(&mut client).await
+                                && let Ok(target) = Self::handle_socks5_request(&mut client).await
+                            {
+                                let target_addr_res = match target {
+                                    TargetAddress::Ip(sa) => Ok(sa),
+                                    TargetAddress::Domain(dom, port) => {
+                                        tokio::net::lookup_host(format!("{}:{}", dom, port))
+                                            .await
+                                            .map_err(|e| e.to_string())
+                                            .and_then(|mut iter| {
+                                                iter.next().ok_or_else(|| {
+                                                    "DNS lookup yielded 0 addrs".to_string()
+                                                })
+                                            })
+                                    }
+                                };
+
+                                if let Ok(addr) = target_addr_res
+                                    && let Ok(remote) = TcpStream::connect(addr).await
+                                {
+                                    Self::proxy_bidirectional(client, remote, stats).await;
+                                }
+                            }
+                        });
+                    }
+                    Err(e) => {
+                        tracing::warn!("SOCKS5 listener accept error: {}", e);
+                    }
+                }
+            }
+        });
+
+        Ok(())
+    }
+
     pub fn config(&self) -> &NetstackConfig {
         &self.config
     }

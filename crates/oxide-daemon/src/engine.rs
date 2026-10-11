@@ -300,6 +300,17 @@ impl DaemonEngine {
                     "Could not create TUN interface '{}' (operating in userspace netstack mode): {}",
                     engine.config.tun_name, e
                 );
+                let netstack = Arc::new(crate::services::UserspaceNetstackServer::new(
+                    crate::services::NetstackConfig::default(),
+                ));
+                if let Err(net_err) = netstack.start_listener().await {
+                    warn!(
+                        "Failed to start rootless userspace netstack proxy: {}",
+                        net_err
+                    );
+                } else {
+                    info!("Rootless userspace SOCKS5 netstack proxy running on 127.0.0.1:1055");
+                }
             }
         }
 
