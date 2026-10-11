@@ -123,6 +123,119 @@ impl FunnelService {
     }
 }
 
+/// Dynamic Virtual Host HTTP Reverse Proxy
+///
+/// Inspects incoming HTTP Host headers and SNI indicators to route requests for distinct
+/// domains / subdomains (e.g. `sub.domain.com`, `sub3.domain.com`) to specific backend ports (e.g. 8282, 6543).
+#[derive(Debug, Clone)]
+pub struct VirtualHostRouter {
+    /// Domain/subdomain (lowercased) -> local destination port
+    routes: Arc<tokio::sync::RwLock<std::collections::HashMap<String, SocketAddr>>>,
+    bind_addr: SocketAddr,
+}
+
+impl VirtualHostRouter {
+    pub fn new(bind_addr: SocketAddr) -> Self {
+        Self {
+            routes: Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new())),
+            bind_addr,
+        }
+    }
+
+    /// Add or update a domain/subdomain mapping to a target port
+    pub async fn set_route(&self, hostname: &str, target_addr: SocketAddr) {
+        let mut routes = self.routes.write().await;
+        routes.insert(hostname.to_ascii_lowercase(), target_addr);
+        info!("Mapped virtual host '{}' -> target {}", hostname, target_addr);
+    }
+
+    /// Remove a domain/subdomain mapping
+    pub async fn remove_route(&self, hostname: &str) -> bool {
+        let mut routes = self.routes.write().await;
+        routes.remove(&hostname.to_ascii_lowercase()).is_some()
+    }
+
+    /// Get target address for a given domain/subdomain
+    pub async fn resolve_host(&self, hostname: &str) -> Option<SocketAddr> {
+        let routes = self.routes.read().await;
+        let lower = hostname.to_ascii_lowercase();
+        // Exact match first, then wildcards (e.g. *.domain.com)
+        if let Some(target) = routes.get(&lower) {
+            return Some(*target);
+        }
+        for (pattern, target) in routes.iter() {
+            if pattern.starts_with("*.") {
+                let suffix = &pattern[1..]; // .domain.com
+                if lower.ends_with(suffix) {
+                    return Some(*target);
+                }
+            }
+        }
+        None
+    }
+
+    /// Extract Host header from raw HTTP request buffer
+    pub fn extract_host_header(buffer: &[u8]) -> Option<String> {
+        let text = std::str::from_utf8(buffer).ok()?;
+        for line in text.lines() {
+            let trimmed = line.trim();
+            if trimmed.to_ascii_lowercase().starts_with("host:") {
+                let host_val = trimmed["host:".len()..].trim();
+                // Strip optional port in Host header (e.g. sub.domain.com:80 -> sub.domain.com)
+                let clean_host = host_val.split(':').next().unwrap_or(host_val);
+                return Some(clean_host.to_string());
+            }
+        }
+        None
+    }
+
+    /// Start listening and dispatching incoming connections based on Host headers
+    pub async fn start(self: Arc<Self>) -> Result<(), String> {
+        let listener = tokio::net::TcpListener::bind(self.bind_addr)
+            .await
+            .map_err(|e| format!("Failed to bind virtual host router on {}: {}", self.bind_addr, e))?;
+
+        info!("Virtual Host HTTP router listening on {}", self.bind_addr);
+        let this = self.clone();
+
+        tokio::spawn(async move {
+            use tokio::io::{AsyncReadExt, AsyncWriteExt};
+            while let Ok((mut client, _)) = listener.accept().await {
+                let router = this.clone();
+                tokio::spawn(async move {
+                    let mut peek_buf = [0u8; 4096];
+                    let n = match client.peek(&mut peek_buf).await {
+                        Ok(n) if n > 0 => n,
+                        _ => return,
+                    };
+
+                    if let Some(host) = Self::extract_host_header(&peek_buf[..n]) {
+                        if let Some(target_addr) = router.resolve_host(&host).await {
+                            if let Ok(mut backend) = tokio::net::TcpStream::connect(target_addr).await {
+                                let (mut cr, mut cw) = client.split();
+                                let (mut br, mut bw) = backend.split();
+                                let c_to_b = tokio::io::copy(&mut cr, &mut bw);
+                                let b_to_c = tokio::io::copy(&mut br, &mut cw);
+                                let _ = tokio::select! {
+                                    r1 = c_to_b => r1,
+                                    r2 = b_to_c => r2,
+                                };
+                                return;
+                            }
+                        }
+                    }
+
+                    // Return 404/502 Bad Gateway if host is unrecognized
+                    let not_found = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nOxide Mesh Net: Virtual Host Not Found\r\n";
+                    let _ = client.write_all(not_found).await;
+                });
+            }
+        });
+
+        Ok(())
+    }
+}
+
 impl Default for FunnelService {
     fn default() -> Self {
         Self::new()

@@ -18,6 +18,8 @@ pub enum IpcRequest {
     AclReload { rules_json: Option<String> },
     Ping,
     Netcheck,
+    SetVhostRoute { hostname: String, target_port: u16 },
+    ListVhostRoutes,
 }
 
 /// Response messages returned from Daemon to CLI
@@ -26,10 +28,18 @@ pub enum IpcResponse {
     Status(DaemonStatusDto),
     Routes(Vec<RouteEntryDto>),
     Peers(Vec<PeerStatusDto>),
+    VhostRoutes(Vec<VhostRouteDto>),
     Success { message: String },
     Error { error: String },
     Pong,
     Netcheck(NetcheckDto),
+}
+
+/// Virtual host mapping DTO
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct VhostRouteDto {
+    pub hostname: String,
+    pub target_port: u16,
 }
 
 /// High-level daemon status DTO

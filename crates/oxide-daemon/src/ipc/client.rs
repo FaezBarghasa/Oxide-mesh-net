@@ -109,4 +109,35 @@ impl IpcClient {
             _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
         }
     }
+
+    /// Set virtual host reverse proxy route for a domain/subdomain
+    pub async fn set_vhost_route(
+        &mut self,
+        hostname: String,
+        target_port: u16,
+    ) -> Result<String, std::io::Error> {
+        match self
+            .send(&IpcRequest::SetVhostRoute {
+                hostname,
+                target_port,
+            })
+            .await?
+        {
+            IpcResponse::Success { message } => Ok(message),
+            IpcResponse::Error { error } => Err(Error::other(error)),
+            _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
+        }
+    }
+
+    /// List active virtual host reverse proxy routes
+    pub async fn list_vhost_routes(
+        &mut self,
+    ) -> Result<Vec<super::protocol::VhostRouteDto>, std::io::Error> {
+        match self.send(&IpcRequest::ListVhostRoutes).await? {
+            IpcResponse::VhostRoutes(list) => Ok(list),
+            IpcResponse::Error { error } => Err(Error::other(error)),
+            _ => Err(Error::new(ErrorKind::InvalidData, "Unexpected response")),
+        }
+    }
 }
+
