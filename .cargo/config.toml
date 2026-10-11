@@ -1,0 +1,31 @@
+# Oxide Mesh Net Cross-Compilation & Target Configuration
+
+[build]
+# Default target is host, but configurations below provide deterministic cross-compilation
+rustflags = [
+    "-C", "target-cpu=native",
+]
+
+[target.x86_64-unknown-linux-musl]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-linux-android]
+rustflags = ["-C", "link-arg=-landroid", "-C", "link-arg=-llog"]
+
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "link-args=-lws2_32 -liphlpapi -luserenv"]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.bench]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

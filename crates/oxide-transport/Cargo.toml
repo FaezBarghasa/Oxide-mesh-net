@@ -31,3 +31,7 @@ dashmap = { workspace = true }
 [dev-dependencies]
 proptest = { workspace = true }
 criterion = { workspace = true }
+
+[[bench]]
+name = "bench_data_plane"
+harness = false
