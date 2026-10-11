@@ -83,6 +83,41 @@ impl FunnelService {
         self.rules.iter().find(|r| r.mesh_alias == alias)
     }
 
+    /// Spawn a local proxy listener forwarding incoming requests on bind_addr to local_target
+    pub async fn start_proxy_worker(
+        &self,
+        bind_addr: SocketAddr,
+        target_addr: SocketAddr,
+    ) -> Result<(), String> {
+        let listener = tokio::net::TcpListener::bind(bind_addr)
+            .await
+            .map_err(|e| format!("Failed to bind funnel proxy listener {}: {}", bind_addr, e))?;
+
+        let stats = self.stats.clone();
+        tokio::spawn(async move {
+            while let Ok((mut client, _)) = listener.accept().await {
+                let stats_clone = stats.clone();
+                tokio::spawn(async move {
+                    if let Ok(mut target) = tokio::net::TcpStream::connect(target_addr).await {
+                        stats_clone
+                            .total_requests
+                            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                        let (mut cr, mut cw) = client.split();
+                        let (mut tr, mut tw) = target.split();
+                        let c_to_t = tokio::io::copy(&mut cr, &mut tw);
+                        let t_to_c = tokio::io::copy(&mut tr, &mut cw);
+                        let _ = tokio::select! {
+                            r1 = c_to_t => r1,
+                            r2 = t_to_c => r2,
+                        };
+                    }
+                });
+            }
+        });
+
+        Ok(())
+    }
+
     pub fn stats(&self) -> &Arc<FunnelStats> {
         &self.stats
     }
